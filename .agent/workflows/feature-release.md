@@ -7,14 +7,15 @@ description: Automated feature release workflow with local verification, convent
 This workflow ensures that every feature or bugfix pushed to the repository is fully verified, documented, and follows established standards.
 
 ## Phase 1: Local Verification // turbo
-1. Run full verification suite:
+1. Run full verification suite (use `--concurrency 1` if encountering memory/OOM errors):
 ```bash
-pnpm turbo lint build test
+pnpm turbo lint build test --concurrency 1
 ```
 *Wait for this to pass. If it fails, fix the errors before proceeding.*
 2. **Test Transparency**: 
    - Display a list of all tests that were executed.
    - For any **newly added or modified test files**, show the code content or a detailed summary of the test cases to the user.
+   - Note: The project uses a hybrid testing setup: **Jest** for Mobile (Expo) and **Vitest** for Web/API.
 
 ## Phase 2: Conventional Staging
 1. Audit the changes for testing:
@@ -29,7 +30,7 @@ git add .
 ## Phase 3: Conventional Commits
 1. Prompt the user for:
    - **Type**: (feat, fix, docs, chore, etc.)
-   - **Scope**: (api, admin, client, mobile, shared, db)
+   - **Scope**: (api, admin, client, mobile, shared, db, ci)
    - **Description**: A short, imperative summary.
 2. Formulate the commit message: `<type>(<scope>): <description>`
 3. Execute commit:
@@ -56,10 +57,10 @@ git push -u origin $(git rev-parse --abbrev-ref HEAD)
 ## Phase 6: Main Alignment
 1. Switch back to the development baseline:
 ```bash
-git checkout develop
-git pull origin develop
+git checkout main
+git pull origin main
 ```
-*(Or `main` depending on the current active base)*
+*(Or `develop` depending on the current active base)*
 
 ---
 
