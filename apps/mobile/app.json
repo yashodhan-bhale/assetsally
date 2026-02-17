@@ -1,0 +1,48 @@
+{
+    "expo": {
+        "name": "AssetsAlly",
+        "slug": "assetsally-mobile",
+        "version": "0.0.1",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "scheme": "assetsally",
+        "userInterfaceStyle": "automatic",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#1e293b"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.assetsally.mobile",
+            "infoPlist": {
+                "NSCameraUsageDescription": "This app needs camera access to capture photos of inventory items.",
+                "NSLocationWhenInUseUsageDescription": "This app needs location access to geo-tag audit findings."
+            }
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#1e293b"
+            },
+            "package": "com.assetsally.mobile",
+            "permissions": [
+                "android.permission.CAMERA",
+                "android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION"
+            ]
+        },
+        "plugins": [
+            "expo-router",
+            "expo-camera",
+            "expo-location",
+            "expo-secure-store"
+        ],
+        "experiments": {
+            "typedRoutes": true
+        }
+    }
+}

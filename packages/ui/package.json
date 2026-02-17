@@ -1,0 +1,31 @@
+{
+    "name": "@assetsally/ui",
+    "version": "0.0.1",
+    "private": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "clean": "rimraf dist",
+        "lint": "eslint src/"
+    },
+    "dependencies": {
+        "class-variance-authority": "^0.7.0",
+        "clsx": "^2.1.0",
+        "lucide-react": "^0.330.0",
+        "tailwind-merge": "^2.2.0"
+    },
+    "devDependencies": {
+        "@assetsally/eslint-config": "workspace:*",
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0",
+        "rimraf": "^5.0.5",
+        "typescript": "^5.3.0"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0"
+    }
+}
