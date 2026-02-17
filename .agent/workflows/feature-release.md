@@ -12,12 +12,16 @@ This workflow ensures that every feature or bugfix pushed to the repository is f
 pnpm turbo lint build test
 ```
 *Wait for this to pass. If it fails, fix the errors before proceeding.*
+2. **Test Transparency**: 
+   - Display a list of all tests that were executed.
+   - For any **newly added or modified test files**, show the code content or a detailed summary of the test cases to the user.
 
 ## Phase 2: Conventional Staging
 1. Audit the changes for testing:
    - Check if new logic has corresponding test files.
    - If missing, prompt the user to add tests or explain why they are not needed.
-2. Stage all verified changes:
+2. Confirm the **Testing proof** with the user (show which tests cover which logic).
+3. Stage all verified changes:
 ```bash
 git add .
 ```

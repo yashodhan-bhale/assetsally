@@ -8,7 +8,7 @@
         "build": "tsc",
         "dev": "tsc --watch",
         "clean": "rimraf dist",
-        "lint": "eslint src/"
+        "lint": "eslint \"src/**/*.ts\""
     },
     "devDependencies": {
         "@assetsally/eslint-config": "workspace:*",

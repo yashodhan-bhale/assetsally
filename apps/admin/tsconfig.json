@@ -21,7 +21,10 @@
             "@assetsally/ui": [
                 "../../packages/ui/src"
             ]
-        }
+        },
+        "types": [
+            "vitest/globals"
+        ]
     },
     "include": [
         "next-env.d.ts",

@@ -9,7 +9,7 @@
         "build": "tsc",
         "dev": "tsc --watch",
         "clean": "rimraf dist",
-        "lint": "eslint src/"
+        "lint": "eslint \"src/**/*.{ts,tsx}\""
     },
     "dependencies": {
         "class-variance-authority": "^0.7.0",

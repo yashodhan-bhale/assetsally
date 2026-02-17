@@ -1,18 +1,18 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 
-@ApiTags('Health')
-@Controller('health')
+@ApiTags("Health")
+@Controller("health")
 export class HealthController {
-    @Get()
-    @ApiOperation({ summary: 'Health check endpoint' })
-    @ApiResponse({ status: 200, description: 'Service is healthy' })
-    check() {
-        return {
-            status: 'ok',
-            timestamp: new Date().toISOString(),
-            service: 'assetsally-api',
-            version: '0.0.1',
-        };
-    }
+  @Get()
+  @ApiOperation({ summary: "Health check endpoint" })
+  @ApiResponse({ status: 200, description: "Service is healthy" })
+  check() {
+    return {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      service: "assetsally-api",
+      version: "0.0.1",
+    };
+  }
 }

@@ -14,7 +14,12 @@
             "@/*": [
                 "./src/*"
             ]
-        }
+        },
+        "types": [
+            "node",
+            "multer",
+            "vitest/globals"
+        ]
     },
     "include": [
         "src/**/*"

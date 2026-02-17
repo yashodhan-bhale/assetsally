@@ -7,7 +7,12 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'happy-dom',
+        isolate: false,
+        fileParallelism: false,
         setupFiles: ['./test/setup.ts'],
+        exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/coverage/**'],
+        pool: 'threads',
+
     },
     resolve: {
         alias: {

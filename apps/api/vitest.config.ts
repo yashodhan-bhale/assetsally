@@ -6,6 +6,10 @@ export default defineConfig({
         globals: true,
         root: './',
         environment: 'node',
+        isolate: false,
+        exclude: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
+        pool: 'forks',
+        fileParallelism: false,
     },
     plugins: [
         // This is required to build the test files with SWC

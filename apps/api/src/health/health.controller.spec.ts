@@ -1,26 +1,26 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { HealthController } from './health.controller';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { Test, TestingModule } from "@nestjs/testing";
 
-describe('HealthController', () => {
-    let controller: HealthController;
+import { HealthController } from "./health.controller";
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            controllers: [HealthController],
-        }).compile();
+describe("HealthController", () => {
+  let controller: HealthController;
 
-        controller = module.get<HealthController>(HealthController);
-    });
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [HealthController],
+    }).compile();
 
-    it('should be defined', () => {
-        expect(controller).toBeDefined();
-    });
+    controller = module.get<HealthController>(HealthController);
+  });
 
-    it('should return health status', () => {
-        const result = controller.check();
-        expect(result.status).toBe('ok');
-        expect(result.service).toBe('assetsally-api');
-        expect(result.timestamp).toBeDefined();
-    });
+  it("should be defined", () => {
+    expect(controller).toBeDefined();
+  });
+
+  it("should return health status", () => {
+    const result = controller.check();
+    expect(result.status).toBe("ok");
+    expect(result.service).toBe("assetsally-api");
+    expect(result.timestamp).toBeDefined();
+  });
 });
