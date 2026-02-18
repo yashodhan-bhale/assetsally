@@ -1,4 +1,4 @@
 module.exports = {
-    root: true,
-    extends: ["@assetsally/eslint-config"],
+  root: true,
+  extends: ["@assetsally/eslint-config"],
 };

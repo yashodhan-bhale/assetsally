@@ -41,7 +41,11 @@ export class AuthService {
     }
 
     // Verify app type matches
-    if (user.appType !== appType) {
+    if (appType === "WEB") {
+      if (user.appType !== "ADMIN" && user.appType !== "CLIENT") {
+        throw new UnauthorizedException(`Invalid login for WEB app`);
+      }
+    } else if (user.appType !== appType) {
       throw new UnauthorizedException(`Invalid login for ${appType} app`);
     }
 

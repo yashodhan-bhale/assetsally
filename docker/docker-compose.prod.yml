@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -70,25 +70,12 @@ services:
     networks:
       - assetsally-network
 
-  # Admin Web App
-  admin:
+  # Web App
+  web:
     build:
       context: ..
-      dockerfile: docker/admin.Dockerfile
-    container_name: assetsally-admin-prod
-    restart: always
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${API_URL}
-    networks:
-      - assetsally-network
-
-  # Client Web App
-  client:
-    build:
-      context: ..
-      dockerfile: docker/client.Dockerfile
-    container_name: assetsally-client-prod
+      dockerfile: docker/web.Dockerfile
+    container_name: assetsally-web-prod
     restart: always
     environment:
       NODE_ENV: production
@@ -109,8 +96,7 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
       - api
-      - admin
-      - client
+      - web
     networks:
       - assetsally-network
 
@@ -118,6 +104,7 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+
 
 networks:
   assetsally-network:

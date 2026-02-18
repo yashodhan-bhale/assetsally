@@ -12,9 +12,9 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ example: "ADMIN", enum: ["ADMIN", "CLIENT", "MOBILE"] })
-  @IsIn(["ADMIN", "CLIENT", "MOBILE"])
-  appType: "ADMIN" | "CLIENT" | "MOBILE";
+  @ApiProperty({ example: "ADMIN", enum: ["ADMIN", "CLIENT", "MOBILE", "WEB"] })
+  @IsIn(["ADMIN", "CLIENT", "MOBILE", "WEB"])
+  appType: "ADMIN" | "CLIENT" | "MOBILE" | "WEB";
 }
 
 export class RefreshTokenDto {

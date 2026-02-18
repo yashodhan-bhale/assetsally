@@ -1,32 +1,32 @@
 {
-    "name": "@assetsally/database",
-    "version": "0.0.1",
-    "private": true,
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch",
-        "clean": "rimraf dist",
-        "generate": "prisma generate",
-        "migrate:dev": "prisma migrate dev",
-        "migrate:deploy": "prisma migrate deploy",
-        "migrate:reset": "prisma migrate reset",
-        "seed": "tsx prisma/seed.ts",
-        "studio": "prisma studio"
-    },
-    "dependencies": {
-        "@nestjs/common": "^10.3.0",
-        "@prisma/client": "^5.10.0",
-        "bcrypt": "^5.1.1"
-    },
-    "devDependencies": {
-        "@assetsally/eslint-config": "workspace:*",
-        "@types/bcrypt": "^5.0.2",
-        "@types/node": "^20.11.0",
-        "prisma": "^5.10.0",
-        "rimraf": "^5.0.5",
-        "tsx": "^4.7.0",
-        "typescript": "^5.3.0"
-    }
+  "name": "@assetsally/database",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist",
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:reset": "prisma migrate reset",
+    "seed": "tsx prisma/seed.ts",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.3.0",
+    "@prisma/client": "^5.10.0",
+    "bcrypt": "^5.1.1"
+  },
+  "devDependencies": {
+    "@assetsally/eslint-config": "workspace:*",
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^20.11.0",
+    "prisma": "^5.10.0",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
 }

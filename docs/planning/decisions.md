@@ -5,6 +5,7 @@
 ## Project Overview
 
 An ecosystem of 3 apps for asset verification (audit) process:
+
 - **Admin Web App** - Manages everything (data, users, reports)
 - **Client Web App** - View-only with configurable permissions per role
 - **Auditor Mobile App** - Field verification with offline support
@@ -14,11 +15,13 @@ An ecosystem of 3 apps for asset verification (audit) process:
 ## Finalized Decisions
 
 ### 1. Location Hierarchy
+
 - **Decision**: Variable depth (2-5 levels) with client-configurable labels
 - **Rationale**: Different clients have different organizational structures
 - **Implementation**: Materialized Path pattern for efficient descendant queries
 
 ### 2. Mobile Offline Support
+
 - **Decision**: Smart sync with priority queuing
 - **Details**:
   - Full offline capability with local database
@@ -27,6 +30,7 @@ An ecosystem of 3 apps for asset verification (audit) process:
 - **Rationale**: Remote locations have unreliable network coverage
 
 ### 3. Inventory Verification Data
+
 - **Decision**: Hybrid approach (Core fixed fields + Dynamic custom fields)
 - **Core fields** (always present):
   - Status: Found / Not Found / Relocated / Damaged / Disposed
@@ -39,12 +43,14 @@ An ecosystem of 3 apps for asset verification (audit) process:
 - **Rationale**: Base project must adapt to any client requirements
 
 ### 4. Authentication Strategy
+
 - **Decision**: Unified users table with `app_type` + `role` fields
 - **Constraint**: Users are strictly single-role, single-app (no overlap)
 - **Mobile session**: Persistent login (refresh token strategy)
 - **Rationale**: Admin manages ALL users from one place
 
 ### 5. Client App Roles
+
 - **Decision**: Configurable roles with permission matrix
 - **Details**:
   - Role labels are client-configurable
@@ -53,17 +59,20 @@ An ecosystem of 3 apps for asset verification (audit) process:
   - Access scoped by location + department
 
 ### 6. Report Approval Workflow
+
 - **Decision**: Report-level approval/rejection with item-level comments
 - **Flow**: Admin rejects entire report but can mark/comment on specific items
 - **Rationale**: Simple workflow, detailed feedback
 
 ### 7. Excel Import
+
 - **Decision**: Fixed extensive template
 - **Process**: Data received from clients is pre-formatted to match template
 - **Empty columns**: Used for non-applicable fields
 - **Rationale**: Simplifies import logic, single known schema
 
 ### 8. Location Scheduling & Access
+
 - **Decision**: Admin-controlled scheduling
 - **Details**:
   - Admin assigns dates to locations
@@ -73,6 +82,7 @@ An ecosystem of 3 apps for asset verification (audit) process:
   - Single timezone
 
 ### 9. PDF Reports
+
 - **Essential reports**:
   - Location Report
   - Discrepancy Report
@@ -80,12 +90,14 @@ An ecosystem of 3 apps for asset verification (audit) process:
 - **Generation**: On-demand only (not scheduled)
 
 ### 10. Scale Expectations
+
 - **Locations**: ~500 (variable)
 - **Items per location**: 1000+
 - **Total items**: 500,000+
 - **Concurrent auditors**: 20-50
 
 ### 11. Photo Storage
+
 - **Decision**: MinIO (self-hosted S3-compatible storage)
 - **Compression**: Max 500KB per photo, aspect ratio preserved
 - **Rationale**: No vendor lock-in, full control
@@ -95,10 +107,12 @@ An ecosystem of 3 apps for asset verification (audit) process:
 ## Access Control Model
 
 ### Two-Dimensional Permission Matrix
+
 1. **Geographical (Location Tree)**: User assigned to a root location node, can access all descendants
 2. **Functional (Department)**: User assigned specific departments OR "All Departments" flag
 
 ### Query Logic
+
 ```
 SELECT items WHERE:
   item.location_path STARTS WITH user.assigned_location_path

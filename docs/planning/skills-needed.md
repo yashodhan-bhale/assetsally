@@ -5,6 +5,7 @@
 ## Phase 3: Authentication & Authorization
 
 ### Skill: Auth & Permissions Patterns
+
 - **Create before**: Implementing JWT authentication
 - **Topics to cover**:
   - JWT access + refresh token strategy
@@ -18,6 +19,7 @@
 ## Phase 5: Mobile App Core
 
 ### Skill: Offline-First Mobile
+
 - **Create before**: Setting up WatermelonDB/SQLite
 - **Topics to cover**:
   - Local database schema design
@@ -31,6 +33,7 @@
 ## As Needed
 
 ### Skill: Database Schema Design
+
 - **Create if**: Complex schema decisions arise
 - **Topics to cover**:
   - Materialized Path for location hierarchy
@@ -38,6 +41,7 @@
   - Dynamic custom fields storage (EAV vs JSON)
 
 ### Skill: PDF Generation
+
 - **Create if**: Complex report templates needed
 - **Topics to cover**:
   - Template design patterns

@@ -25,19 +25,20 @@ A three-app ecosystem for managing and verifying physical assets across location
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | NestJS + PostgreSQL + Prisma ORM |
-| Web Apps | Next.js 14 + React + Tailwind CSS |
-| Mobile | React Native (Expo) with expo-router |
-| Auth | JWT (access + refresh tokens) |
-| Storage | MinIO (S3-compatible) |
-| Cache | Redis |
-| Monorepo | pnpm workspaces |
+| Layer    | Technology                           |
+| -------- | ------------------------------------ |
+| Backend  | NestJS + PostgreSQL + Prisma ORM     |
+| Web Apps | Next.js 14 + React + Tailwind CSS    |
+| Mobile   | React Native (Expo) with expo-router |
+| Auth     | JWT (access + refresh tokens)        |
+| Storage  | MinIO (S3-compatible)                |
+| Cache    | Redis                                |
+| Monorepo | pnpm workspaces                      |
 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 20+, pnpm 9+, Docker & Docker Compose
 
 ### 1. Setup
@@ -72,11 +73,11 @@ cd apps/mobile && npx expo start
 
 ### 3. Test Credentials
 
-| User | Email | Password | App |
-|------|-------|----------|-----|
-| Admin | admin@assetsally.com | admin123 | Admin (`:3000`) |
-| Client | client@demo.com | admin123 | Client (`:3002`) |
-| Auditor | auditor@demo.com | admin123 | Mobile |
+| User    | Email                | Password | App              |
+| ------- | -------------------- | -------- | ---------------- |
+| Admin   | admin@assetsally.com | admin123 | Admin (`:3000`)  |
+| Client  | client@demo.com      | admin123 | Client (`:3002`) |
+| Auditor | auditor@demo.com     | admin123 | Mobile           |
 
 ## Project Structure
 
@@ -104,14 +105,14 @@ assetsally/
 
 ## API Overview
 
-| Module | Routes | Description |
-|--------|--------|-------------|
-| Auth | `POST /login`, `/logout`, `/refresh` | JWT authentication |
-| Locations | CRUD + `/tree` | Hierarchical location management |
-| Inventory | CRUD + `/import` + `/stats` | Asset management with Excel import |
-| Audits | CRUD + `/submit` + `/review` + `/findings` | Audit report workflow |
-| QR Tags | CRUD + `/generate` + `/assign` | QR code lifecycle |
-| Health | `GET /health` | Readiness check |
+| Module    | Routes                                     | Description                        |
+| --------- | ------------------------------------------ | ---------------------------------- |
+| Auth      | `POST /login`, `/logout`, `/refresh`       | JWT authentication                 |
+| Locations | CRUD + `/tree`                             | Hierarchical location management   |
+| Inventory | CRUD + `/import` + `/stats`                | Asset management with Excel import |
+| Audits    | CRUD + `/submit` + `/review` + `/findings` | Audit report workflow              |
+| QR Tags   | CRUD + `/generate` + `/assign`             | QR code lifecycle                  |
+| Health    | `GET /health`                              | Readiness check                    |
 
 Full Swagger docs: `http://localhost:3001/api/docs`
 
@@ -137,6 +138,7 @@ docker exec assetsally-api-prod npx prisma db seed
 See [`.env.example`](.env.example) for all configuration options.
 
 > **Production checklist:**
+>
 > - [ ] Set a strong `JWT_SECRET` (64+ random chars)
 > - [ ] Set `DB_PASSWORD` to a secure password
 > - [ ] Set `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY`

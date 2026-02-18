@@ -4,13 +4,13 @@
 
 We follow a structured branching strategy to maintain stability:
 
-| Branch | Purpose | Stability |
-| :--- | :--- | :--- |
-| `main` | Production-ready code only. Tagged releases. | HIGH |
-| `develop` | Integration branch for upcoming features. | MEDIUM |
-| `feat/*` | Individual feature development. | LOW |
-| `fix/*` | Bug fixes for existing features. | LOW |
-| `hotfix/*` | Emergency fixes directly for production. | LOW |
+| Branch     | Purpose                                      | Stability |
+| :--------- | :------------------------------------------- | :-------- |
+| `main`     | Production-ready code only. Tagged releases. | HIGH      |
+| `develop`  | Integration branch for upcoming features.    | MEDIUM    |
+| `feat/*`   | Individual feature development.              | LOW       |
+| `fix/*`    | Bug fixes for existing features.             | LOW       |
+| `hotfix/*` | Emergency fixes directly for production.     | LOW       |
 
 ## 2. Commit Standards (Conventional)
 
@@ -29,6 +29,7 @@ Messages should follow the format: `<type>(<scope>): <description>`
 ## 3. Workflow Automation
 
 Use the `/feature-release` slash command to automate your deployment safety checks. It will:
+
 1. Verify linting, testing, and building locally.
 2. Ensure commit messages are conventional.
 3. Auto-generate PR documentation.
