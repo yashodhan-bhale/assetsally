@@ -19,12 +19,12 @@ describe("LoginPage", () => {
   it("renders login form correctly", () => {
     render(<LoginPage />);
 
-    expect(screen.getByText(/Sign in to your account/i)).toBeInTheDocument();
+    expect(screen.getByText(/Welcome back, Admin/i)).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText(/admin@assetsally.com/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Sign In/i }),
+      screen.getByRole("button", { name: /Login as Admin/i }),
     ).toBeInTheDocument();
   });
 
