@@ -1,28 +1,36 @@
-# PR: fix(ci): resolve build errors and test runner configuration
+# PR: Feature Release - Authentication & Dashboard
+
+## Title
+`feat(app): implement dual-tab auth and dashboard shell`
 
 ## Overview
-This pull request addresses several critical build and infrastructure issues that were preventing the development environment and CI from running smoothly. The primary focus was on resolving module resolution errors, fixing the API test runner, and cleaning up linting/formatting issues in the newly unified web application.
+This PR introduces the core authentication system and the main dashboard application shell for AssetsAlly. It implements a dual-tab login for Administrators and Clients, ensuring role-based access control from the start. Additionally, it establishes the responsive dashboard layout with navigation logic.
 
 ## Technical Changes
-- **API (`apps/api`)**:
-    - Added `unplugin-swc` as a dev dependency.
-    - Updated `vitest.config.ts` to use SWC for faster and more reliable TypeScript compilation in tests.
-- **Web (`apps/web`)**:
-    - Unified `admin` and `client` into a single `web` application.
-    - Fixed ESLint `import/order` violations across multiple components (`role-guard.tsx`, `admin-stats.tsx`, `client-stats.tsx`).
-    - Standardized formatting with Prettier to resolve build-time linting errors.
-- **Database (`packages/database`)**:
-    - Regenerated the Prisma client to resolve `ERR_MODULE_NOT_FOUND` issues when starting the API.
-- **CI/Build**:
-    - Verified full workspace stability using `turbo lint build test --concurrency 1`.
+
+### Backend (`@assetsally/api`, `@assetsally/database`)
+- **Database Exports**: Fixed `ERR_MODULE_NOT_FOUND` by updating `packages/database/package.json` to correctly export the Prisma client (`./client`).
+- **Auth Service**: Validated logic for `appType` based authentication.
+
+### Frontend (`apps/web`)
+- **Dependencies**: Added `framer-motion`, `@tanstack/react-table`, `clsx`, `tailwind-merge`.
+- **Login Page**: Implemented `src/app/login/page.tsx` with Admin/Client tabs.
+- **Dashboard Layout**: Created `src/components/layout/dashboard-layout.tsx` for responsive sidebar/header.
+- **Navigation**: Implemented `src/lib/nav-config.ts` for role-based menu filtering.
+- **Data Tables**: Added reusable `DataTable` component.
+- **New Pages**:
+    - `src/app/dashboard/page.tsx` (Overview)
+    - `src/app/dashboard/inventory/page.tsx` (Asset List)
+    - `src/app/dashboard/locations/page.tsx` (Flat Location View)
 
 ## Verification
-Full verification suite passed locally:
-- **Lint**: All packages consistent.
-- **Build**: Successful production builds for all apps and packages.
-- **Test**: Vitest suites for API and Web passed successfully.
+**Status**: PASSED
 
-```bash
-Tasks:    13 successful, 13 total
-Time:    6m32.223s 
-```
+- **Command**: `pnpm turbo lint build test`
+- **Results**:
+    - Linting: Passed.
+    - Build: All packages built successfully.
+    - Tests: All tests passed (including updated `login/page.spec.tsx`).
+
+## Screenshots
+Refer to `walkthrough.md` in the artifacts for visual proof.

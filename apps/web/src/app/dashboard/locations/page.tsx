@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
-import { api } from "../../../lib/api";
+import { useEffect, useState } from "react";
+
 import { DataTable } from "../../../components/ui/data-table";
+import { api } from "../../../lib/api";
 
 // Type definition based on API response
 interface Location {
@@ -54,10 +55,14 @@ export default function LocationsPage() {
         // If flat list, we need to find if any location has this ID as parent.
 
         // Build map of parentIds
-        const parentIds = new Set(locations.map((l: Location) => l.parentId).filter(Boolean));
+        const parentIds = new Set(
+          locations.map((l: Location) => l.parentId).filter(Boolean),
+        );
 
         // Filter: location is end-level if its ID is NOT in parentIds set
-        const endLocations = locations.filter((l: Location) => !parentIds.has(l.id));
+        const endLocations = locations.filter(
+          (l: Location) => !parentIds.has(l.id),
+        );
 
         setData(endLocations);
       } catch (error) {
@@ -81,12 +86,14 @@ export default function LocationsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Locations</h1>
-        <p className="text-slate-500">
-          Manage endpoints and physical spaces.
-        </p>
+        <p className="text-slate-500">Manage endpoints and physical spaces.</p>
       </div>
 
-      <DataTable columns={columns} data={data} placeholder="Search locations..." />
+      <DataTable
+        columns={columns}
+        data={data}
+        placeholder="Search locations..."
+      />
     </div>
   );
 }

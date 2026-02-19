@@ -1,9 +1,17 @@
 "use client";
 
-import { ShieldCheck, Mail, Lock, AlertCircle, Loader2, User, Building } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ShieldCheck,
+  Mail,
+  Lock,
+  AlertCircle,
+  Loader2,
+  User,
+  Building,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { useAuth } from "../../contexts/auth-context";
 
@@ -51,18 +59,22 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-white">
             Assets<span className="text-blue-400">Ally</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Asset Verification System</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Asset Verification System
+          </p>
         </div>
 
         {/* Login Card */}
         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-1 shadow-2xl overflow-hidden">
-
           {/* Tabs */}
           <div className="grid grid-cols-2 p-1 gap-1 bg-slate-800/50 rounded-xl mb-6">
             <button
               onClick={() => handleTabChange("ADMIN")}
-              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === "ADMIN" ? "text-white" : "text-slate-400 hover:text-slate-200"
-                }`}
+              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                activeTab === "ADMIN"
+                  ? "text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
             >
               {activeTab === "ADMIN" && (
                 <motion.div
@@ -79,8 +91,11 @@ export default function LoginPage() {
             </button>
             <button
               onClick={() => handleTabChange("CLIENT")}
-              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === "CLIENT" ? "text-white" : "text-slate-400 hover:text-slate-200"
-                }`}
+              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                activeTab === "CLIENT"
+                  ? "text-white"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
             >
               {activeTab === "CLIENT" && (
                 <motion.div
@@ -99,7 +114,9 @@ export default function LoginPage() {
 
           <div className="px-7 pb-8 pt-2">
             <h2 className="text-xl font-semibold text-white mb-6 text-center">
-              {activeTab === "ADMIN" ? "Welcome back, Admin" : "Client Portal Access"}
+              {activeTab === "ADMIN"
+                ? "Welcome back, Admin"
+                : "Client Portal Access"}
             </h2>
 
             {error && (
@@ -120,7 +137,11 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={activeTab === "ADMIN" ? "admin@assetsally.com" : "client@company.com"}
+                    placeholder={
+                      activeTab === "ADMIN"
+                        ? "admin@assetsally.com"
+                        : "client@company.com"
+                    }
                     required
                     className="w-full bg-slate-950/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
@@ -147,10 +168,11 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full text-white font-medium py-3 rounded-xl transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${activeTab === "ADMIN"
+                className={`w-full text-white font-medium py-3 rounded-xl transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                  activeTab === "ADMIN"
                     ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/25 hover:shadow-blue-500/40"
                     : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25 hover:shadow-indigo-500/40"
-                  }`}
+                }`}
               >
                 {isSubmitting ? (
                   <>

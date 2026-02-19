@@ -10,8 +10,7 @@ import { PrismaClient } from "@prisma/client";
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+  implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     await this.$connect();
   }
@@ -26,7 +25,7 @@ export class PrismaService
   providers: [PrismaService],
   exports: [PrismaService],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }
 
 export * from "@prisma/client";
 export { prisma } from "./client";

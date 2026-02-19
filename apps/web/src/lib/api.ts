@@ -69,7 +69,11 @@ class ApiClient {
   }
 
   // Auth
-  async login(email: string, password: string, appType: "ADMIN" | "CLIENT" | "WEB" = "WEB") {
+  async login(
+    email: string,
+    password: string,
+    appType: "ADMIN" | "CLIENT" | "WEB" = "WEB",
+  ) {
     const data = await this.request<{
       accessToken: string;
       refreshToken: string;

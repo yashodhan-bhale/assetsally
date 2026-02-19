@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
-import { api } from "../../../lib/api";
+import { useEffect, useState } from "react";
+
 import { DataTable } from "../../../components/ui/data-table";
+import { api } from "../../../lib/api";
 
 // Type definition based on API response
 interface InventoryItem {
@@ -38,7 +39,9 @@ const columns: ColumnDef<InventoryItem>[] = [
     cell: ({ row }) => (
       <div>
         <div className="font-medium">{row.original.location?.name}</div>
-        <div className="text-xs text-slate-500">{row.original.location?.code}</div>
+        <div className="text-xs text-slate-500">
+          {row.original.location?.code}
+        </div>
       </div>
     ),
   },
