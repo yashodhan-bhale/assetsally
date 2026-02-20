@@ -31,8 +31,8 @@ export class InventoryService {
     if (query?.categoryId) where.categoryId = query.categoryId;
     if (query?.search) {
       where.OR = [
-        { name: { contains: query.search, mode: "insensitive" } },
-        { code: { contains: query.search, mode: "insensitive" } },
+        { assetName: { contains: query.search, mode: "insensitive" } },
+        { assetNumber: { contains: query.search, mode: "insensitive" } },
       ];
     }
 
@@ -41,7 +41,12 @@ export class InventoryService {
         where,
         include: {
           location: {
-            select: { id: true, code: true, name: true, path: true },
+            select: {
+              id: true,
+              locationCode: true,
+              locationName: true,
+              path: true,
+            },
           },
           department: { select: { id: true, code: true, name: true } },
           category: { select: { id: true, code: true, name: true } },
@@ -49,7 +54,7 @@ export class InventoryService {
         },
         skip,
         take: limit,
-        orderBy: { code: "asc" },
+        orderBy: { assetNumber: "asc" },
       }),
       this.prisma.inventoryItem.count({ where }),
     ]);
@@ -89,31 +94,39 @@ export class InventoryService {
 
   async create(dto: CreateInventoryItemDto) {
     const existing = await this.prisma.inventoryItem.findUnique({
-      where: { code: dto.code },
+      where: { assetNumber: dto.assetNumber },
     });
     if (existing) {
-      throw new ConflictException(`Item with code ${dto.code} already exists`);
+      throw new ConflictException(
+        `Item with code ${dto.assetNumber} already exists`,
+      );
     }
 
     return this.prisma.inventoryItem.create({
       data: {
-        code: dto.code,
-        name: dto.name,
-        description: dto.description,
+        assetNumber: dto.assetNumber,
+        assetName: dto.assetName,
+        assetDescription: dto.assetDescription,
         locationId: dto.locationId,
         departmentId: dto.departmentId,
         categoryId: dto.categoryId,
         customFields: dto.customFields || {},
-        // New Fields
-        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : undefined,
-        cost: dto.cost,
-        bookValue: dto.bookValue,
+        capitalizationDate: dto.capitalizationDate
+          ? new Date(dto.capitalizationDate)
+          : undefined,
+        acquisitionCost: dto.acquisitionCost,
+        netBookValue: dto.netBookValue,
+        accumulatedDepreciation: dto.accumulatedDepreciation,
+        quantityAsPerBooks: dto.quantityAsPerBooks,
+        inventoryStatus: dto.inventoryStatus,
         profitCenter: dto.profitCenter,
         subCategory: dto.subCategory,
         unitOfMeasure: dto.unitOfMeasure,
       },
       include: {
-        location: { select: { id: true, code: true, name: true } },
+        location: {
+          select: { id: true, locationCode: true, locationName: true },
+        },
         department: { select: { id: true, code: true, name: true } },
         category: { select: { id: true, code: true, name: true } },
       },
@@ -127,10 +140,14 @@ export class InventoryService {
       where: { id },
       data: {
         ...dto,
-        purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : undefined,
+        capitalizationDate: dto.capitalizationDate
+          ? new Date(dto.capitalizationDate)
+          : undefined,
       },
       include: {
-        location: { select: { id: true, code: true, name: true } },
+        location: {
+          select: { id: true, locationCode: true, locationName: true },
+        },
         department: { select: { id: true, code: true, name: true } },
         category: { select: { id: true, code: true, name: true } },
       },
@@ -145,7 +162,7 @@ export class InventoryService {
   async bulkImport(fileBuffer: Buffer, filename: string) {
     const workbook = XLSX.read(fileBuffer, { type: "buffer" });
     const sheetName =
-      workbook.SheetNames.find((n) => n.includes("Inventory")) ||
+      workbook.SheetNames.find((n) => n.trim() === "Inventory Report") ||
       workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const data = XLSX.utils.sheet_to_json<any>(worksheet);
@@ -169,28 +186,32 @@ export class InventoryService {
     );
 
     const locations = await this.prisma.location.findMany({
-      select: { id: true, code: true },
+      select: { id: true, locationCode: true },
     });
     const locMap = new Map(
-      locations.map((l) => [l.code.toLowerCase().trim(), l.id]),
+      locations.map((l) => [l.locationCode.toLowerCase().trim(), l.id]),
     );
 
     for (const [index, row] of data.entries()) {
       const rowIndex = index + 2; // Excel row number (1-based, +1 for header)
       try {
-        // Determine format based on headers
-        const code = row["Asset Code"] || row["Asset Number"];
-        const name = row["Asset Name"] || row["Name of the Assets"];
-        const locCode = row["Location Code"] || row["Storage Location Code"];
+        // Headers from the new format
+        const code = row["Asset Number"];
+        const name = row["Name of the Assets"];
+        const locCode = row["Storage Location Code"];
 
-        if (!code || !name || !locCode) {
+        if (!code || !name) {
           continue;
         }
 
         results.processed++;
 
-        // 1. Resolve Location
-        const locationId = locMap.get(String(locCode).toLowerCase().trim());
+        // 1. Resolve Location (Mandatory)
+        const locationId = locMap.get(
+          String(locCode || "")
+            .toLowerCase()
+            .trim(),
+        );
         if (!locationId) {
           results.errors.push(
             `Row ${rowIndex}: Location code '${locCode}' not found`,
@@ -198,7 +219,7 @@ export class InventoryService {
           continue;
         }
 
-        // 2. Resolve Department
+        // 2. Resolve Department (Optional)
         let departmentId: string | null = null;
         const deptName = row["Department"];
         if (deptName) {
@@ -208,7 +229,6 @@ export class InventoryService {
           } else {
             const newDept = await this.prisma.department.create({
               data: {
-                // Auto-gen code with random suffix to avoid collision
                 code: (
                   deptName
                     .substring(0, 6)
@@ -225,9 +245,9 @@ export class InventoryService {
           }
         }
 
-        // 3. Resolve Category
+        // 3. Resolve Category (Optional)
         let categoryId: string | null = null;
-        const catName = row["Category"] || row["Major Catogeory"];
+        const catName = row["Major Catogeory"];
         if (catName) {
           const normCat = String(catName).toLowerCase().trim();
           if (catMap.has(normCat)) {
@@ -235,7 +255,6 @@ export class InventoryService {
           } else {
             const newCat = await this.prisma.assetCategory.create({
               data: {
-                // Auto-gen code with random suffix to avoid collision
                 code: (
                   catName
                     .substring(0, 6)
@@ -253,44 +272,66 @@ export class InventoryService {
         }
 
         // 4. Map Dates & Financials
-        const dateRaw =
-          row["Date of Put to use of asset"] || row["Purchase Date"];
-        let purchaseDate: Date | undefined;
+        const dateRaw = row["Date of Put to use of asset"];
+        let capitalizationDate: Date | undefined;
         if (typeof dateRaw === "number") {
-          purchaseDate = new Date(Math.round((dateRaw - 25569) * 86400 * 1000));
+          capitalizationDate = new Date(
+            Math.round((dateRaw - 25569) * 86400 * 1000),
+          );
         } else if (dateRaw) {
-          purchaseDate = new Date(dateRaw);
+          capitalizationDate = new Date(dateRaw);
         }
 
-        const cost =
-          parseFloat(row["Cost of Asset"] || row["Cost"] || "0") || undefined;
-        const bookValue = parseFloat(row["Book Value"] || "0") || undefined;
+        const acquisitionCost =
+          parseFloat(
+            String(row["Cost of Asset"] || "0").replace(/[^0-9.-]/g, ""),
+          ) || undefined;
+        const netBookValue =
+          parseFloat(
+            String(row["Book Value"] || "0").replace(/[^0-9.-]/g, ""),
+          ) || undefined;
+        const accumulatedDepreciation =
+          parseFloat(
+            String(row["Accumulated Deprication"] || "0").replace(
+              /[^0-9.-]/g,
+              "",
+            ),
+          ) || undefined;
+        const quantityAsPerBooks = parseInt(row["As per Books"]) || undefined;
+        const inventoryStatus = row["Status"]
+          ? String(row["Status"])
+          : undefined;
         const profitCenter = row["Profit Center"]
           ? String(row["Profit Center"])
           : undefined;
-        const subCategory = row["Minor Catogeory"] || row["Sub Category"];
-        const uom = row["A"] || row["Unit of Measure"];
-        const description = row["Description"] || row["Descrption of Asset"];
+        const subCategory = row["Minor Catogeory"];
+        const uom = row["A"];
+        const assetDescription = row["Descrption of Asset"];
 
         // 5. Upsert Item
         const itemData = {
-          code: String(code),
-          name: String(name),
-          description: description,
+          assetNumber: String(code),
+          assetName: String(name),
+          assetDescription: assetDescription
+            ? String(assetDescription)
+            : undefined,
           locationId,
           departmentId,
           categoryId,
-          cost,
-          bookValue,
-          purchaseDate,
+          acquisitionCost,
+          netBookValue,
+          accumulatedDepreciation,
+          quantityAsPerBooks,
+          inventoryStatus,
+          capitalizationDate,
           profitCenter,
-          subCategory,
-          unitOfMeasure: uom,
+          subCategory: subCategory ? String(subCategory) : undefined,
+          unitOfMeasure: uom ? String(uom) : undefined,
           customFields: {},
         };
 
         const existingItem = await this.prisma.inventoryItem.findUnique({
-          where: { code: String(code) },
+          where: { assetNumber: String(code) },
         });
 
         if (existingItem) {

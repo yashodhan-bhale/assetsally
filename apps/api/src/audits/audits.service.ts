@@ -38,7 +38,9 @@ export class AuditsService {
       this.prisma.auditReport.findMany({
         where,
         include: {
-          location: { select: { id: true, code: true, name: true } },
+          location: {
+            select: { id: true, locationCode: true, locationName: true },
+          },
           auditor: { select: { id: true, name: true, email: true } },
           _count: { select: { findings: true } },
         },
@@ -64,7 +66,7 @@ export class AuditsService {
         reviewer: { select: { id: true, name: true, email: true } },
         findings: {
           include: {
-            item: { select: { id: true, code: true, name: true } },
+            item: { select: { id: true, assetNumber: true, assetName: true } },
             photos: true,
           },
           orderBy: { createdAt: "asc" },
@@ -93,7 +95,9 @@ export class AuditsService {
         status: AuditReportStatus.DRAFT,
       },
       include: {
-        location: { select: { id: true, code: true, name: true } },
+        location: {
+          select: { id: true, locationCode: true, locationName: true },
+        },
       },
     });
   }
@@ -136,7 +140,7 @@ export class AuditsService {
         customFieldValues: dto.customFieldValues || {},
       },
       include: {
-        item: { select: { id: true, code: true, name: true } },
+        item: { select: { id: true, assetNumber: true, assetName: true } },
       },
     });
   }

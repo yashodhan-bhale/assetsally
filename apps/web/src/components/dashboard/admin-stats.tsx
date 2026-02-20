@@ -73,7 +73,7 @@ export function AdminStats() {
                 >
                   <div>
                     <p className="text-sm text-white">
-                      {report.location?.name}
+                      {report.location?.locationName}
                     </p>
                     <p className="text-xs text-slate-500">
                       {report.auditor?.name} —{" "}
@@ -88,7 +88,7 @@ export function AdminStats() {
                                             : report.status === "SUBMITTED"
                                               ? "bg-amber-500/15 text-amber-400"
                                               : report.status === "REJECTED"
-                                                ? "bg-red-500/15 text-red-400"
+                                                ? "bg-red-500/15 text-red-100" // Red text on red bg
                                                 : "bg-slate-500/15 text-slate-400"
                                         }`}
                   >
@@ -117,8 +117,10 @@ export function AdminStats() {
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <p className="text-sm text-white">{loc.name}</p>
-                    <span className="text-xs text-slate-600">{loc.code}</span>
+                    <p className="text-sm text-white">{loc.locationName}</p>
+                    <span className="text-xs text-slate-600">
+                      {loc.locationCode}
+                    </span>
                   </div>
                   <span className="text-xs text-slate-500">
                     {loc._count?.inventoryItems || 0} items

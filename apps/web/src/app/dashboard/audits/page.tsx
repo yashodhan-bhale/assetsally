@@ -84,7 +84,7 @@ export default function AuditsPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-white font-medium">
-                      {report.location?.name}
+                      {report.location?.locationName}
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
                       Auditor: {report.auditor?.name} —{" "}
@@ -98,7 +98,7 @@ export default function AuditsPage() {
                     {report.status}
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-500">
+                <div className="flex items-center_gap-4 text-xs text-slate-500">
                   <span>{report._count?.findings || 0} findings</span>
                   {report.submittedAt && (
                     <span>

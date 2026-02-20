@@ -10,7 +10,7 @@ import { PrismaService } from "../prisma/prisma.service";
 
 import { CreateLocationDto, UpdateLocationDto } from "./dto";
 
-const MAX_DEPTH = 5; // Levels 0..4 (L1 = depth 0, L5 = depth 4)
+const MAX_DEPTH = 4; // Levels 0..3 (L1 = depth 0, L4 = depth 3)
 
 @Injectable()
 export class LocationsService {
@@ -24,7 +24,14 @@ export class LocationsService {
     return this.prisma.location.findMany({
       where,
       include: {
-        children: { select: { id: true, code: true, name: true, depth: true } },
+        children: {
+          select: {
+            id: true,
+            locationCode: true,
+            locationName: true,
+            depth: true,
+          },
+        },
         _count: { select: { inventoryItems: true } },
       },
       orderBy: { path: "asc" },
@@ -35,12 +42,14 @@ export class LocationsService {
     const location = await this.prisma.location.findUnique({
       where: { id },
       include: {
-        parent: { select: { id: true, code: true, name: true } },
+        parent: {
+          select: { id: true, locationCode: true, locationName: true },
+        },
         children: {
           select: {
             id: true,
-            code: true,
-            name: true,
+            locationCode: true,
+            locationName: true,
             depth: true,
             levelLabel: true,
           },
@@ -64,17 +73,14 @@ export class LocationsService {
           include: {
             children: {
               include: {
-                children: {
-                  include: {
-                    children: true,
-                  },
-                },
+                children: true,
+                // Removed 5th level child inclusion as depth is now 4
               },
             },
           },
         },
       },
-      orderBy: { name: "asc" },
+      orderBy: { locationName: "asc" },
     });
   }
 
@@ -107,18 +113,18 @@ export class LocationsService {
 
     // Check for duplicate code (globally unique)
     const existing = await this.prisma.location.findFirst({
-      where: { code: dto.code },
+      where: { locationCode: dto.locationCode },
     });
     if (existing) {
       throw new ConflictException(
-        `Location with code ${dto.code} already exists`,
+        `Location with code ${dto.locationCode} already exists`,
       );
     }
 
     return this.prisma.location.create({
       data: {
-        code: dto.code,
-        name: dto.name,
+        locationCode: dto.locationCode,
+        locationName: dto.locationName,
         description: dto.description,
         path: dto.path,
         depth: dto.depth,
@@ -155,7 +161,7 @@ export class LocationsService {
 
   /**
    * Imports locations from an Excel/CSV file with columns:
-   * L1 Code | L1 Name | L2 Code | L2 Name | ... | L5 Code | L5 Name
+   * L1 Code | L1 Name | L2 Code | L2 Name | ... | L4 Code | L4 Name
    *
    * Processing:
    * - Rows processed top-down, left-to-right
@@ -183,8 +189,8 @@ export class LocationsService {
     let skipped = 0;
     const errors: string[] = [];
 
-    // Level labels default to L1..L5 but can be overridden
-    const levelLabels = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"];
+    // Level labels default to Level 1..Level 4
+    const levelLabels = ["Level 1", "Level 2", "Level 3", "Level 4"];
 
     for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
       const row = rows[rowIdx];
@@ -221,15 +227,15 @@ export class LocationsService {
 
           // Check if this location already exists
           const existing = await this.prisma.location.findFirst({
-            where: { code },
+            where: { locationCode: code },
           });
 
           if (existing) {
             // Update name if changed (idempotent re-import)
-            if (existing.name !== name) {
+            if (existing.locationName !== name) {
               await this.prisma.location.update({
                 where: { id: existing.id },
-                data: { name, path, depth: level, parentId },
+                data: { locationName: name, path, depth: level, parentId },
               });
               updated++;
             } else {
@@ -240,8 +246,8 @@ export class LocationsService {
             // Create new location
             const newLoc: { id: string } = await this.prisma.location.create({
               data: {
-                code,
-                name,
+                locationCode: code,
+                locationName: name,
                 path,
                 depth: level,
                 levelLabel: levelLabels[level],

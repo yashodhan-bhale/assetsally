@@ -29,7 +29,9 @@ export class QrTagsService {
       this.prisma.qRCodeTag.findMany({
         where,
         include: {
-          linkedItem: { select: { id: true, code: true, name: true } },
+          linkedItem: {
+            select: { id: true, assetNumber: true, assetName: true },
+          },
         },
         skip,
         take: limit,
@@ -121,7 +123,9 @@ export class QrTagsService {
         status: QRTagStatus.ASSIGNED,
       },
       include: {
-        linkedItem: { select: { id: true, code: true, name: true } },
+        linkedItem: {
+          select: { id: true, assetNumber: true, assetName: true },
+        },
       },
     });
   }

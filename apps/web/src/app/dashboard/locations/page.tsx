@@ -10,8 +10,8 @@ import { api } from "../../../lib/api";
 // Type definition based on API response
 interface Location {
   id: string;
-  code: string;
-  name: string;
+  locationCode: string;
+  locationName: string;
   levelLabel: string;
   path: string;
   parentId: string | null;
@@ -20,11 +20,11 @@ interface Location {
 
 const columns: ColumnDef<Location>[] = [
   {
-    accessorKey: "code",
+    accessorKey: "locationCode",
     header: "Code",
   },
   {
-    accessorKey: "name",
+    accessorKey: "locationName",
     header: "Name",
   },
   {

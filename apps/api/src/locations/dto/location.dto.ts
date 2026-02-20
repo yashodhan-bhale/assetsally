@@ -12,12 +12,12 @@ export class CreateLocationDto {
   @ApiProperty({ example: "SITE-001" })
   @IsString()
   @IsNotEmpty()
-  code: string;
+  locationCode: string;
 
   @ApiProperty({ example: "Main Office" })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  locationName: string;
 
   @ApiPropertyOptional({ example: "Main office building" })
   @IsString()
@@ -29,10 +29,10 @@ export class CreateLocationDto {
   @IsNotEmpty()
   path: string;
 
-  @ApiProperty({ example: 1, description: "Depth level (0-4, max 5 levels)" })
+  @ApiProperty({ example: 1, description: "Depth level (0-3, max 4 levels)" })
   @IsInt()
   @Min(0)
-  @Max(4)
+  @Max(3)
   depth: number;
 
   @ApiProperty({ example: "Site" })
@@ -50,7 +50,7 @@ export class UpdateLocationDto {
   @ApiPropertyOptional({ example: "Updated Office Name" })
   @IsString()
   @IsOptional()
-  name?: string;
+  locationName?: string;
 
   @ApiPropertyOptional({ example: "Updated description" })
   @IsString()

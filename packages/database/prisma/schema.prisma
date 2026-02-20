@@ -1,6 +1,3 @@
-// Prisma Schema for AssetsAlly
-// Asset Verification System
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,9 +7,307 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// Enums
-// ============================================================================
+model User {
+  id                   String          @id @default(uuid())
+  email                String          @unique
+  passwordHash         String
+  name                 String
+  phone                String?
+  appType              AppType
+  role                 String
+  status               UserStatus      @default(ACTIVE)
+  assignedLocationId   String?
+  departmentIds        String[]
+  allDepartmentsAccess Boolean         @default(false)
+  clientRoleId         String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  lastLoginAt          DateTime?
+  auditReports         AuditReport[]   @relation("AuditorReports")
+  reviewedReports      AuditReport[]   @relation("ReviewerReports")
+  refreshTokens        RefreshToken[]
+  reportComments       ReportComment[]
+  syncQueueItems       SyncQueue[]
+  assignedLocation     Location?       @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
+  clientRole           ClientRole?     @relation(fields: [clientRoleId], references: [id])
+
+  @@index([email])
+  @@index([appType])
+  @@index([assignedLocationId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Location {
+  id             String             @id @default(uuid())
+  description    String?
+  path           String
+  depth          Int
+  levelLabel     String
+  parentId       String?
+  isLocked       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  locationCode   String             @unique
+  locationName   String
+  auditReports   AuditReport[]
+  inventoryItems InventoryItem[]
+  parent         Location?          @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children       Location[]         @relation("LocationHierarchy")
+  schedules      LocationSchedule[]
+  assignedUsers  User[]             @relation("UserAssignedLocation")
+
+  @@index([path])
+  @@index([parentId])
+  @@index([locationCode])
+}
+
+model LocationSchedule {
+  id               String   @id @default(uuid())
+  locationId       String
+  scheduledDate    DateTime @db.Date
+  isOverrideLocked Boolean  @default(false)
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, scheduledDate])
+  @@index([scheduledDate])
+}
+
+model Department {
+  id             String          @id @default(uuid())
+  code           String          @unique
+  name           String
+  description    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  inventoryItems InventoryItem[]
+
+  @@index([code])
+}
+
+model AssetCategory {
+  id                     String                  @id @default(uuid())
+  code                   String                  @unique
+  name                   String
+  description            String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  customFieldDefinitions CustomFieldDefinition[]
+  inventoryItems         InventoryItem[]
+
+  @@index([code])
+}
+
+model CustomFieldDefinition {
+  id         String          @id @default(uuid())
+  name       String
+  label      String
+  type       CustomFieldType
+  required   Boolean         @default(false)
+  options    Json?
+  order      Int             @default(0)
+  categoryId String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  category   AssetCategory?  @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+}
+
+model InventoryItem {
+  id                      String         @id @default(uuid())
+  locationId              String
+  departmentId            String?
+  categoryId              String?
+  customFields            Json           @default("{}")
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  profitCenter            String?
+  subCategory             String?
+  unitOfMeasure           String?
+  accumulatedDepreciation Decimal?       @db.Decimal(15, 2)
+  acquisitionCost         Decimal?       @db.Decimal(15, 2)
+  assetDescription        String?
+  assetName               String
+  assetNumber             String         @unique
+  capitalizationDate      DateTime?
+  inventoryStatus         String?
+  netBookValue            Decimal?       @db.Decimal(15, 2)
+  quantityAsPerBooks      Int?
+  auditFindings           AuditFinding[]
+  category                AssetCategory? @relation(fields: [categoryId], references: [id])
+  department              Department?    @relation(fields: [departmentId], references: [id])
+  location                Location       @relation(fields: [locationId], references: [id])
+  qrTag                   QRCodeTag?
+
+  @@index([locationId])
+  @@index([departmentId])
+  @@index([assetNumber])
+}
+
+model QRCodeTag {
+  id           String         @id @default(uuid())
+  code         String         @unique
+  status       QRTagStatus    @default(UNASSIGNED)
+  linkedItemId String?        @unique
+  batchId      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  retiredAt    DateTime?
+  linkedItem   InventoryItem? @relation(fields: [linkedItemId], references: [id])
+
+  @@index([code])
+  @@index([status])
+  @@index([batchId])
+}
+
+model AuditReport {
+  id          String            @id @default(uuid())
+  locationId  String
+  auditorId   String
+  status      AuditReportStatus @default(DRAFT)
+  submittedAt DateTime?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNotes String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  findings    AuditFinding[]
+  auditor     User              @relation("AuditorReports", fields: [auditorId], references: [id])
+  location    Location          @relation(fields: [locationId], references: [id])
+  reviewer    User?             @relation("ReviewerReports", fields: [reviewedBy], references: [id])
+  comments    ReportComment[]
+
+  @@index([locationId])
+  @@index([auditorId])
+  @@index([status])
+}
+
+model AuditFinding {
+  id                String             @id @default(uuid())
+  reportId          String
+  itemId            String
+  status            VerificationStatus @default(PENDING)
+  condition         ItemCondition?
+  notes             String?
+  geoLat            Float?
+  geoLng            Float?
+  geoAccuracy       Float?
+  geoTimestamp      DateTime?
+  customFieldValues Json               @default("{}")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  item              InventoryItem      @relation(fields: [itemId], references: [id])
+  report            AuditReport        @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  photos            AuditPhoto[]
+
+  @@unique([reportId, itemId])
+  @@index([reportId])
+  @@index([itemId])
+}
+
+model AuditPhoto {
+  id               String       @id @default(uuid())
+  findingId        String
+  storagePath      String
+  originalFilename String
+  mimeType         String
+  sizeBytes        Int
+  geoLat           Float?
+  geoLng           Float?
+  capturedAt       DateTime?
+  createdAt        DateTime     @default(now())
+  finding          AuditFinding @relation(fields: [findingId], references: [id], onDelete: Cascade)
+
+  @@index([findingId])
+}
+
+model ReportComment {
+  id        String      @id @default(uuid())
+  reportId  String
+  itemId    String?
+  authorId  String
+  content   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  author    User        @relation(fields: [authorId], references: [id])
+  report    AuditReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([itemId])
+}
+
+model ClientRole {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  locationScope   String?
+  departmentScope String[]
+  allDepartments  Boolean  @default(false)
+  permissions     Json     @default("{\"canFlag\": false, \"canView\": true, \"canReject\": false, \"canRemark\": false, \"canApprove\": false}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  users           User[]
+
+  @@index([name])
+}
+
+model ImportLog {
+  id          String    @id @default(uuid())
+  filename    String
+  type        String
+  status      String
+  totalRows   Int       @default(0)
+  successRows Int       @default(0)
+  errorRows   Int       @default(0)
+  errors      Json?
+  importedBy  String
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([importedBy])
+  @@index([createdAt])
+}
+
+model SyncQueue {
+  id          String       @id @default(uuid())
+  userId      String
+  entityType  String
+  entityId    String
+  action      String
+  priority    SyncPriority @default(MEDIUM)
+  status      SyncStatus   @default(PENDING)
+  payload     Json
+  attempts    Int          @default(0)
+  lastError   String?
+  createdAt   DateTime     @default(now())
+  processedAt DateTime?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+}
+
+model HierarchyConfig {
+  level     Int      @id
+  label     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
 enum AppType {
   ADMIN
@@ -76,436 +371,4 @@ enum SyncStatus {
   IN_PROGRESS
   COMPLETED
   FAILED
-}
-
-// ============================================================================
-// User Management
-// ============================================================================
-
-model User {
-  id                   String     @id @default(uuid())
-  email                String     @unique
-  passwordHash         String
-  name                 String
-  phone                String?
-  appType              AppType
-  role                 String     // e.g., SUPER_ADMIN, ADMIN, AUDITOR, or custom client roles
-  status               UserStatus @default(ACTIVE)
-  
-  // Permission attributes
-  assignedLocationId   String?
-  assignedLocation     Location?  @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
-  departmentIds        String[]   // Array of department IDs
-  allDepartmentsAccess Boolean    @default(false)
-  
-  // Client role (for CLIENT app users)
-  clientRoleId         String?
-  clientRole           ClientRole? @relation(fields: [clientRoleId], references: [id])
-  
-  // Timestamps
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
-  lastLoginAt          DateTime?
-  
-  // Relations
-  auditReports         AuditReport[]    @relation("AuditorReports")
-  reviewedReports      AuditReport[]    @relation("ReviewerReports")
-  reportComments       ReportComment[]
-  syncQueueItems       SyncQueue[]
-  refreshTokens        RefreshToken[]
-
-  @@index([email])
-  @@index([appType])
-  @@index([assignedLocationId])
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  
-  @@index([userId])
-  @@index([token])
-}
-
-// ============================================================================
-// Location Hierarchy
-// ============================================================================
-
-model Location {
-  id            String    @id @default(uuid())
-  code          String    @unique
-  name          String
-  description   String?
-  
-  // Materialized path for hierarchy (e.g., "ROOT.REGION1.SITE1")
-  path          String
-  depth         Int
-  levelLabel    String    // e.g., "Region", "Site", "Building"
-  
-  // Parent reference
-  parentId      String?
-  parent        Location? @relation("LocationHierarchy", fields: [parentId], references: [id])
-  children      Location[] @relation("LocationHierarchy")
-  
-  // Access control
-  isLocked      Boolean   @default(true)
-  
-  // Timestamps
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Relations
-  inventoryItems    InventoryItem[]
-  auditReports      AuditReport[]
-  schedules         LocationSchedule[]
-  assignedUsers     User[]          @relation("UserAssignedLocation")
-
-  @@index([path])
-  @@index([parentId])
-  @@index([code])
-}
-
-model LocationSchedule {
-  id               String   @id @default(uuid())
-  locationId       String
-  location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  scheduledDate    DateTime @db.Date
-  isOverrideLocked Boolean  @default(false)  // Admin can override even scheduled access
-  notes            String?
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  @@unique([locationId, scheduledDate])
-  @@index([scheduledDate])
-}
-
-// ============================================================================
-// Departments
-// ============================================================================
-
-model Department {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  name        String
-  description String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  inventoryItems InventoryItem[]
-  
-  @@index([code])
-}
-
-// ============================================================================
-// Asset Categories & Custom Fields
-// ============================================================================
-
-model AssetCategory {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  name        String
-  description String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  inventoryItems       InventoryItem[]
-  customFieldDefinitions CustomFieldDefinition[]
-  
-  @@index([code])
-}
-
-model CustomFieldDefinition {
-  id          String          @id @default(uuid())
-  name        String
-  label       String
-  type        CustomFieldType
-  required    Boolean         @default(false)
-  options     Json?           // For DROPDOWN: ["Option1", "Option2"]
-  order       Int             @default(0)
-  
-  // Category-specific (optional)
-  categoryId  String?
-  category    AssetCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  
-  @@index([categoryId])
-}
-
-// ============================================================================
-// Inventory Items
-// ============================================================================
-
-model InventoryItem {
-  id            String       @id @default(uuid())
-  code          String       @unique
-  name          String
-  description   String?
-  
-  // Location (mandatory)
-  locationId    String
-  location      Location     @relation(fields: [locationId], references: [id])
-  
-  // Department (optional)
-  departmentId  String?
-  department    Department?  @relation(fields: [departmentId], references: [id])
-  
-  // Category (optional)
-  categoryId    String?
-  category      AssetCategory? @relation(fields: [categoryId], references: [id])
-  
-  // Extended Attributes (from Excel Import)
-  subCategory   String?        // Minor Category
-  profitCenter  String?
-  cost          Decimal?       @db.Decimal(15, 2)
-  bookValue     Decimal?       @db.Decimal(15, 2)
-  purchaseDate  DateTime?      // Date of Put to Use
-  unitOfMeasure String?        // Column 'A' (e.g., EA)
-
-  
-  // Custom fields (JSON storage)
-  customFields  Json         @default("{}")
-  
-  // Timestamps
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  
-  // Relations
-  qrTag         QRCodeTag?
-  auditFindings AuditFinding[]
-  
-  @@index([locationId])
-  @@index([departmentId])
-  @@index([code])
-}
-
-// ============================================================================
-// QR Code Tags
-// ============================================================================
-
-model QRCodeTag {
-  id            String      @id @default(uuid())
-  code          String      @unique
-  status        QRTagStatus @default(UNASSIGNED)
-  
-  // Linked item (when assigned)
-  linkedItemId  String?     @unique
-  linkedItem    InventoryItem? @relation(fields: [linkedItemId], references: [id], onDelete: SetNull)
-  
-  // Batch tracking
-  batchId       String?
-  
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  retiredAt     DateTime?
-  
-  @@index([code])
-  @@index([status])
-  @@index([batchId])
-}
-
-// ============================================================================
-// Audit Reports & Findings
-// ============================================================================
-
-model AuditReport {
-  id            String            @id @default(uuid())
-  
-  // Location being audited
-  locationId    String
-  location      Location          @relation(fields: [locationId], references: [id])
-  
-  // Auditor
-  auditorId     String
-  auditor       User              @relation("AuditorReports", fields: [auditorId], references: [id])
-  
-  // Status
-  status        AuditReportStatus @default(DRAFT)
-  submittedAt   DateTime?
-  
-  // Review
-  reviewedBy    String?
-  reviewer      User?             @relation("ReviewerReports", fields: [reviewedBy], references: [id])
-  reviewedAt    DateTime?
-  reviewNotes   String?
-  
-  // Timestamps
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  
-  // Relations
-  findings      AuditFinding[]
-  comments      ReportComment[]
-  
-  @@index([locationId])
-  @@index([auditorId])
-  @@index([status])
-}
-
-model AuditFinding {
-  id                String             @id @default(uuid())
-  
-  // Report reference
-  reportId          String
-  report            AuditReport        @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  
-  // Item reference
-  itemId            String
-  item              InventoryItem      @relation(fields: [itemId], references: [id])
-  
-  // Core verification fields
-  status            VerificationStatus @default(PENDING)
-  condition         ItemCondition?
-  notes             String?
-  
-  // Geo-tagging
-  geoLat            Float?
-  geoLng            Float?
-  geoAccuracy       Float?
-  geoTimestamp      DateTime?
-  
-  // Custom field values (JSON)
-  customFieldValues Json               @default("{}")
-  
-  // Timestamps
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  
-  // Relations
-  photos            AuditPhoto[]
-  
-  @@unique([reportId, itemId])
-  @@index([reportId])
-  @@index([itemId])
-}
-
-model AuditPhoto {
-  id               String       @id @default(uuid())
-  
-  findingId        String
-  finding          AuditFinding @relation(fields: [findingId], references: [id], onDelete: Cascade)
-  
-  // Storage info
-  storagePath      String
-  originalFilename String
-  mimeType         String
-  sizeBytes        Int
-  
-  // Metadata
-  geoLat           Float?
-  geoLng           Float?
-  capturedAt       DateTime?
-  
-  createdAt        DateTime     @default(now())
-  
-  @@index([findingId])
-}
-
-model ReportComment {
-  id        String      @id @default(uuid())
-  
-  reportId  String
-  report    AuditReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  
-  // Optional: comment on specific item
-  itemId    String?
-  
-  authorId  String
-  author    User        @relation(fields: [authorId], references: [id])
-  
-  content   String
-  
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  
-  @@index([reportId])
-  @@index([itemId])
-}
-
-// ============================================================================
-// Client Roles & Permissions
-// ============================================================================
-
-model ClientRole {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  
-  // Location scope (root path for access)
-  locationScope   String?
-  
-  // Department scope
-  departmentScope String[] // Array of department IDs
-  allDepartments  Boolean  @default(false)
-  
-  // Permissions (JSON)
-  permissions     Json     @default("{\"canView\": true, \"canFlag\": false, \"canRemark\": false, \"canApprove\": false, \"canReject\": false}")
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  users           User[]
-  
-  @@index([name])
-}
-
-// ============================================================================
-// Import Tracking
-// ============================================================================
-
-model ImportLog {
-  id            String   @id @default(uuid())
-  filename      String
-  type          String   // 'locations' | 'inventory'
-  status        String   // 'processing' | 'completed' | 'failed'
-  totalRows     Int      @default(0)
-  successRows   Int      @default(0)
-  errorRows     Int      @default(0)
-  errors        Json?    // Array of error details
-  importedBy    String
-  
-  createdAt     DateTime @default(now())
-  completedAt   DateTime?
-  
-  @@index([importedBy])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// Mobile Sync Queue
-// ============================================================================
-
-model SyncQueue {
-  id          String       @id @default(uuid())
-  
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  entityType  String       // 'finding' | 'photo' | 'report'
-  entityId    String
-  action      String       // 'create' | 'update' | 'delete'
-  priority    SyncPriority @default(MEDIUM)
-  status      SyncStatus   @default(PENDING)
-  
-  payload     Json
-  attempts    Int          @default(0)
-  lastError   String?
-  
-  createdAt   DateTime     @default(now())
-  processedAt DateTime?
-  
-  @@index([userId])
-  @@index([status])
-  @@index([priority])
 }

@@ -10,37 +10,34 @@ import { api } from "../../../lib/api";
 // Type definition based on API response
 interface InventoryItem {
   id: string;
-  code: string;
-  name: string; // Description
-  location: { name: string; code: string };
+  assetNumber: string;
+  assetName: string;
+  location: { locationName: string; locationCode: string };
   department?: { name: string; code: string };
   category?: { name: string; code: string };
-  cost?: number;
-  bookValue?: number;
-  purchaseDate?: string;
-  status: string; // e.g., 'Found', 'Missing' (from findings) or internal status? Schema has verification status in Findings
-  // InventoryItem doesn't have status field directly (unless extended).
-  // But usually listing shows active/inactive or finding status.
-  // For now, let's omit status if complex to derive, or assume placeholder.
+  acquisitionCost?: number;
+  netBookValue?: number;
+  capitalizationDate?: string;
+  inventoryStatus?: string;
 }
 
 const columns: ColumnDef<InventoryItem>[] = [
   {
-    accessorKey: "code",
+    accessorKey: "assetNumber",
     header: "Asset ID",
   },
   {
-    accessorKey: "name",
+    accessorKey: "assetName",
     header: "Description",
   },
   {
-    accessorKey: "location.name",
+    accessorKey: "location.locationName",
     header: "Location",
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">{row.original.location?.name}</div>
+        <div className="font-medium">{row.original.location?.locationName}</div>
         <div className="text-xs text-slate-500">
-          {row.original.location?.code}
+          {row.original.location?.locationCode}
         </div>
       </div>
     ),
@@ -54,10 +51,10 @@ const columns: ColumnDef<InventoryItem>[] = [
     header: "Category",
   },
   {
-    accessorKey: "cost",
+    accessorKey: "acquisitionCost",
     header: "Cost",
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("cost") || "0");
+      const amount = parseFloat(String(row.getValue("acquisitionCost") || "0"));
       return new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "INR",
@@ -65,10 +62,10 @@ const columns: ColumnDef<InventoryItem>[] = [
     },
   },
   {
-    accessorKey: "purchaseDate",
+    accessorKey: "capitalizationDate",
     header: "Purchase Date",
     cell: ({ row }) => {
-      const date = row.getValue("purchaseDate");
+      const date = row.getValue("capitalizationDate");
       if (!date) return "-";
       return new Date(date as string).toLocaleDateString();
     },
@@ -82,8 +79,13 @@ export default function InventoryPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const inventory = await api.getInventory();
-        setData(inventory);
+        const response = await api.getInventory();
+        // Handle paginated response structure { items: [], pagination: {} }
+        if (response && response.items) {
+          setData(response.items);
+        } else if (Array.isArray(response)) {
+          setData(response);
+        }
       } catch (error) {
         console.error("Failed to load inventory", error);
       } finally {

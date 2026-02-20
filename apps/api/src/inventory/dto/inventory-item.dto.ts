@@ -3,7 +3,6 @@ import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsUUID,
   IsObject,
   IsDateString,
   IsNumber,
@@ -14,17 +13,17 @@ export class CreateInventoryItemDto {
   @ApiProperty({ example: "ASSET-004" })
   @IsString()
   @IsNotEmpty()
-  code: string;
+  assetNumber: string;
 
   @ApiProperty({ example: 'HP Monitor 24"' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  assetName: string;
 
   @ApiPropertyOptional({ example: "24-inch LED monitor" })
   @IsString()
   @IsOptional()
-  description?: string;
+  assetDescription?: string;
 
   @ApiProperty({ example: "location-uuid" })
   @IsString()
@@ -41,31 +40,27 @@ export class CreateInventoryItemDto {
   @IsOptional()
   categoryId?: string;
 
-  @ApiPropertyOptional({
-    example: { serialNumber: "SN12345", warrantyEnd: "2025-12-31" },
-  })
   @ApiPropertyOptional({ example: { warranty: "2 years" } })
   @IsObject()
   @IsOptional()
   customFields?: Record<string, any>;
 
-  // New Fields
   @ApiPropertyOptional({ example: "2023-01-15" })
   @IsDateString()
   @IsOptional()
-  purchaseDate?: string;
+  capitalizationDate?: string;
 
   @ApiPropertyOptional({ example: 1500.0 })
   @IsNumber()
   @Min(0)
   @IsOptional()
-  cost?: number;
+  acquisitionCost?: number;
 
   @ApiPropertyOptional({ example: 1200.0 })
   @IsNumber()
   @Min(0)
   @IsOptional()
-  bookValue?: number;
+  netBookValue?: number;
 
   @ApiPropertyOptional({ example: "US-Ops" })
   @IsString()
@@ -81,18 +76,35 @@ export class CreateInventoryItemDto {
   @IsString()
   @IsOptional()
   unitOfMeasure?: string;
+
+  @ApiPropertyOptional({ example: 10 })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  quantityAsPerBooks?: number;
+
+  @ApiPropertyOptional({ example: "Found ok" })
+  @IsString()
+  @IsOptional()
+  inventoryStatus?: string;
+
+  @ApiPropertyOptional({ example: 500.0 })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  accumulatedDepreciation?: number;
 }
 
 export class UpdateInventoryItemDto {
   @ApiPropertyOptional({ example: "Updated Laptop Name" })
   @IsString()
   @IsOptional()
-  name?: string;
+  assetName?: string;
 
   @ApiPropertyOptional({ example: "Updated description" })
   @IsString()
   @IsOptional()
-  description?: string;
+  assetDescription?: string;
 
   @ApiPropertyOptional({ example: "uuid-of-location" })
   @IsString()
@@ -117,19 +129,19 @@ export class UpdateInventoryItemDto {
   @ApiPropertyOptional()
   @IsDateString()
   @IsOptional()
-  purchaseDate?: string;
+  capitalizationDate?: string;
 
   @ApiPropertyOptional()
   @IsNumber()
   @Min(0)
   @IsOptional()
-  cost?: number;
+  acquisitionCost?: number;
 
   @ApiPropertyOptional()
   @IsNumber()
   @Min(0)
   @IsOptional()
-  bookValue?: number;
+  netBookValue?: number;
 
   @ApiPropertyOptional()
   @IsString()
@@ -145,4 +157,21 @@ export class UpdateInventoryItemDto {
   @IsString()
   @IsOptional()
   unitOfMeasure?: string;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  quantityAsPerBooks?: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  inventoryStatus?: string;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  accumulatedDepreciation?: number;
 }

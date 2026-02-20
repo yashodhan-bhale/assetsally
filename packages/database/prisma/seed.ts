@@ -53,13 +53,12 @@ async function main() {
   console.log(`✅ Created auditor user: ${auditorUser.email}`);
 
   // Create sample location hierarchy
-  // Create sample location hierarchy
-  let country = await prisma.location.findFirst({ where: { code: "IN" } });
+  let country = await prisma.location.findFirst({ where: { locationCode: "IN" } });
   if (!country) {
     country = await prisma.location.create({
       data: {
-        code: "IN",
-        name: "India",
+        locationCode: "IN",
+        locationName: "India",
         path: "IN",
         depth: 0,
         levelLabel: "Country",
@@ -67,12 +66,12 @@ async function main() {
     });
   }
 
-  let state = await prisma.location.findFirst({ where: { code: "MH" } });
+  let state = await prisma.location.findFirst({ where: { locationCode: "MH" } });
   if (!state) {
     state = await prisma.location.create({
       data: {
-        code: "MH",
-        name: "Maharashtra",
+        locationCode: "MH",
+        locationName: "Maharashtra",
         path: "IN.MH",
         depth: 1,
         levelLabel: "State",
@@ -81,12 +80,12 @@ async function main() {
     });
   }
 
-  let city = await prisma.location.findFirst({ where: { code: "MUM" } });
+  let city = await prisma.location.findFirst({ where: { locationCode: "MUM" } });
   if (!city) {
     city = await prisma.location.create({
       data: {
-        code: "MUM",
-        name: "Mumbai",
+        locationCode: "MUM",
+        locationName: "Mumbai",
         path: "IN.MH.MUM",
         depth: 2,
         levelLabel: "City",
@@ -95,12 +94,12 @@ async function main() {
     });
   }
 
-  let office = await prisma.location.findFirst({ where: { code: "HQ" } });
+  let office = await prisma.location.findFirst({ where: { locationCode: "HQ" } });
   if (!office) {
     office = await prisma.location.create({
       data: {
-        code: "HQ",
-        name: "HQ Office",
+        locationCode: "HQ",
+        locationName: "HQ Office",
         path: "IN.MH.MUM.HQ",
         depth: 3,
         levelLabel: "Office",
@@ -109,7 +108,7 @@ async function main() {
     });
   }
   console.log(
-    `✅ Created location hierarchy: ${country.name} → ${state.name} → ${city.name} → ${office.name}`,
+    `✅ Created location hierarchy: ${country.locationName} → ${state.locationName} → ${city.locationName} → ${office.locationName}`,
   );
 
   // Create sample department
@@ -138,18 +137,18 @@ async function main() {
 
   // Create sample inventory items
   const items = [
-    { name: "Dell Laptop", code: "ASSET-001" },
-    { name: "Office Desk", code: "ASSET-002" },
-    { name: "HP Printer", code: "ASSET-003" },
+    { assetName: "Dell Laptop", assetNumber: "ASSET-001" },
+    { assetName: "Office Desk", assetNumber: "ASSET-002" },
+    { assetName: "HP Printer", assetNumber: "ASSET-003" },
   ];
 
   for (const item of items) {
     await prisma.inventoryItem.upsert({
-      where: { code: item.code },
+      where: { assetNumber: item.assetNumber },
       update: {},
       create: {
-        code: item.code,
-        name: item.name,
+        assetNumber: item.assetNumber,
+        assetName: item.assetName,
         locationId: office.id,
         departmentId: department.id,
         categoryId: category.id,
