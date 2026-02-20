@@ -1,8 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, MapPin, X } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
@@ -167,15 +168,35 @@ const columns: ColumnDef<InventoryItem>[] = [
   },
 ];
 
-export default function InventoryPage() {
+function InventoryContent() {
   const [data, setData] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locationName, setLocationName] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const locationId = searchParams.get("locationId");
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
       try {
-        const response = await api.getInventory();
-        // Handle paginated response structure { items: [], pagination: {} }
+        const params: Record<string, string> = {};
+        if (locationId) {
+          params.locationId = locationId;
+
+          // Fetch location details for display
+          try {
+            const loc = await api.getLocation(locationId);
+            setLocationName(loc.locationName);
+          } catch (e) {
+            console.error("Failed to fetch location details", e);
+          }
+        } else {
+          setLocationName(null);
+        }
+
+        const response = await api.getInventory(params);
         if (response && response.items) {
           setData(response.items);
         } else if (Array.isArray(response)) {
@@ -188,7 +209,11 @@ export default function InventoryPage() {
       }
     }
     loadData();
-  }, []);
+  }, [locationId]);
+
+  const clearFilter = () => {
+    router.push("/dashboard/inventory");
+  };
 
   if (loading) {
     return (
@@ -200,14 +225,44 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
-        <p className="text-slate-500">
-          Tracking {data.length} assets across all locations.
-        </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
+          <p className="text-slate-500">
+            Tracking {data.length} assets across all locations.
+          </p>
+        </div>
+
+        {locationId && locationName && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-sm animate-in fade-in slide-in-from-right-4 duration-300">
+            <MapPin className="w-4 h-4" />
+            <span className="font-semibold">{locationName}</span>
+            <button
+              onClick={clearFilter}
+              className="ml-1 p-0.5 hover:bg-blue-100 rounded-full transition-colors"
+              title="Clear location filter"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       <DataTable columns={columns} data={data} placeholder="Search assets..." />
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        </div>
+      }
+    >
+      <InventoryContent />
+    </Suspense>
   );
 }

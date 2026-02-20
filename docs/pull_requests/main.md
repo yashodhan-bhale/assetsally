@@ -1,35 +1,37 @@
-# Pull Request: Refactor Schema and Implement 4-Level Location Hierarchy
+# Pull Request: feat(web): refine locations hierarchy display and inventory location filtering
 
 ## Overview
-This PR introduces significant updates to the core data structures and import mechanisms for AssetsAlly. The goal was to align the database with more descriptive business terminology and support a revised 4-level location hierarchy (reduced from 5).
+This PR improves the asset management workflow by refining how locations are displayed and how inventory items are filtered. The "Locations" page now presents hierarchy levels in a more intuitive "specific-to-general" order, and the "Inventory" page supports direct filtering from the location hierarchy.
 
 ## Technical Changes
 
-### 🗄️ Database & Schema (packages/database)
-- **Descriptive Naming**: Renamed fields in `Location` (e.g., `code` -> `locationCode`) and `InventoryItem` (e.g., `code` -> `assetNumber`, `cost` -> `acquisitionCost`).
-- **Hierarchy Model**: Added `HierarchyConfig` to store custom labels (e.g., "Zone", "Branch") for each hierarchy level.
-- **Migration**: Generated and applied migration `20260220082736_update_descriptive_fields`.
+### Web Application (`apps/web`)
 
-### ⚙️ Backend Services (apps/api)
-- **Locations Service**: Updated `MAX_DEPTH` to 4 and adjusted `bulkImport` for new field names.
-- **Inventory Service**: Updated `bulkImport` header mapping to match the "Inventory Report" Excel sheet format.
-- **Imports Service**: Refactored to delegate specialized logic to domain services, improving maintainability.
-- **Auth Service**: Fixed admin user creation logic to ensure persistence after database resets.
+#### Locations Page
+- **Hierarchy Refinement**: Reversed the order of location level columns to display Level 4 (most specific) first, followed by Level 3, 2, and 1.
+- **UI Cleanup**: Removed the "Type" column to reduce information density.
+- **Seamless Navigation**: Converted the Level 4 column into links that navigate to the Inventory page pre-filtered for that specific location.
 
-### 💻 Frontend (apps/web)
-- **Inventory Dashboard**: Updated table columns and data fetching to use `assetNumber`, `assetName`, and financial fields.
-- **Locations View**: Updated to display `locationCode` and generic level labels.
-- **Audits & Stats**: Adjusted relation lookups to match the new schema names.
+#### Inventory Page
+- **Location Filtering**: Implemented `useSearchParams` to capture `locationId` from the URL.
+- **Filter Visibility**: Added a prominent "Location Filter" badge at the top of the inventory table showing the active location name (e.g., "📍 HQ Office").
+- **Reset Logic**: Integrated a clear filter button (X) to quickly return to the full inventory view.
+- **Concurrency & State**: Wrapped the page in a `Suspense` boundary to handle Next.js App Router requirements for client-side search parameters.
 
-### 🛠️ Utilities & Scripts
-- **Re-import Utility**: Added `scripts/re-import-fix.ts` to automate data resets and imports from the new Excel files.
-- **Linting**: Fixed various formatting and unused variable warnings across the monorepo.
+#### Testing
+- **Test Optimization**: Updated `inventory/page.spec.tsx` to mock `next/navigation` hooks (`useSearchParams`, `useRouter`) and the newly used `api.getLocation` method.
+- **Build Stabilization**: Fixed import ordering and linting issues in test files to satisfy strict CI/CD standards.
 
-## Verification
-- **Build**: `pnpm build` passed for all packages.
-- **Lint**: `pnpm lint` passed with zero errors.
-- **Test**: `pnpm test` passed for web and api (no tests in mobile).
-- **Manual Proof**:
-  - Successfully imported 27 locations across 4 levels.
-  - Successfully imported 34 inventory items with full field mapping.
-  - Verified Admin Login works post-reset.
+## Verification Proof
+
+Successfully ran the full verification suite:
+`pnpm turbo lint build test --concurrency 1`
+
+- **Tasks**: 13 successful, 13 total
+- **Packages**:
+  - `@assetsally/web`: Lint passed, Build passed, Tests passed (5 tests)
+  - `@assetsally/api`: Lint passed, Build passed, Tests passed (2 tests)
+  - `@assetsally/mobile`: Lint passed, Tests passed (no tests found)
+  - `@assetsally/shared`: Lint passed, Build passed
+  - `@assetsally/ui`: Lint passed, Build passed
+  - `@assetsally/database`: Build passed
