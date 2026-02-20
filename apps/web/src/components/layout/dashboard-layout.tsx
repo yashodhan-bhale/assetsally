@@ -28,7 +28,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar - Desktop */}
       <aside
         className={cn(
-          "hidden md:flex flex-col fixed inset-y-0 left-0 z-50 bg-slate-900 text-white transition-all duration-300",
+          "hidden md:flex flex-col fixed inset-y-0 left-0 z-50 bg-slate-900 text-white transition-all duration-300 overflow-x-hidden",
           isSidebarOpen ? "w-64" : "w-20",
         )}
       >
@@ -48,7 +48,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
           {filteredNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -56,7 +56,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                  "flex items-center rounded-lg transition-all duration-200 group relative py-2.5",
+                  isSidebarOpen ? "gap-3 px-3" : "justify-center px-0",
                   isActive
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
                     : "text-slate-400 hover:text-white hover:bg-slate-800",
@@ -90,8 +91,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <button
             onClick={logout}
             className={cn(
-              "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors",
-              !isSidebarOpen && "justify-center",
+              "flex items-center gap-3 w-full py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors",
+              isSidebarOpen ? "px-3" : "justify-center px-0",
             )}
           >
             <LogOut size={20} />
@@ -103,7 +104,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div
         className={cn(
-          "flex-1 flex flex-col min-h-screen transition-all duration-300",
+          "flex-1 flex flex-col min-h-screen transition-all duration-300 min-w-0",
           isSidebarOpen ? "md:ml-64" : "md:ml-20",
         )}
       >
@@ -137,7 +138,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

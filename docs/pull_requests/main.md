@@ -1,35 +1,35 @@
-# PR: Feature Release - Authentication & Dashboard
-
-## Title
-`feat(web): implement dual-tab login and dashboard shell with location table fixes`
+# Pull Request: Refactor Schema and Implement 4-Level Location Hierarchy
 
 ## Overview
-This PR introduces the core authentication system and the main dashboard application shell for AssetsAlly. It implements a dual-tab login for Administrators and Clients, ensuring role-based access control. Critical stability fixes were applied to the database package and environment setup to ensure a reliable development baseline.
+This PR introduces significant updates to the core data structures and import mechanisms for AssetsAlly. The goal was to align the database with more descriptive business terminology and support a revised 4-level location hierarchy (reduced from 5).
 
 ## Technical Changes
 
-### Backend (`@assetsally/database`, `@assetsally/api`)
-- **CommonJS Standardization**: Converted `@assetsally/database` to CommonJS and standardized its `tsconfig.json` to resolve ESM resolution errors (`ERR_MODULE_NOT_FOUND`) during API startup.
-- **Maintenance Script**: Added `scripts/check-db.ts` for standalone database user and connection verification.
-- **Docker Integration**: Verified and started `postgres`, `redis`, and `minio` containers.
+### 🗄️ Database & Schema (packages/database)
+- **Descriptive Naming**: Renamed fields in `Location` (e.g., `code` -> `locationCode`) and `InventoryItem` (e.g., `code` -> `assetNumber`, `cost` -> `acquisitionCost`).
+- **Hierarchy Model**: Added `HierarchyConfig` to store custom labels (e.g., "Zone", "Branch") for each hierarchy level.
+- **Migration**: Generated and applied migration `20260220082736_update_descriptive_fields`.
 
-### Frontend (`apps/web`)
-- **Dependencies**: Added `framer-motion`, `@tanstack/react-table`, `clsx`, `tailwind-merge`.
-- **Login Page**: Implemented `src/app/login/page.tsx` with Admin/Client tabs.
-- **Dashboard Layout**: Created `src/components/layout/dashboard-layout.tsx` for responsive sidebar/header.
-- **Navigation**: Implemented `src/lib/nav-config.ts` for role-based menu filtering.
-- **Data Views**:
-    - `src/app/dashboard/inventory/page.tsx` (Asset List with custom columns)
-    - `src/app/dashboard/locations/page.tsx` (Flat Table View for leaf-level locations)
+### ⚙️ Backend Services (apps/api)
+- **Locations Service**: Updated `MAX_DEPTH` to 4 and adjusted `bulkImport` for new field names.
+- **Inventory Service**: Updated `bulkImport` header mapping to match the "Inventory Report" Excel sheet format.
+- **Imports Service**: Refactored to delegate specialized logic to domain services, improving maintainability.
+- **Auth Service**: Fixed admin user creation logic to ensure persistence after database resets.
+
+### 💻 Frontend (apps/web)
+- **Inventory Dashboard**: Updated table columns and data fetching to use `assetNumber`, `assetName`, and financial fields.
+- **Locations View**: Updated to display `locationCode` and generic level labels.
+- **Audits & Stats**: Adjusted relation lookups to match the new schema names.
+
+### 🛠️ Utilities & Scripts
+- **Re-import Utility**: Added `scripts/re-import-fix.ts` to automate data resets and imports from the new Excel files.
+- **Linting**: Fixed various formatting and unused variable warnings across the monorepo.
 
 ## Verification
-**Status**: PASSED (22/22 Tasks)
-
-- **Command**: `pnpm turbo lint build test --concurrency 1`
-- **Validation**:
-    - Dual-tab login flow verified via browser subagent.
-    - Database seeding and password hashing verified.
-    - Production build (`next build`) passed without errors.
-
-## Screenshots & Media
-Refer to the [walkthrough.md](file:///C:/Users/Ecstatech/.gemini/antigravity/brain/03c9185c-e18e-4acd-8320-0273fe9f8c25/walkthrough.md) for recording of the login flow and dashboard screenshots.
+- **Build**: `pnpm build` passed for all packages.
+- **Lint**: `pnpm lint` passed with zero errors.
+- **Test**: `pnpm test` passed for web and api (no tests in mobile).
+- **Manual Proof**:
+  - Successfully imported 27 locations across 4 levels.
+  - Successfully imported 34 inventory items with full field mapping.
+  - Verified Admin Login works post-reset.
