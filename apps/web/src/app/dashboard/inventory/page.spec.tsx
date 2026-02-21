@@ -30,6 +30,8 @@ describe("InventoryPage Formatting", () => {
         assetNumber: "AST001",
         assetName: "Test Asset",
         location: { locationName: "Loc 1", locationCode: "LC1" },
+        department: { name: "Dept 1", code: "D1" },
+        category: { name: "Cat 1", code: "C1" },
         capitalizationDate: "2024-01-05T00:00:00.000Z",
       },
     ];
@@ -37,8 +39,9 @@ describe("InventoryPage Formatting", () => {
 
     render(<InventoryPage />);
 
-    const dateCell = await screen.findByText("01/05/2024");
+    const dateCell = await screen.findByTestId("inventory-date");
     expect(dateCell).toBeDefined();
+    expect(dateCell.textContent).toBe("01/05/2024");
     expect(dateCell.className).toContain("font-mono");
   });
 
@@ -49,6 +52,8 @@ describe("InventoryPage Formatting", () => {
         assetNumber: "AST001",
         assetName: "Test Asset",
         location: { locationName: "Loc 1", locationCode: "LC1" },
+        department: { name: "Dept 1", code: "D1" },
+        category: { name: "Cat 1", code: "C1" },
         acquisitionCost: 1250000,
       },
     ];
@@ -56,9 +61,11 @@ describe("InventoryPage Formatting", () => {
 
     render(<InventoryPage />);
 
-    // In India, 12,50,000
-    const costCell = await screen.findByText("12,50,000");
+    // In India, 12,50,000. Use findAllByTestId because multiple columns use formatCurrency.
+    const costCells = await screen.findAllByTestId("inventory-currency");
+    const costCell = costCells[0];
     expect(costCell).toBeDefined();
+    expect(costCell.textContent).toBe("12,50,000");
     // The formatCurrency function wraps the number in <div className="text-right font-mono">
     expect(costCell.className).toContain("text-right");
     expect(costCell.className).toContain("font-mono");
@@ -71,6 +78,8 @@ describe("InventoryPage Formatting", () => {
         assetNumber: "AST001",
         assetName: "Test Asset",
         location: { locationName: "Loc 1", locationCode: "LC1" },
+        department: { name: "Dept 1", code: "D1" },
+        category: { name: "Cat 1", code: "C1" },
         acquisitionCost: null,
         capitalizationDate: null,
       },

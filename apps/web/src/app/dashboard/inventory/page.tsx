@@ -41,7 +41,11 @@ const formatDate = (date: string | null | undefined) => {
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     const year = d.getFullYear();
-    return <span className="font-mono">{`${month}/${day}/${year}`}</span>;
+    return (
+      <span className="font-mono" data-testid="inventory-date">
+        {`${month}/${day}/${year}`}
+      </span>
+    );
   } catch (e) {
     return "-";
   }
@@ -49,14 +53,18 @@ const formatDate = (date: string | null | undefined) => {
 
 const formatNumber = (val: any) => {
   if (val === null || val === undefined) return "-";
-  return <span className="font-mono">{val}</span>;
+  return (
+    <span className="font-mono" data-testid="inventory-number">
+      {val}
+    </span>
+  );
 };
 
 const formatCurrency = (val: any) => {
   const amount = parseFloat(String(val || "0"));
   if (isNaN(amount)) return "-";
   return (
-    <div className="text-right font-mono">
+    <div className="text-right font-mono" data-testid="inventory-currency">
       {new Intl.NumberFormat("en-IN", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,

@@ -56,7 +56,7 @@ export default function LoginPage(): React.ReactNode {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/20 mb-4">
             <ShieldCheck className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-white" data-testid="app-logo">
             Assets<span className="text-blue-400">Ally</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">
@@ -75,6 +75,7 @@ export default function LoginPage(): React.ReactNode {
                   ? "text-white"
                   : "text-slate-400 hover:text-slate-200"
               }`}
+              data-testid="tab-admin"
             >
               {activeTab === "ADMIN" && (
                 <motion.div
@@ -96,6 +97,7 @@ export default function LoginPage(): React.ReactNode {
                   ? "text-white"
                   : "text-slate-400 hover:text-slate-200"
               }`}
+              data-testid="tab-client"
             >
               {activeTab === "CLIENT" && (
                 <motion.div
@@ -143,6 +145,7 @@ export default function LoginPage(): React.ReactNode {
                         : "client@company.com"
                     }
                     required
+                    data-testid="login-email"
                     className="w-full bg-slate-950/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
                 </div>
@@ -160,6 +163,7 @@ export default function LoginPage(): React.ReactNode {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
+                    data-testid="login-password"
                     className="w-full bg-slate-950/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   />
                 </div>
@@ -173,6 +177,7 @@ export default function LoginPage(): React.ReactNode {
                     ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/25 hover:shadow-blue-500/40"
                     : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25 hover:shadow-indigo-500/40"
                 }`}
+                data-testid="login-submit"
               >
                 {isSubmitting ? (
                   <>

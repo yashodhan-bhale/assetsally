@@ -20,18 +20,13 @@ describe("LoginPage", () => {
     render(<LoginPage />);
 
     expect(screen.getByText(/Welcome back, Admin/i)).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText(/admin@assetsally.com/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Login as Admin/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("login-email")).toBeInTheDocument();
+    expect(screen.getByTestId("login-password")).toBeInTheDocument();
+    expect(screen.getByTestId("login-submit")).toBeInTheDocument();
   });
 
   it("shows branding", () => {
     render(<LoginPage />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      /AssetsAlly/i,
-    );
+    expect(screen.getByTestId("app-logo")).toHaveTextContent(/AssetsAlly/i);
   });
 });

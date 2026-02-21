@@ -8,11 +8,9 @@ This workflow ensures that every feature or bugfix pushed to the repository is f
 
 ## Phase 1: Local Verification // turbo
 
-1. Run full verification suite (use `--concurrency 1` if encountering memory/OOM errors):
-
-```bash
-pnpm turbo lint build test --concurrency 1
-```
+1. Run verification suite. Use `--concurrency 1` if encountering memory errors.
+   - For regular checks (uses cache): `pnpm turbo lint build test --concurrency 1`
+   - For final release/staging (ensures fresh run): `pnpm turbo lint build test --concurrency 1 --force`
 
 _Wait for this to pass. If it fails, fix the errors before proceeding._ 2. **Test Transparency**:
 
