@@ -1,25 +1,24 @@
-# Pull Request: chore(mobile): update dependencies and fix linting errors
+# Pull Request Summary: fix(web/ui): resolve typescript inference errors and align react 19 types
 
 ## Overview
-This PR updates core mobile dependencies to ensure compatibility and stability, and resolves minor linting issues in the `apps/mobile` workspace.
+This PR addresses several critical TypeScript and build stability issues across the `@assetsally/web` and `@assetsally/ui` packages. The primary goal was to resolve "Cannot find namespace 'JSX'" errors and align React types across the monorepo following dependencies updates.
 
 ## Technical Changes
-- **Mobile (`apps/mobile`)**:
-    - Updated `react-native` to `0.73.6`.
-    - Updated `expo-camera` to `14.1.3`.
-    - Updated `expo-image-manipulator` to `11.8.0`.
-    - Adjusted `jest-expo` to `50.0.4` to align with the Expo SDK.
-    - Fixed Prettier formatting in `expo-env.d.ts`.
-- **Global**:
-    - Synchronized `pnpm-lock.yaml`.
+- **Web App**: 
+  - Added explicit `React.ReactNode` return types to all core pages and layouts.
+  - Ensured correct `React` imports for type definitions.
+  - Fixed Prettier and ESLint formatting issues workspace-wide.
+- **UI Package**: 
+  - Updated `package.json` to use React 19 types to match the mobile environment.
+  - Aligned peer dependencies to ensure workspace consistency.
+- **Mobile app**: 
+  - Fixed linting and formatting issues.
 
-## Verification
-Full verification suite executed via Turbo:
-- **Lint**: All packages passed (linting fixed in mobile).
-- **Build**: All packages built successfully.
-- **Test**: 
-    - Web: 5 tests passed.
-    - API: 2 tests passed.
-    - Mobile: 0 tests found (dependency updates only).
-
-Status: **PASSING**
+## Verification Proof
+Full workspace verification passed with `--concurrency 1`:
+- **Linting**: Passed for all packages.
+- **Build**: Successfully built `@assetsally/web`, `@assetsally/api`, `@assetsally/ui`, and `@assetsally/database`.
+- **Tests**:
+  - Web: 5 tests passed (Inventory and Login pages).
+  - API: 2 tests passed (Health controller).
+  - Mobile: Verified stable with fix for formatting.
