@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AssetsAlly",
+    "name": "Ratan Rathi & Co.",
     "slug": "assetsally-mobile",
     "version": "0.0.1",
     "orientation": "portrait",
@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#1e293b"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.assetsally.mobile",

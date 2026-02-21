@@ -34,11 +34,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
           {isSidebarOpen ? (
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-              AssetsAlly
-            </span>
+            <div className="flex items-center gap-2 overflow-hidden">
+              <img
+                src="/client-logo.png"
+                alt="Logo"
+                className="w-8 h-8 object-contain shrink-0"
+              />
+              <span className="text-lg font-bold text-white truncate">
+                Ratan Rathi & Co.
+              </span>
+            </div>
           ) : (
-            <span className="text-xl font-bold text-blue-400 mx-auto">AA</span>
+            <img
+              src="/client-logo.png"
+              alt="Logo"
+              className="w-10 h-10 object-contain mx-auto"
+            />
           )}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -110,16 +121,41 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 text-sm">
-            <span className="font-medium text-slate-900">Dashboard</span>
-            {pathname !== "/dashboard" && (
-              <>
-                <ChevronRight size={14} />
-                <span className="capitalize text-slate-900">
-                  {pathname.split("/").pop()?.replace("-", " ")}
-                </span>
-              </>
-            )}
+          <div className="flex items-center gap-4">
+            <div className="flex md:hidden items-center gap-2 mr-2">
+              <img
+                src="/client-logo.png"
+                alt="Logo"
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-sm font-bold text-slate-900 truncate">
+                Ratan Rathi & Co.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-500 text-sm">
+              {!isSidebarOpen && (
+                <div className="hidden md:flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
+                  <img
+                    src="/client-logo.png"
+                    alt="Logo"
+                    className="w-6 h-6 object-contain"
+                  />
+                  <span className="font-bold text-slate-900 text-xs tracking-tight">
+                    Ratan Rathi & Co.
+                  </span>
+                </div>
+              )}
+              <span className="font-medium text-slate-900">Dashboard</span>
+              {pathname !== "/dashboard" && (
+                <>
+                  <ChevronRight size={14} />
+                  <span className="capitalize text-slate-900">
+                    {pathname.split("/").pop()?.replace("-", " ")}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

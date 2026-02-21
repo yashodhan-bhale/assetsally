@@ -31,7 +31,7 @@ async function bootstrap() {
   // Swagger documentation
   if (process.env.NODE_ENV !== "production") {
     const config = new DocumentBuilder()
-      .setTitle("AssetsAlly API")
+      .setTitle("Ratan Rathi & Co. API")
       .setDescription("Asset Verification System API")
       .setVersion("1.0")
       .addBearerAuth()
@@ -47,7 +47,7 @@ async function bootstrap() {
   const httpAdapter = app.getHttpAdapter();
   httpAdapter.get("/", (req: any, res: any) => {
     res.json({
-      name: "AssetsAlly API",
+      name: "Ratan Rathi & Co. API",
       version: "0.0.1",
       status: "running",
       docs: "/api/docs",

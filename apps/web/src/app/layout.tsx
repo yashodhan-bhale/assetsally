@@ -8,8 +8,8 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AssetsAlly Admin",
-  description: "Asset Verification System - Admin Portal",
+  title: "Ratan Rathi & Co. | Asset Management",
+  description: "Asset Verification System",
 };
 
 export default function RootLayout({

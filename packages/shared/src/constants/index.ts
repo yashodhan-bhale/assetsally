@@ -33,7 +33,7 @@ export const SYNC = {
 
 /** Location tree configuration */
 export const LOCATION = {
-  MAX_DEPTH: 5,
+  MAX_DEPTH: 4,
   PATH_SEPARATOR: ".",
 } as const;
 

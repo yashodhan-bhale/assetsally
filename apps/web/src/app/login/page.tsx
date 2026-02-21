@@ -53,13 +53,20 @@ export default function LoginPage(): React.ReactNode {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/20 mb-4">
-            <ShieldCheck className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img
+              src="/client-logo.png"
+              alt="Logo"
+              className="w-24 h-24 object-contain"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-white" data-testid="app-logo">
-            Assets<span className="text-blue-400">Ally</span>
+          <h1
+            className="text-3xl font-bold text-white tracking-tight"
+            data-testid="app-logo"
+          >
+            Ratan Rathi <span className="text-blue-400">& Co.</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-2">
             Asset Verification System
           </p>
         </div>
@@ -193,7 +200,7 @@ export default function LoginPage(): React.ReactNode {
         </div>
 
         <p className="text-center text-slate-600 text-xs mt-6">
-          AssetsAlly v1.0.0 — Asset Verification System
+          Ratan Rathi & Co. v1.0.0 — Asset Verification System
         </p>
       </div>
     </main>

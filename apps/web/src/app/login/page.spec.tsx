@@ -27,6 +27,8 @@ describe("LoginPage", () => {
 
   it("shows branding", () => {
     render(<LoginPage />);
-    expect(screen.getByTestId("app-logo")).toHaveTextContent(/AssetsAlly/i);
+    expect(screen.getByTestId("app-logo")).toHaveTextContent(
+      /Ratan Rathi & Co\./i,
+    );
   });
 });

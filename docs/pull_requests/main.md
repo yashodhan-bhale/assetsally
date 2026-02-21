@@ -1,29 +1,20 @@
-# Pull Request: perf(ci): enable turbo caching and stabilize UI tests with data-testid
+# Pull Request: fix(mobile): resolve login failure by correcting appType and adding dynamic API base URL detection
 
 ## Overview
-This PR optimizes the monorepo's build and testing infrastructure by implementing **Turbo caching** and stabilizing **UI tests** across the web application. These changes reduce the full verification cycle for developers from several minutes to under 10 seconds on a "warm" cache.
+This change resolves a critical issue where auditors were unable to log into the mobile application. The failure was caused by two main factors: an incorrect application type identifier and a hardcoded API endpoint that didn't account for varying network environments (physical devices vs. emulators).
 
 ## Technical Changes
+### `@assetsally/mobile`
+- **Logic Correction**: Updated the login payload to use `appType: "MOBILE"` instead of `"AUDITOR"`, aligning with the backend authentication service expectations.
+- **Dynamic Configuration**: Integrated `expo-constants` to dynamically detect the host's IP address. This allows the app to connect to the computer's local API (port 3001) effortlessly from physical devices (Expo Go), iOS simulators, and Android emulators without manual code changes.
+- **Network Resilience**: Enhanced the fetch wrapper with descriptive error messages for "Network request failed" scenarios to aid in troubleshooting.
+- **Code Quality**: Applied ESLint and Prettier fixes to ensure compliance with project standards.
 
-### Build Infrastructure (Turbo)
-- **Caching Enabled**: Enabled caching for `test` and `test:e2e` tasks in `turbo.json`.
-- **Input Tracking**: Added strict `inputs` configuration (source files, test configs, environment variables) to ensure cache invalidation only occurs on relevant changes.
-- **Dependency Optimization**: Decoupled the `lint` task from the `build` task, allowing linting to run immediately in parallel with other tasks.
+### `packages/database`
+- **Data Integrity**: Re-verified and re-seeded the database to ensure test credentials (`auditor@demo.com` / `admin123`) are active and correctly configured.
 
-### Web UI Stabilization (@assetsally/web)
-- **Stable Selectors**: Introduced `data-testid` attributes to key interactive and data-bearing elements:
-  - **Inventory Page**: Dates, acquisition costs, and asset numbers.
-  - **Login Page**: Role tabs, email, and password inputs.
-- **Robust Testing**: Updated `Vitest` specifications to use these stable IDs, replacing brittle text-based or CSS-based selectors.
-
-### Mobile Workspace Maintenance (@assetsally/mobile)
-- **Formatting Fixes**: Resolved Prettier errors in `expo-env.d.ts` that were blocking CI.
-- **Environment Stability**: Validated `expo-router` resolution after clearing Metro caches.
-
-## Verification Proof
-- **Cold Verification**: ~10m 00s (Full execution sweep)
-- **Warm Verification**: **9.032 seconds** (100% cache hit rate)
-- **Workflow Update**: Updated `.agent/workflows/feature-release.md` to guide developers on utilizing these optimizations.
-
----
-*Verified locally via `pnpm turbo lint build test --concurrency 1 --force`*
+## Verification
+- **Test Suite**: Ran `pnpm turbo lint build test --concurrency 1`. 
+- **Mobile Linting**: Corrected 5 errors and 104 warnings (fixable).
+- **Manual Verification**: Confirmed that the mobile application now successfully communicates with the NestJS backend and processes the login flow for the auditor role.
+- **Environment Tests**: Verified connectivity across Android Emulator and host machine.

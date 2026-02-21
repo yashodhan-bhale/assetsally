@@ -66,15 +66,19 @@ export async function getUser(): Promise<any> {
   return raw ? JSON.parse(raw) : null;
 }
 
+let isRefreshing = false;
+
 async function request<T = any>(
   endpoint: string,
-  options: { method?: string; body?: any } = {},
+  options: { method?: string; body?: any; _isRetry?: boolean } = {},
 ): Promise<T> {
   const { method = "GET", body } = options;
   const headers: Record<string, string> = {};
 
   const token = await getToken();
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token && endpoint !== "/auth/login") {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   if (body) headers["Content-Type"] = "application/json";
 
   try {
@@ -84,7 +88,38 @@ async function request<T = any>(
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    if (res.status === 401) {
+    if (
+      res.status === 401 &&
+      endpoint !== "/auth/login" &&
+      endpoint !== "/auth/refresh"
+    ) {
+      if (!isRefreshing && !options._isRetry) {
+        isRefreshing = true;
+        try {
+          const refreshToken = await getRefreshToken();
+          if (refreshToken) {
+            const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refreshToken }),
+            });
+
+            if (refreshRes.ok) {
+              const data = await refreshRes.json();
+              await setToken(data.accessToken);
+              await setRefreshToken(data.refreshToken);
+              await setUser(data.user);
+              isRefreshing = false;
+              return request(endpoint, { ...options, _isRetry: true });
+            }
+          }
+        } catch (e) {
+          console.error("Token refresh failed", e);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+
       await setToken(null);
       await setRefreshToken(null);
       await setUser(null);
@@ -100,8 +135,11 @@ async function request<T = any>(
     return res.json();
   } catch (error: any) {
     if (error.message === "SESSION_EXPIRED") throw error;
-    // Enhance network errors with more context
-    if (error.message.includes("Network request failed")) {
+    // Handle network errors
+    if (
+      error.message.includes("Network request failed") ||
+      error.message.includes("Failed to fetch")
+    ) {
       throw new Error(
         `Network request failed. Ensure API is running at ${API_BASE} and reachable from this device.`,
       );

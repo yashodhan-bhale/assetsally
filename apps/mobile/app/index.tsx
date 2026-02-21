@@ -1,17 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Logo Section */}
       <View style={styles.logoContainer}>
-        <View style={styles.logoBox}>
-          <Ionicons name="shield-checkmark" size={48} color="#fff" />
-        </View>
+        <Image
+          source={require("../assets/client-logo.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.title}>
-          Assets<Text style={styles.titleHighlight}>Ally</Text>
+          Ratan Rathi <Text style={styles.titleHighlight}>& Co.</Text>
         </Text>
         <Text style={styles.subtitle}>Auditor App</Text>
       </View>
@@ -38,7 +41,7 @@ export default function HomeScreen() {
 
       {/* Version */}
       <Text style={styles.version}>v0.0.1 — Phase 1 Complete</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -54,19 +57,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 32,
   },
-  logoBox: {
-    width: 80,
-    height: 80,
-    backgroundColor: "#3b82f6",
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
+  logoImage: {
+    width: 120,
+    height: 120,
     marginBottom: 16,
-    shadowColor: "#3b82f6",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
   },
   title: {
     fontSize: 32,

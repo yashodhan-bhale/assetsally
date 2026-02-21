@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Image, View } from "react-native";
 
 export default function TabsLayout() {
   return (
@@ -19,6 +20,15 @@ export default function TabsLayout() {
         headerStyle: { backgroundColor: "#1e293b" },
         headerTintColor: "#fff",
         headerTitleStyle: { fontWeight: "bold" },
+        headerLeft: () => (
+          <View style={{ marginLeft: 16 }}>
+            <Image
+              source={require("../../assets/client-logo.png")}
+              style={{ width: 32, height: 32 }}
+              resizeMode="contain"
+            />
+          </View>
+        ),
       }}
     >
       <Tabs.Screen
