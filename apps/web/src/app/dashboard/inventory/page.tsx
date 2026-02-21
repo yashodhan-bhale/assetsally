@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Loader2, MapPin, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
@@ -253,7 +253,7 @@ function InventoryContent() {
   );
 }
 
-export default function InventoryPage() {
+export default function InventoryPage(): React.ReactNode {
   return (
     <Suspense
       fallback={

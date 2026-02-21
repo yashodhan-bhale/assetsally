@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
@@ -26,7 +26,7 @@ interface LocationTableData extends Location {
   level4?: string;
 }
 
-export default function LocationsPage() {
+export default function LocationsPage(): React.ReactNode {
   const [data, setData] = useState<LocationTableData[]>([]);
   const [loading, setLoading] = useState(true);
   const [headers, setHeaders] = useState<string[]>([

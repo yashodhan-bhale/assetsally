@@ -11,7 +11,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { api } from "../../../lib/api";
 
@@ -22,7 +22,7 @@ const statusConfig: Record<string, { icon: any; color: string }> = {
   REJECTED: { icon: XCircle, color: "bg-red-500/15 text-red-400" },
 };
 
-export default function AuditsPage() {
+export default function AuditsPage(): React.ReactNode {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
 

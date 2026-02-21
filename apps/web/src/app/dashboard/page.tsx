@@ -1,8 +1,9 @@
 "use client";
+import React from "react";
 
 import { AdminStats } from "../../components/dashboard/admin-stats";
 
-export default function DashboardPage() {
+export default function DashboardPage(): React.ReactNode {
   return (
     <div className="space-y-6">
       <div>

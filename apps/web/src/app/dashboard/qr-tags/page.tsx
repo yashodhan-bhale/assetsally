@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { QrCode, Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { RoleGuard } from "../../../components/auth/role-guard";
 import { api } from "../../../lib/api";
@@ -14,7 +14,7 @@ const statusColors: Record<string, string> = {
   RETIRED: "bg-red-500/15 text-red-400",
 };
 
-export default function QrTagsPage() {
+export default function QrTagsPage(): React.ReactNode {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [showGenerate, setShowGenerate] = useState(false);

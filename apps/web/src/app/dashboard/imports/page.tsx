@@ -7,13 +7,13 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { RoleGuard } from "../../../components/auth/role-guard";
 import { api } from "../../../lib/api";
 import { UserRole } from "../../../lib/rbac";
 
-export default function DataImportPage() {
+export default function DataImportPage(): React.ReactNode {
   const [activeTab, setActiveTab] = useState<"locations" | "inventory">(
     "locations",
   );

@@ -11,13 +11,13 @@ import {
   Building,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, FormEvent } from "react";
+import React, { useState, FormEvent } from "react";
 
 import { useAuth } from "../../contexts/auth-context";
 
 type LoginType = "ADMIN" | "CLIENT";
 
-export default function LoginPage() {
+export default function LoginPage(): React.ReactNode {
   const [activeTab, setActiveTab] = useState<LoginType>("ADMIN");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
