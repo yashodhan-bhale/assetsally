@@ -41,7 +41,7 @@
 
 ---
 
-### Web Frontend (Admin + Client Apps)
+### Web Frontend (Unified Dashboard)
 
 | Component            | Technology               | Rationale                                              |
 | -------------------- | ------------------------ | ------------------------------------------------------ |
@@ -52,7 +52,7 @@
 | **Tables/Data**      | TanStack Table           | Powerful data tables for inventory lists               |
 | **PDF Generation**   | React-PDF or jsPDF       | Client-side PDF generation                             |
 
-**Monorepo Approach**: Both Admin and Client apps share common components/utilities but are separate deployable apps.
+**Architectural Change**: The separate Admin and Client apps have been unified into a single `apps/web` codebase to simplify deployment and shared states.
 
 ---
 
@@ -126,8 +126,7 @@
 assetsally/
 ├── apps/
 │   ├── api/                 # NestJS backend
-│   ├── admin/               # Next.js admin web app
-│   ├── client/              # Next.js client web app
+│   ├── web/                 # Next.js unified web app (Admin + Client)
 │   └── mobile/              # React Native + Expo auditor app
 ├── packages/
 │   ├── shared/              # Shared types, constants, utilities

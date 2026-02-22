@@ -22,7 +22,7 @@ const statusConfig: Record<string, { icon: any; color: string }> = {
   REJECTED: { icon: XCircle, color: "bg-red-500/15 text-red-400" },
 };
 
-export default function AuditsPage(): React.ReactNode {
+export default function AuditsPage() {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
 
@@ -75,7 +75,7 @@ export default function AuditsPage(): React.ReactNode {
         <div className="grid gap-4">
           {data.reports.map((report: any) => {
             const sc = statusConfig[report.status] || statusConfig.DRAFT;
-            const StatusIcon = sc.icon;
+            const StatusIcon = sc.icon as any;
             return (
               <div
                 key={report.id}
@@ -99,7 +99,7 @@ export default function AuditsPage(): React.ReactNode {
                   </div>
                 </div>
                 <div className="flex items-center_gap-4 text-xs text-slate-500">
-                  <span>{report._count?.findings || 0} findings</span>
+                  <span>{Number(report._count?.findings || 0)} findings</span>
                   {report.submittedAt && (
                     <span>
                       Submitted:{" "}
@@ -119,7 +119,9 @@ export default function AuditsPage(): React.ReactNode {
         </div>
       ) : (
         <div className="bg-slate-900/80 border border-slate-800/50 rounded-2xl p-12 text-center">
-          <FileCheck className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+          {React.createElement(FileCheck as any, {
+            className: "w-8 h-8 text-slate-600 mx-auto mb-3",
+          })}
           <p className="text-slate-500">No audit reports found</p>
         </div>
       )}
@@ -136,14 +138,18 @@ export default function AuditsPage(): React.ReactNode {
               disabled={page <= 1}
               className="p-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white disabled:opacity-30"
             >
-              <ChevronLeft className="w-4 h-4" />
+              {React.createElement(ChevronLeft as any, {
+                className: "w-4 h-4",
+              })}
             </button>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={page >= data.pagination.totalPages}
               className="p-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white disabled:opacity-30"
             >
-              <ChevronRight className="w-4 h-4" />
+              {React.createElement(ChevronRight as any, {
+                className: "w-4 h-4",
+              })}
             </button>
           </div>
         </div>

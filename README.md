@@ -35,11 +35,31 @@ A three-app ecosystem for managing and verifying physical assets across location
 | Cache    | Redis                                |
 | Monorepo | pnpm workspaces                      |
 
+## Development Requirements
+
+### Node.js Version
+
+**IMPORTANT**: This project requires **Node.js 20 (LTS)**.
+
+- Higher versions (like Node 22) are currently incompatible with Expo SDK 54 and will cause `Body is unusable` crashes in the Metro bundler.
+- An `.nvmrc` and strict `.npmrc` are included to enforce this.
+
+### React Version Split Architecture
+
+This monorepo uses a **Version Split Architecture** to maintain compatibility between Web and Mobile:
+
+- **`apps/web`**: Uses **React 18.2.0**. This is strictly required for stability with the current UI packages.
+- **`apps/mobile`**: Uses **React 19.1.0**. This is required by Expo SDK 54.
+
+**Do not update React in the root without checking these constraints.** Version locks are enforced via root `pnpm` overrides.
+
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 20+, pnpm 9+, Docker & Docker Compose
+- Node.js 20.x (Check with `node -v`)
+- pnpm 9.x
+- Docker & Docker Compose
 
 ### 1. Setup
 

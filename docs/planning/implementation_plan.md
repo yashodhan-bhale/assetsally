@@ -2,11 +2,10 @@
 
 ## Overview
 
-Building an asset verification ecosystem with 3 apps:
+Building an asset verification ecosystem with 2 primary apps:
 
-- **Admin Web App** - Full management (users, data, reports)
-- **Client Web App** - View-only with configurable permissions
-- **Auditor Mobile App** - Offline-first field verification
+- **Web Dashboard** - Unified management (users, data, reports) and client-facing roles.
+- **Auditor Mobile App** - Offline-first field verification.
 
 > [!IMPORTANT]
 > This is a comprehensive base project. Implementation is modular - each phase produces a working increment.
@@ -68,15 +67,11 @@ Set up the Turborepo monorepo structure with all apps and shared packages.
 - Basic health check endpoint
 - Docker configuration
 
-##### `apps/admin/`
+##### `apps/web/`
 
 - Next.js 14 App Router scaffold
-- Basic layout and auth pages
-
-##### `apps/client/`
-
-- Next.js 14 App Router scaffold
-- Basic layout
+- Unified layout for Admin, Staff, and Client roles
+- Authentication integration
 
 ##### `apps/mobile/`
 

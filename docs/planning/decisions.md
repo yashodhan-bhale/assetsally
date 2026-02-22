@@ -4,10 +4,9 @@
 
 ## Project Overview
 
-An ecosystem of 3 apps for asset verification (audit) process:
+An ecosystem of 2 apps for asset verification (audit) process:
 
-- **Admin Web App** - Manages everything (data, users, reports)
-- **Client Web App** - View-only with configurable permissions per role
+- **Web Dashboard** - A unified Next.js application for Admin management, Client view-only access, and Staff operations.
 - **Auditor Mobile App** - Field verification with offline support
 
 ---
@@ -16,9 +15,9 @@ An ecosystem of 3 apps for asset verification (audit) process:
 
 ### 1. Location Hierarchy
 
-- **Decision**: Variable depth (2-5 levels) with client-configurable labels
-- **Rationale**: Different clients have different organizational structures
-- **Implementation**: Materialized Path pattern for efficient descendant queries
+- **Decision**: Variable depth (2-4 levels) with client-configurable labels.
+- **Rationale**: Simplified from the initial 5-level proposal to improve user experience while maintaining organizational depth.
+- **Implementation**: Materialized Path pattern for efficient descendant queries.
 
 ### 2. Mobile Offline Support
 
@@ -44,10 +43,10 @@ An ecosystem of 3 apps for asset verification (audit) process:
 
 ### 4. Authentication Strategy
 
-- **Decision**: Unified users table with `app_type` + `role` fields
-- **Constraint**: Users are strictly single-role, single-app (no overlap)
-- **Mobile session**: Persistent login (refresh token strategy)
-- **Rationale**: Admin manages ALL users from one place
+- **Decision**: Unified users table with `app_type`, `role`, and `user_type` fields.
+- **Unified Frontend**: Admin, Staff, and Client users now share the same `apps/web` application. Access is controlled via Role-Based Access Control (RBAC) within the unified Next.js dashboard.
+- **Mobile session**: Persistent login (refresh token strategy) for Auditors.
+- **Rationale**: Consolidating codebases reduces maintenance overhead and ensures consistent UI/UX across all roles.
 
 ### 5. Client App Roles
 
@@ -101,6 +100,19 @@ An ecosystem of 3 apps for asset verification (audit) process:
 - **Decision**: MinIO (self-hosted S3-compatible storage)
 - **Compression**: Max 500KB per photo, aspect ratio preserved
 - **Rationale**: No vendor lock-in, full control
+
+### 12. SDK 54 Upgrade & Versioning (Monorepo Compatibility)
+
+- **Decision**: Forced Node 20 LTS + Forced React Version Split
+- **Details**:
+  - **Node.js**: Must use **v20.x**. Node 22+ causes `Body is unusable` crashes in the Expo/Metro fetch implementation.
+  - **React (Web)**: Pin to **v18.2.0**. Required for compatibility with existing UI packages and stable web build.
+  - **React (Mobile)**: Pin to **v19.1.0**. Required by Expo SDK 54.
+- **Enforcement**:
+  - `.npmrc` with `engine-strict=true` (Prevents installs on wrong Node versions)
+  - Root `package.json` overrides (Prevents version drift across apps)
+  - Custom `metro.config.js` for mobile (Ignores web/api to prevent watcher crashes)
+- **Rationale**: This is the only stable configuration that allows the latest Expo SDK 54 feature set while maintaining the reliability of the existing Web/Admin dashboards. **Do not attempt to "unify" these versions until UI packages are React 19 compatible.**
 
 ---
 

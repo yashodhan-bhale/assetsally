@@ -10,6 +10,13 @@ import { useAuth } from "../../contexts/auth-context";
 import { navItems } from "../../lib/nav-config";
 import { cn } from "../../lib/utils"; // Assuming utils exists, if not I'll create it or inline
 
+const MenuIcon: any = Menu;
+const XIcon: any = X;
+const LogOutIcon: any = LogOut;
+const ChevronRightIcon: any = ChevronRight;
+const UserIcon: any = User;
+const NavLink: any = Link;
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const pathname = usePathname();
@@ -55,7 +62,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
           >
-            {isSidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            {isSidebarOpen ? <XIcon size={18} /> : <MenuIcon size={18} />}
           </button>
         </div>
 
@@ -63,7 +70,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           {filteredNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
                 className={cn(
@@ -93,7 +100,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     {item.title}
                   </div>
                 )}
-              </Link>
+              </NavLink>
             );
           })}
         </nav>
@@ -106,7 +113,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               isSidebarOpen ? "px-3" : "justify-center px-0",
             )}
           >
-            <LogOut size={20} />
+            <LogOutIcon size={20} />
             {isSidebarOpen && <span className="font-medium">Sign Out</span>}
           </button>
         </div>
@@ -149,7 +156,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <span className="font-medium text-slate-900">Dashboard</span>
               {pathname !== "/dashboard" && (
                 <>
-                  <ChevronRight size={14} />
+                  <ChevronRightIcon size={14} />
                   <span className="capitalize text-slate-900">
                     {pathname.split("/").pop()?.replace("-", " ")}
                   </span>
@@ -168,7 +175,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </p>
             </div>
             <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 border border-slate-200">
-              <User size={18} />
+              <UserIcon size={18} />
             </div>
           </div>
         </header>

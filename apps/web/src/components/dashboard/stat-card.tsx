@@ -1,4 +1,5 @@
 import { TrendingUp } from "lucide-react";
+const TrendingIcon: any = TrendingUp;
 
 export function StatCard({
   icon: Icon,
@@ -21,7 +22,7 @@ export function StatCard({
         >
           <Icon className="w-5 h-5" />
         </div>
-        <TrendingUp className="w-4 h-4 text-slate-600 group-hover:text-emerald-500 transition-colors" />
+        <TrendingIcon className="w-4 h-4 text-slate-600 group-hover:text-emerald-500 transition-colors" />
       </div>
       <p className="text-2xl font-bold text-white">{value}</p>
       <p className="text-sm text-slate-400 mt-1">{label}</p>

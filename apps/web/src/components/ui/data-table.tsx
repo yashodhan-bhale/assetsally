@@ -11,6 +11,9 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+const ChevronLeftIcon: any = ChevronLeft;
+const ChevronRightIcon: any = ChevronRight;
+const SearchIcon: any = Search;
 import { useState } from "react";
 
 import { cn } from "../../lib/utils";
@@ -51,7 +54,7 @@ export function DataTable<TData, TValue>({
       {/* Search & Filters */}
       <div className="flex items-center justify-between">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
@@ -134,14 +137,14 @@ export function DataTable<TData, TValue>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeftIcon className="h-4 w-4" />
           </button>
           <button
             className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRightIcon className="h-4 w-4" />
           </button>
         </div>
       </div>

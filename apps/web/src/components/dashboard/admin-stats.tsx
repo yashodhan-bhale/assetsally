@@ -2,6 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Package, MapPin, FileCheck, QrCode, BarChart3 } from "lucide-react";
+const PackageIcon: any = Package;
+const MapPinIcon: any = MapPin;
+const FileCheckIcon: any = FileCheck;
+const QrCodeIcon: any = QrCode;
+const BarChartIcon: any = BarChart3;
 
 import { api } from "../../lib/api";
 
@@ -32,25 +37,25 @@ export function AdminStats() {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          icon={Package}
+          icon={PackageIcon}
           label="Total Assets"
           value={stats?.totalItems || 0}
           color="bg-blue-500/15 text-blue-400"
         />
         <StatCard
-          icon={MapPin}
+          icon={MapPinIcon}
           label="Locations"
           value={locations?.length || 0}
           color="bg-emerald-500/15 text-emerald-400"
         />
         <StatCard
-          icon={FileCheck}
+          icon={FileCheckIcon}
           label="Audit Reports"
           value={audits?.pagination?.total || 0}
           color="bg-amber-500/15 text-amber-400"
         />
         <StatCard
-          icon={QrCode}
+          icon={QrCodeIcon}
           label="QR Tags"
           value={qrTags?.pagination?.total || 0}
           color="bg-purple-500/15 text-purple-400"
@@ -61,7 +66,7 @@ export function AdminStats() {
         {/* Recent Audits */}
         <div className="bg-slate-900/80 border border-slate-800/50 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-slate-500" />
+            <BarChartIcon className="w-4 h-4 text-slate-500" />
             <h3 className="text-sm font-semibold text-white">Recent Audits</h3>
           </div>
           {audits?.reports?.length ? (
@@ -105,7 +110,7 @@ export function AdminStats() {
         {/* Locations Overview */}
         <div className="bg-slate-900/80 border border-slate-800/50 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <MapPin className="w-4 h-4 text-slate-500" />
+            <MapPinIcon className="w-4 h-4 text-slate-500" />
             <h3 className="text-sm font-semibold text-white">Locations</h3>
           </div>
           {locations?.length ? (
@@ -123,7 +128,7 @@ export function AdminStats() {
                     </span>
                   </div>
                   <span className="text-xs text-slate-500">
-                    {loc._count?.inventoryItems || 0} items
+                    {Number(loc._count?.inventoryItems || 0)} items
                   </span>
                 </div>
               ))}

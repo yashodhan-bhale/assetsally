@@ -13,7 +13,13 @@ import { RoleGuard } from "../../../components/auth/role-guard";
 import { api } from "../../../lib/api";
 import { UserRole } from "../../../lib/rbac";
 
-export default function DataImportPage(): React.ReactNode {
+const UploadIcon: any = Upload;
+const TrashIcon: any = Trash2;
+const AlertIcon: any = AlertTriangle;
+const CheckIcon: any = CheckCircle;
+const ErrorIcon: any = XCircle;
+
+export default function DataImportPage() {
   const [activeTab, setActiveTab] = useState<"locations" | "inventory">(
     "locations",
   );
@@ -90,7 +96,7 @@ export default function DataImportPage(): React.ReactNode {
               {wiping ? (
                 <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4" />
+                <TrashIcon className="w-4 h-4" />
               )}
               <span>Wipe All Data</span>
             </button>
@@ -100,14 +106,14 @@ export default function DataImportPage(): React.ReactNode {
         {/* Error/Success Messages */}
         {error && (
           <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3">
-            <XCircle className="w-5 h-5 flex-shrink-0" />
+            <ErrorIcon className="w-5 h-5 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
         {result && (
           <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
             <div className="flex items-center gap-3 mb-2">
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+              <CheckIcon className="w-5 h-5 flex-shrink-0" />
               <span className="font-medium">{result.message}</span>
             </div>
             {result.errors && result.errors.length > 0 && (
@@ -158,7 +164,7 @@ export default function DataImportPage(): React.ReactNode {
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-8 text-center">
           <div className="max-w-md mx-auto space-y-4">
             <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Upload className="w-8 h-8 text-slate-400" />
+              <UploadIcon className="w-8 h-8 text-slate-400" />
             </div>
             <h3 className="text-lg font-medium text-white">
               Upload {activeTab === "locations" ? "Location" : "Inventory"} Data
@@ -199,7 +205,7 @@ export default function DataImportPage(): React.ReactNode {
         {/* Guidelines/Help */}
         <div className="bg-blue-500/5 border border-blue-500/10 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <AlertIcon className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-slate-300 space-y-1">
               <p className="font-medium text-blue-300">Important Notes:</p>
               <ul className="list-disc pl-4 space-y-1 text-slate-400">

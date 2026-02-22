@@ -2,6 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Package, MapPin, FileCheck, BarChart3 } from "lucide-react";
+const PackageIcon: any = Package;
+const MapPinIcon: any = MapPin;
+const FileCheckIcon: any = FileCheck;
+const BarChartIcon: any = BarChart3;
 
 import { api } from "../../lib/api";
 
@@ -27,19 +31,19 @@ export function ClientStats() {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          icon={Package}
+          icon={PackageIcon}
           label="Total Assets"
           value={stats?.totalItems || 0}
           color="bg-emerald-500/15 text-emerald-400"
         />
         <StatCard
-          icon={MapPin}
+          icon={MapPinIcon}
           label="Locations"
           value={locations?.length || 0}
           color="bg-teal-500/15 text-teal-400"
         />
         <StatCard
-          icon={FileCheck}
+          icon={FileCheckIcon}
           label="Completed Audits"
           value={
             audits?.reports?.filter((r: any) => r.status === "APPROVED")
@@ -52,7 +56,7 @@ export function ClientStats() {
       {/* Recent verified audits */}
       <div className="bg-slate-900/80 border border-slate-800/50 rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-4 h-4 text-slate-500" />
+          <BarChartIcon className="w-4 h-4 text-slate-500" />
           <h3 className="text-sm font-semibold text-white">
             Recent Verified Audits
           </h3>

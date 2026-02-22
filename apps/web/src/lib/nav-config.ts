@@ -12,7 +12,7 @@ import {
 export interface NavItem {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: any;
   roles?: ("ADMIN" | "CLIENT")[];
 }
 

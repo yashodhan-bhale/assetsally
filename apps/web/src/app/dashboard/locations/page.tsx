@@ -8,6 +8,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
 
+const LoaderIcon: any = Loader2;
+const NavLink: any = Link;
+
 interface Location {
   id: string;
   locationCode: string;
@@ -26,7 +29,7 @@ interface LocationTableData extends Location {
   level4?: string;
 }
 
-export default function LocationsPage(): React.ReactNode {
+export default function LocationsPage() {
   const [data, setData] = useState<LocationTableData[]>([]);
   const [loading, setLoading] = useState(true);
   const [headers, setHeaders] = useState<string[]>([
@@ -100,12 +103,12 @@ export default function LocationsPage(): React.ReactNode {
         accessorKey: "level4",
         header: headers[3],
         cell: ({ row }) => (
-          <Link
+          <NavLink
             href={`/dashboard/inventory?locationId=${row.original.id}`}
             className="text-blue-600 hover:underline font-medium"
           >
             {row.original.level4 || row.original.locationName}
-          </Link>
+          </NavLink>
         ),
       },
       {
@@ -127,7 +130,7 @@ export default function LocationsPage(): React.ReactNode {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <LoaderIcon className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }

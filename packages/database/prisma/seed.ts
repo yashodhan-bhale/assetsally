@@ -53,7 +53,9 @@ async function main() {
   console.log(`✅ Created auditor user: ${auditorUser.email}`);
 
   // Create sample location hierarchy
-  let country = await prisma.location.findFirst({ where: { locationCode: "IN" } });
+  let country = await prisma.location.findFirst({
+    where: { locationCode: "IN" },
+  });
   if (!country) {
     country = await prisma.location.create({
       data: {
@@ -66,7 +68,9 @@ async function main() {
     });
   }
 
-  let state = await prisma.location.findFirst({ where: { locationCode: "MH" } });
+  let state = await prisma.location.findFirst({
+    where: { locationCode: "MH" },
+  });
   if (!state) {
     state = await prisma.location.create({
       data: {
@@ -80,7 +84,9 @@ async function main() {
     });
   }
 
-  let city = await prisma.location.findFirst({ where: { locationCode: "MUM" } });
+  let city = await prisma.location.findFirst({
+    where: { locationCode: "MUM" },
+  });
   if (!city) {
     city = await prisma.location.create({
       data: {
@@ -94,7 +100,9 @@ async function main() {
     });
   }
 
-  let office = await prisma.location.findFirst({ where: { locationCode: "HQ" } });
+  let office = await prisma.location.findFirst({
+    where: { locationCode: "HQ" },
+  });
   if (!office) {
     office = await prisma.location.create({
       data: {

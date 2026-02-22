@@ -8,13 +8,18 @@ import { RoleGuard } from "../../../components/auth/role-guard";
 import { api } from "../../../lib/api";
 import { UserRole } from "../../../lib/rbac";
 
+const QrCodeIcon: any = QrCode;
+const PlusIcon: any = Plus;
+const ChevronLeftIcon: any = ChevronLeft;
+const ChevronRightIcon: any = ChevronRight;
+
 const statusColors: Record<string, string> = {
   UNASSIGNED: "bg-slate-500/15 text-slate-400",
   ASSIGNED: "bg-emerald-500/15 text-emerald-400",
   RETIRED: "bg-red-500/15 text-red-400",
 };
 
-export default function QrTagsPage(): React.ReactNode {
+export default function QrTagsPage() {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [showGenerate, setShowGenerate] = useState(false);
@@ -54,7 +59,7 @@ export default function QrTagsPage(): React.ReactNode {
             onClick={() => setShowGenerate(!showGenerate)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors"
           >
-            <Plus className="w-4 h-4" /> Generate Batch
+            <PlusIcon className="w-4 h-4" /> Generate Batch
           </button>
         </div>
 
@@ -135,7 +140,7 @@ export default function QrTagsPage(): React.ReactNode {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <QrCode className="w-4 h-4 text-slate-500" />
+                    <QrCodeIcon className="w-4 h-4 text-slate-500" />
                     <span className="font-mono text-sm text-white font-medium">
                       {tag.code}
                     </span>
@@ -156,7 +161,7 @@ export default function QrTagsPage(): React.ReactNode {
           </div>
         ) : (
           <div className="bg-slate-900/80 border border-slate-800/50 rounded-2xl p-12 text-center">
-            <QrCode className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+            <QrCodeIcon className="w-8 h-8 text-slate-600 mx-auto mb-3" />
             <p className="text-slate-500">No QR tags found</p>
           </div>
         )}
@@ -173,14 +178,14 @@ export default function QrTagsPage(): React.ReactNode {
                 disabled={page <= 1}
                 className="p-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white disabled:opacity-30"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeftIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={page >= data.pagination.totalPages}
                 className="p-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:text-white disabled:opacity-30"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4" />
               </button>
             </div>
           </div>

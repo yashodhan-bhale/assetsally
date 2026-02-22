@@ -8,6 +8,10 @@ import React, { useEffect, useState, Suspense } from "react";
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
 
+const LoaderIcon: any = Loader2;
+const MapPinIcon: any = MapPin;
+const XIcon: any = X;
+
 // Type definition based on API response
 interface InventoryItem {
   id: string;
@@ -226,7 +230,7 @@ function InventoryContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <LoaderIcon className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -243,14 +247,14 @@ function InventoryContent() {
 
         {locationId && locationName && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-sm animate-in fade-in slide-in-from-right-4 duration-300">
-            <MapPin className="w-4 h-4" />
+            <MapPinIcon className="w-4 h-4" />
             <span className="font-semibold">{locationName}</span>
             <button
               onClick={clearFilter}
               className="ml-1 p-0.5 hover:bg-blue-100 rounded-full transition-colors"
               title="Clear location filter"
             >
-              <X className="w-3.5 h-3.5" />
+              <XIcon className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -266,7 +270,7 @@ export default function InventoryPage(): React.ReactNode {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-96">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <LoaderIcon className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       }
     >

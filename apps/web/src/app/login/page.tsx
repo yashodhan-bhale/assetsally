@@ -15,9 +15,16 @@ import React, { useState, FormEvent } from "react";
 
 import { useAuth } from "../../contexts/auth-context";
 
+const UserIcon: any = User;
+const BuildingIcon: any = Building;
+const AlertIcon: any = AlertCircle;
+const MailIcon: any = Mail;
+const LockIcon: any = Lock;
+const LoaderIcon: any = Loader2;
+
 type LoginType = "ADMIN" | "CLIENT";
 
-export default function LoginPage(): React.ReactNode {
+export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<LoginType>("ADMIN");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -93,7 +100,7 @@ export default function LoginPage(): React.ReactNode {
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
-                <User className="w-4 h-4" />
+                <UserIcon className="w-4 h-4" />
                 Admin Login
               </span>
             </button>
@@ -115,7 +122,7 @@ export default function LoginPage(): React.ReactNode {
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
-                <Building className="w-4 h-4" />
+                <BuildingIcon className="w-4 h-4" />
                 Client Login
               </span>
             </button>
@@ -130,7 +137,7 @@ export default function LoginPage(): React.ReactNode {
 
             {error && (
               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6 animate-in slide-in-from-top-2">
-                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <AlertIcon className="w-4 h-4 text-red-400 flex-shrink-0" />
                 <p className="text-red-400 text-sm">{error}</p>
               </div>
             )}
@@ -141,7 +148,7 @@ export default function LoginPage(): React.ReactNode {
                   Email
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                  <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                   <input
                     type="email"
                     value={email}
@@ -163,7 +170,7 @@ export default function LoginPage(): React.ReactNode {
                   Password
                 </label>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                  <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
                   <input
                     type="password"
                     value={password}
@@ -188,7 +195,7 @@ export default function LoginPage(): React.ReactNode {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <LoaderIcon className="w-4 h-4 animate-spin" />
                     Signing in...
                   </>
                 ) : (

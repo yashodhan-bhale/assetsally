@@ -15,6 +15,13 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
+const FileIcon: any = FileText;
+const FilterIcon: any = Filter;
+const CalendarIcon: any = Calendar;
+const ChevronDownIcon: any = ChevronDown;
+const PrinterIcon: any = Printer;
+const ExcelIcon: any = FileSpreadsheet;
+
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState("Feb 1 - Feb 28, 2026");
   const [selectedZone, setSelectedZone] = useState("All Zones");
@@ -57,7 +64,7 @@ export default function ReportsPage() {
         <aside className="w-full lg:w-80 space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex items-center gap-2 mb-6 text-slate-900 font-semibold">
-              <Filter size={18} className="text-slate-500" />
+              <FilterIcon size={18} className="text-slate-500" />
               <h2>Report Parameters</h2>
             </div>
 
@@ -74,7 +81,7 @@ export default function ReportsPage() {
                     readOnly
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
-                  <Calendar
+                  <CalendarIcon
                     size={16}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
                   />
@@ -97,7 +104,7 @@ export default function ReportsPage() {
                     <option>Karad Zone</option>
                     <option>Nagpur Zone</option>
                   </select>
-                  <ChevronDown
+                  <ChevronDownIcon
                     size={16}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
                   />
@@ -148,7 +155,7 @@ export default function ReportsPage() {
                     <option>Admin User</option>
                     <option>Demo Auditor</option>
                   </select>
-                  <ChevronDown
+                  <ChevronDownIcon
                     size={16}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
                   />
@@ -200,11 +207,11 @@ export default function ReportsPage() {
 
               <div className="flex gap-2">
                 <button className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
-                  <Printer size={16} />
+                  <PrinterIcon size={16} />
                   Export PDF
                 </button>
                 <button className="flex items-center gap-2 px-4 py-2 border border-green-600 text-green-700 hover:bg-green-50 text-sm font-medium rounded-lg transition-colors">
-                  <FileSpreadsheet size={16} />
+                  <ExcelIcon size={16} />
                   Export Excel
                 </button>
               </div>
