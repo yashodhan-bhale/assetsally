@@ -1,38 +1,45 @@
-# AssetsAlly - Asset Verification System Ecosystem
+# Offline-First Architecture for Auditor Mobile App
 
-## Current Phase: Planning & Design
+## Phase 1: Foundation
 
-### Documentation Setup
+- [x] Audit existing codebase (Prisma schema, API, mobile screens)
+- [x] Write implementation plan
+- [x] Get user approval on plan
 
-- [x] Create project documentation structure
-- [x] Capture brainstorming decisions
-- [x] Create sync workflow for planning docs
+## Phase 2: Database Layer
 
-### Tech Stack & Architecture
+- [x] Install `@react-native-community/netinfo`
+- [x] Create WatermelonDB schema (`db/schema.ts`)
+- [x] Create model classes (Location, InventoryItem, AuditReport, AuditFinding, SyncMeta)
+- [x] Create database initialization (`db/index.ts`)
 
-- [x] Propose and finalize tech stack
-- [x] Design system architecture
-- [x] Create implementation plan
+## Phase 3: Connectivity Context
 
-### Skills to Create (Before Implementation)
+- [x] Create `ConnectivityProvider` context
+- [x] Integrate into root `_layout.tsx`
 
-- [ ] Auth & Permissions Patterns skill
-- [ ] Offline-First Mobile skill
-- [ ] Database Schema Design skill (as needed)
+## Phase 4: Sync Engine
 
-### Phase 1: Project Scaffolding & Monorepo Setup
+- [x] Implement `pullData()` — fetches and seeds local DB
+- [x] Implement `pushData()` — pushes dirty records to API
+- [x] Create `useSync` hook
 
-- [x] Root configuration files (package.json, turbo.json, etc.)
-- [x] Shared packages (shared, database, ui, eslint-config)
-- [x] App scaffolds (api, admin, client, mobile)
-- [x] Docker configuration
+## Phase 5: API Additions
 
-### Implementation Phases (Remaining)
+- [~] Deferred — using existing per-finding endpoint instead
+- [~] Deferred — using existing per-finding endpoint instead
 
-- [ ] Phase 2: Database schema & migrations
-- [ ] Phase 3: Authentication & authorization
-- [ ] Phase 4: Core API
-- [ ] Phase 5: Admin web app
-- [ ] Phase 6: Mobile app (Auditor)
-- [ ] Phase 7: Client web app
-- [ ] Phase 8: Deployment & polish
+## Phase 6: UI Updates
+
+- [x] Refactor `(tabs)/audits.tsx` to read from WatermelonDB
+- [x] Refactor `audit/[id].tsx` to read/write from WatermelonDB
+- [x] Add inventory view screen (`audit/inventory.tsx`)
+- [x] Update dashboard (`(tabs)/index.tsx`) with sync status
+- [x] Update profile tab with sync info
+- [x] Create `SyncStatusBar` component
+
+## Phase 7: Verification
+
+- [ ] Run all tests
+- [ ] Manual testing on dev build
+- [ ] Document results in walkthrough

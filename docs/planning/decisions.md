@@ -152,3 +152,14 @@ SELECT items WHERE:
 - **Object storage**: MinIO
 - **Database**: To be determined (PostgreSQL recommended)
 - **Mobile**: Offline-first with local DB
+
+### 13. Expo CLI Stability & Expo Go Compatibility (SDK 54)
+
+- **Problem**: Expo CLI v54.0.23 crashes on Node 20 due to fetch body corruption and generic fetch errors. Additionally, WatermelonDB's top-level native module imports prevent the app from even bundling in Expo Go.
+- **Decision**: Permanent pnpm patch for `@expo/cli` + Lazy-loaded database layer via ES Proxy.
+- **Details**:
+  - **CLI Patch**: Fixed `wrapFetchWithCache.js` (body-buffer fix) and `client.js` (`isNetworkError` fix) in the `@expo/cli` package. This prevents "Body is unusable" and uncaught fetch crashes, allowing graceful offline fallback.
+  - **Lazy DB Init**: `db/index.ts` now uses an ES Proxy to defer WatermelonDB initialization until the first collection or database property is accessed.
+- **Rationale**:
+  - **Stability**: The CLI patch ensures the development environment remains usable even when upstream Expo APIs/connectivity are unreliable.
+  - **Accessibility**: Lazy initialization allows the app to bundle and run in the standard **Expo Go** app for UI development. While database features will fail at runtime in Expo Go (missing native modules), developers can still build and test UI screens without needing a custom development build locally. Full offline functionality still requires a custom development client (`npx expo run:android`).
