@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Q } from "@nozbe/watermelondb";
 import { router, useFocusEffect } from "expo-router";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +11,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import { mobileApi } from "../../lib/api";
+import { useAuth } from "../../contexts/auth-context";
+import { useConnectivity } from "../../contexts/connectivity-context";
+import { auditReportsCollection } from "../../db";
+import AuditReport from "../../db/models/AuditReport";
 
 const statusConfig: Record<string, { color: string; icon: string }> = {
   DRAFT: { color: "#94a3b8", icon: "create-outline" },
@@ -20,17 +24,27 @@ const statusConfig: Record<string, { color: string; icon: string }> = {
 };
 
 export default function AuditsTab() {
-  const [reports, setReports] = useState<any[]>([]);
+  const { user } = useAuth();
+  const { isOnline } = useConnectivity();
+  const [reports, setReports] = useState<AuditReport[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadAudits = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await mobileApi.getMyAudits();
-      setReports(data.reports || []);
-    } catch {}
+      const results = await auditReportsCollection
+        .query(Q.where("auditor_id", user?.id || ""))
+        .fetch();
+      // Sort by created_at descending
+      results.sort(
+        (a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0),
+      );
+      setReports(results);
+    } catch (err) {
+      console.error("Failed to load audits from local DB:", err);
+    }
     setLoading(false);
-  }, []);
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,7 +52,7 @@ export default function AuditsTab() {
     }, [loadAudits]),
   );
 
-  const renderReport = ({ item }: { item: any }) => {
+  const renderReport = ({ item }: { item: AuditReport }) => {
     const sc = statusConfig[item.status] || statusConfig.DRAFT;
     return (
       <TouchableOpacity
@@ -47,27 +61,30 @@ export default function AuditsTab() {
       >
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>
-              {item.location?.name || "Unknown Location"}
-            </Text>
+            <Text style={styles.cardTitle}>{item.locationId}</Text>
             <Text style={styles.cardDate}>
-              {new Date(item.createdAt).toLocaleDateString()}
+              {item.createdAt?.toLocaleDateString() || ""}
             </Text>
           </View>
-          <View
-            style={[styles.statusBadge, { backgroundColor: sc.color + "20" }]}
-          >
-            <Ionicons name={sc.icon as any} size={14} color={sc.color} />
-            <Text style={[styles.statusText, { color: sc.color }]}>
-              {item.status}
-            </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            {item.needsSync && (
+              <View style={styles.syncDot}>
+                <Ionicons
+                  name="cloud-upload-outline"
+                  size={12}
+                  color="#f59e0b"
+                />
+              </View>
+            )}
+            <View
+              style={[styles.statusBadge, { backgroundColor: sc.color + "20" }]}
+            >
+              <Ionicons name={sc.icon as any} size={14} color={sc.color} />
+              <Text style={[styles.statusText, { color: sc.color }]}>
+                {item.status}
+              </Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.cardFooter}>
-          <Ionicons name="document-text-outline" size={14} color="#64748b" />
-          <Text style={styles.findingsCount}>
-            {item._count?.findings || 0} findings
-          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -90,7 +107,11 @@ export default function AuditsTab() {
         <View style={styles.center}>
           <Ionicons name="clipboard-outline" size={48} color="#475569" />
           <Text style={styles.emptyText}>No audit reports yet</Text>
-          <Text style={styles.emptySubtext}>Create one from the dashboard</Text>
+          <Text style={styles.emptySubtext}>
+            {isOnline
+              ? "Create one from the dashboard"
+              : "Connect to internet to sync data"}
+          </Text>
         </View>
       )}
     </View>
@@ -123,13 +144,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statusText: { fontSize: 11, fontWeight: "600" },
-  cardFooter: {
-    flexDirection: "row",
+  syncDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#f59e0b20",
     alignItems: "center",
-    gap: 4,
-    marginTop: 12,
+    justifyContent: "center",
   },
-  findingsCount: { color: "#64748b", fontSize: 12 },
   emptyText: { color: "#94a3b8", fontSize: 16, marginTop: 12 },
   emptySubtext: { color: "#64748b", fontSize: 13, marginTop: 4 },
 });

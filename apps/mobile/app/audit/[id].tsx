@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Q } from "@nozbe/watermelondb";
 import { useLocalSearchParams, router } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,8 +10,21 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 
+import { useConnectivity } from "../../contexts/connectivity-context";
+import {
+  getDatabase,
+  auditReportsCollection,
+  auditFindingsCollection,
+  inventoryCollection,
+  locationsCollection,
+} from "../../db";
+import AuditFinding from "../../db/models/AuditFinding";
+import AuditReport from "../../db/models/AuditReport";
+import InventoryItem from "../../db/models/InventoryItem";
+import Location from "../../db/models/Location";
 import { mobileApi } from "../../lib/api";
 
 const statusConfig: Record<
@@ -31,27 +45,109 @@ const statusConfig: Record<
   },
 };
 
+const verificationStatuses = [
+  "FOUND",
+  "NOT_FOUND",
+  "RELOCATED",
+  "DAMAGED",
+  "DISPOSED",
+];
+
+const conditionOptions = ["GOOD", "FAIR", "POOR", "NON_FUNCTIONAL"];
+
 export default function AuditDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [report, setReport] = useState<any>(null);
+  const { isOnline } = useConnectivity();
+  const [report, setReport] = useState<AuditReport | null>(null);
+  const [location, setLocation] = useState<Location | null>(null);
+  const [findings, setFindings] = useState<AuditFinding[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadReport();
-  }, [id]);
-
-  const loadReport = async () => {
+  const loadReport = useCallback(async () => {
+    if (!id) return;
     try {
-      const data = await mobileApi.getAudit(id!);
-      setReport(data);
+      const reportRecord = await auditReportsCollection.find(id);
+      setReport(reportRecord);
+
+      // Load location
+      try {
+        const loc = await locationsCollection.find(reportRecord.locationId);
+        setLocation(loc);
+      } catch {
+        setLocation(null);
+      }
+
+      // Load findings
+      const findingsRecords = await auditFindingsCollection
+        .query(Q.where("report_id", id))
+        .fetch();
+      setFindings(findingsRecords);
+
+      // Load inventory items for the location
+      const items = await inventoryCollection
+        .query(Q.where("location_id", reportRecord.locationId))
+        .fetch();
+      setInventoryItems(items);
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      console.error("Failed to load report:", err);
+      Alert.alert("Error", "Could not load report");
     }
     setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    loadReport();
+  }, [loadReport]);
+
+  const handleRecordFinding = async (
+    item: InventoryItem,
+    status: string,
+    condition?: string,
+  ) => {
+    if (!report) return;
+
+    try {
+      // Check if finding already exists for this item
+      const existing = findings.find((f) => f.itemId === item.id);
+
+      await database.write(async () => {
+        if (existing) {
+          await existing.update((r: AuditFinding) => {
+            r.status = status;
+            r.condition = condition || null;
+            r.needsSync = true;
+          });
+        } else {
+          await auditFindingsCollection.create((r: AuditFinding) => {
+            r.reportId = report.id;
+            r.itemId = item.id;
+            r.status = status;
+            r.condition = condition || null;
+            r.isLocallyCreated = true;
+            r.needsSync = true;
+          });
+        }
+      });
+
+      await loadReport(); // Refresh
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to record finding");
+    }
   };
 
   const handleSubmit = async () => {
+    if (!report || !isOnline) {
+      if (!isOnline) {
+        Alert.alert(
+          "Offline",
+          "You must be online to submit a report for review.",
+        );
+      }
+      return;
+    }
+
     Alert.alert(
       "Submit Report",
       "Are you sure you want to submit this report for review?",
@@ -63,7 +159,14 @@ export default function AuditDetailScreen() {
           onPress: async () => {
             setSubmitting(true);
             try {
-              await mobileApi.submitReport(id!);
+              const reportServerId = report.serverId || report.id;
+              await mobileApi.submitReport(reportServerId);
+              await database.write(async () => {
+                await report.update((r: AuditReport) => {
+                  r.status = "SUBMITTED";
+                  r.submittedAt = Date.now();
+                });
+              });
               await loadReport();
               Alert.alert("Success", "Report submitted for review");
             } catch (err: any) {
@@ -93,15 +196,33 @@ export default function AuditDetailScreen() {
   }
 
   const sc = statusConfig[report.status] || statusConfig.DRAFT;
+  const findingsMap = new Map(findings.map((f) => [f.itemId, f]));
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ padding: 20 }}
     >
+      {/* Offline Badge */}
+      {!isOnline && (
+        <View style={styles.offlineBadge}>
+          <Ionicons name="cloud-offline-outline" size={14} color="#fca5a5" />
+          <Text style={styles.offlineBadgeText}>
+            Offline Mode — Changes saved locally
+          </Text>
+        </View>
+      )}
+
       {/* Header */}
       <View style={styles.headerCard}>
-        <Text style={styles.locationName}>{report.location?.name}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.locationName}>
+            {location?.locationName || report.locationId}
+          </Text>
+          {location && (
+            <Text style={styles.locationCode}>{location.locationCode}</Text>
+          )}
+        </View>
         <View
           style={[styles.statusBadge, { backgroundColor: sc.color + "20" }]}
         >
@@ -112,82 +233,166 @@ export default function AuditDetailScreen() {
         </View>
       </View>
 
-      {/* Info */}
-      <View style={styles.infoCard}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Auditor</Text>
-          <Text style={styles.infoValue}>{report.auditor?.name}</Text>
+      {/* Findings summary */}
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryNumber}>{inventoryItems.length}</Text>
+          <Text style={styles.summaryLabel}>Items</Text>
         </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Created</Text>
-          <Text style={styles.infoValue}>
-            {new Date(report.createdAt).toLocaleDateString()}
+        <View style={styles.summaryCard}>
+          <Text style={[styles.summaryNumber, { color: "#22c55e" }]}>
+            {findings.length}
           </Text>
+          <Text style={styles.summaryLabel}>Verified</Text>
         </View>
-        {report.submittedAt && (
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Submitted</Text>
-            <Text style={styles.infoValue}>
-              {new Date(report.submittedAt).toLocaleDateString()}
-            </Text>
-          </View>
-        )}
-        {report.reviewNotes && (
-          <View style={styles.notesBox}>
-            <Ionicons name="chatbubble-outline" size={14} color="#64748b" />
-            <Text style={styles.notesText}>{report.reviewNotes}</Text>
-          </View>
-        )}
+        <View style={styles.summaryCard}>
+          <Text style={[styles.summaryNumber, { color: "#f59e0b" }]}>
+            {inventoryItems.length - findings.length}
+          </Text>
+          <Text style={styles.summaryLabel}>Pending</Text>
+        </View>
       </View>
 
-      {/* Findings */}
+      {/* Inventory items with inline finding controls */}
       <Text style={styles.sectionTitle}>
-        Findings ({report.findings?.length || 0})
+        Inventory Items ({inventoryItems.length})
       </Text>
-      {report.findings?.length ? (
-        report.findings.map((f: any, i: number) => (
-          <View key={f.id || i} style={styles.findingCard}>
-            <View style={styles.findingHeader}>
-              <Text style={styles.findingItemName}>
-                {f.item?.name || "Unknown Item"}
-              </Text>
-              <View
-                style={[
-                  styles.conditionBadge,
-                  {
-                    backgroundColor:
-                      f.condition === "GOOD"
-                        ? "#22c55e20"
-                        : f.condition === "DAMAGED"
-                          ? "#ef444420"
-                          : "#f59e0b20",
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.conditionText,
-                    {
-                      color:
-                        f.condition === "GOOD"
-                          ? "#22c55e"
-                          : f.condition === "DAMAGED"
-                            ? "#ef4444"
-                            : "#f59e0b",
-                    },
-                  ]}
-                >
-                  {f.condition}
-                </Text>
+
+      {inventoryItems.length > 0 ? (
+        inventoryItems.map((item) => {
+          const finding = findingsMap.get(item.id);
+          return (
+            <View key={item.id} style={styles.itemCard}>
+              <View style={styles.itemHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemName}>{item.assetName}</Text>
+                  <Text style={styles.itemNumber}>{item.assetNumber}</Text>
+                </View>
+                {finding && (
+                  <View
+                    style={[
+                      styles.conditionBadge,
+                      {
+                        backgroundColor:
+                          finding.status === "FOUND"
+                            ? "#22c55e20"
+                            : finding.status === "NOT_FOUND"
+                              ? "#ef444420"
+                              : "#f59e0b20",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.conditionText,
+                        {
+                          color:
+                            finding.status === "FOUND"
+                              ? "#22c55e"
+                              : finding.status === "NOT_FOUND"
+                                ? "#ef4444"
+                                : "#f59e0b",
+                        },
+                      ]}
+                    >
+                      {finding.status}
+                    </Text>
+                  </View>
+                )}
               </View>
+
+              {finding?.notes && (
+                <Text style={styles.findingNotes}>{finding.notes}</Text>
+              )}
+
+              {/* Quick action buttons (only for DRAFT reports) */}
+              {report.status === "DRAFT" && (
+                <View style={styles.quickActions}>
+                  <TouchableOpacity
+                    style={[
+                      styles.quickBtn,
+                      finding?.status === "FOUND" && styles.quickBtnActive,
+                    ]}
+                    onPress={() => handleRecordFinding(item, "FOUND", "GOOD")}
+                  >
+                    <Ionicons
+                      name="checkmark"
+                      size={16}
+                      color={
+                        finding?.status === "FOUND" ? "#22c55e" : "#64748b"
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.quickBtnText,
+                        finding?.status === "FOUND" && { color: "#22c55e" },
+                      ]}
+                    >
+                      Found
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.quickBtn,
+                      finding?.status === "NOT_FOUND" &&
+                        styles.quickBtnActiveRed,
+                    ]}
+                    onPress={() => handleRecordFinding(item, "NOT_FOUND")}
+                  >
+                    <Ionicons
+                      name="close"
+                      size={16}
+                      color={
+                        finding?.status === "NOT_FOUND" ? "#ef4444" : "#64748b"
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.quickBtnText,
+                        finding?.status === "NOT_FOUND" && { color: "#ef4444" },
+                      ]}
+                    >
+                      Missing
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.quickBtn,
+                      finding?.status === "DAMAGED" &&
+                        styles.quickBtnActiveYellow,
+                    ]}
+                    onPress={() => handleRecordFinding(item, "DAMAGED", "POOR")}
+                  >
+                    <Ionicons
+                      name="warning-outline"
+                      size={16}
+                      color={
+                        finding?.status === "DAMAGED" ? "#f59e0b" : "#64748b"
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.quickBtnText,
+                        finding?.status === "DAMAGED" && { color: "#f59e0b" },
+                      ]}
+                    >
+                      Damaged
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-            {f.notes && <Text style={styles.findingNotes}>{f.notes}</Text>}
-          </View>
-        ))
+          );
+        })
       ) : (
         <View style={styles.emptyFindings}>
-          <Ionicons name="search-outline" size={32} color="#475569" />
-          <Text style={styles.emptyText}>No findings recorded yet</Text>
+          <Ionicons name="cube-outline" size={32} color="#475569" />
+          <Text style={styles.emptyText}>
+            No inventory items for this location
+          </Text>
+          <Text style={styles.emptySubtext}>
+            {isOnline ? "Sync to download items" : "Connect to sync data"}
+          </Text>
         </View>
       )}
 
@@ -202,16 +407,21 @@ export default function AuditDetailScreen() {
             <Text style={styles.scanBtnText}>Scan Asset</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
+            style={[
+              styles.submitBtn,
+              (submitting || !isOnline) && { opacity: 0.6 },
+            ]}
             onPress={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || !isOnline}
           >
             {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>
                 <Ionicons name="send-outline" size={20} color="#fff" />
-                <Text style={styles.submitBtnText}>Submit for Review</Text>
+                <Text style={styles.submitBtnText}>
+                  {isOnline ? "Submit for Review" : "Go Online to Submit"}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -225,6 +435,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f172a" },
   center: { justifyContent: "center", alignItems: "center" },
   errorText: { color: "#ef4444", fontSize: 16 },
+  offlineBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#7f1d1d",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12,
+  },
+  offlineBadgeText: { color: "#fca5a5", fontSize: 12, fontWeight: "600" },
   headerCard: {
     backgroundColor: "#1e293b",
     borderRadius: 16,
@@ -237,6 +457,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   locationName: { color: "#fff", fontSize: 18, fontWeight: "bold", flex: 1 },
+  locationCode: { color: "#64748b", fontSize: 12, marginTop: 2 },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -246,27 +467,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statusText: { fontSize: 12, fontWeight: "600" },
-  infoCard: {
+  summaryRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  summaryCard: {
+    flex: 1,
     backgroundColor: "#1e293b",
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 12,
+    padding: 14,
+    alignItems: "center",
     borderWidth: 1,
     borderColor: "#334155",
-    marginBottom: 20,
-    gap: 8,
   },
-  infoRow: { flexDirection: "row", justifyContent: "space-between" },
-  infoLabel: { color: "#64748b", fontSize: 13 },
-  infoValue: { color: "#fff", fontSize: 13, fontWeight: "500" },
-  notesBox: {
-    flexDirection: "row",
-    gap: 8,
-    backgroundColor: "#0f172a",
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 4,
-  },
-  notesText: { color: "#cbd5e1", fontSize: 13, flex: 1 },
+  summaryNumber: { color: "#fff", fontSize: 22, fontWeight: "bold" },
+  summaryLabel: { color: "#64748b", fontSize: 11, marginTop: 2 },
   sectionTitle: {
     color: "#94a3b8",
     fontSize: 13,
@@ -275,7 +491,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  findingCard: {
+  itemCard: {
     backgroundColor: "#1e293b",
     borderRadius: 12,
     padding: 14,
@@ -283,15 +499,50 @@ const styles = StyleSheet.create({
     borderColor: "#334155",
     marginBottom: 8,
   },
-  findingHeader: {
+  itemHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  findingItemName: { color: "#fff", fontSize: 14, fontWeight: "500", flex: 1 },
+  itemName: { color: "#fff", fontSize: 14, fontWeight: "500" },
+  itemNumber: { color: "#64748b", fontSize: 12, marginTop: 2 },
   conditionBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   conditionText: { fontSize: 11, fontWeight: "600" },
   findingNotes: { color: "#94a3b8", fontSize: 12, marginTop: 6 },
+  quickActions: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#334155",
+    paddingTop: 10,
+  },
+  quickBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#0f172a",
+  },
+  quickBtnActive: {
+    backgroundColor: "#22c55e15",
+    borderWidth: 1,
+    borderColor: "#22c55e30",
+  },
+  quickBtnActiveRed: {
+    backgroundColor: "#ef444415",
+    borderWidth: 1,
+    borderColor: "#ef444430",
+  },
+  quickBtnActiveYellow: {
+    backgroundColor: "#f59e0b15",
+    borderWidth: 1,
+    borderColor: "#f59e0b30",
+  },
+  quickBtnText: { color: "#64748b", fontSize: 12, fontWeight: "600" },
   emptyFindings: {
     backgroundColor: "#1e293b",
     borderRadius: 14,
@@ -302,7 +553,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyText: { color: "#94a3b8", fontSize: 14, marginTop: 8 },
-  actionsSection: { gap: 10, marginTop: 8 },
+  emptySubtext: { color: "#64748b", fontSize: 12, marginTop: 4 },
+  actionsSection: { gap: 10, marginTop: 8, marginBottom: 24 },
   scanBtn: {
     flexDirection: "row",
     alignItems: "center",

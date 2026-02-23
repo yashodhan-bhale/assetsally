@@ -12,27 +12,12 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@assetsally/shared": [
-        "../../packages/shared/src"
-      ],
-      "@assetsally/ui": [
-        "../../packages/ui/src"
-      ]
+      "@/*": ["./src/*"],
+      "@assetsally/shared": ["../../packages/shared/src"],
+      "@assetsally/ui": ["../../packages/ui/src"]
     },
-    "types": [
-      "vitest/globals"
-    ]
+    "types": ["vitest/globals"]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

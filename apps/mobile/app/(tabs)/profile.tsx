@@ -2,9 +2,26 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 import { useAuth } from "../../contexts/auth-context";
+import { useConnectivity } from "../../contexts/connectivity-context";
+import { useSync } from "../../hooks/useSync";
 
 export default function ProfileTab() {
   const { user, logout } = useAuth();
+  const { isOnline, isSyncing, lastSyncedAt, pendingSyncCount } =
+    useConnectivity();
+  const { syncNow } = useSync();
+
+  const formatLastSynced = (date: Date | null): string => {
+    if (!date) return "Never";
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "Just now";
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHrs = Math.floor(diffMin / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    return date.toLocaleDateString();
+  };
 
   return (
     <View style={styles.container}>
@@ -18,6 +35,44 @@ export default function ProfileTab() {
         <View style={styles.roleBadge}>
           <Text style={styles.roleText}>{user?.role}</Text>
         </View>
+      </View>
+
+      {/* Sync Info */}
+      <View style={styles.menuSection}>
+        <View style={styles.menuItem}>
+          <Ionicons name="sync-outline" size={20} color="#94a3b8" />
+          <Text style={styles.menuText}>Last Synced</Text>
+          <Text style={styles.menuValue}>{formatLastSynced(lastSyncedAt)}</Text>
+        </View>
+        <View style={styles.menuItem}>
+          <Ionicons name="cloud-upload-outline" size={20} color="#94a3b8" />
+          <Text style={styles.menuText}>Pending Uploads</Text>
+          <Text
+            style={[
+              styles.menuValue,
+              pendingSyncCount > 0 && { color: "#f59e0b" },
+            ]}
+          >
+            {pendingSyncCount}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={syncNow}
+          disabled={isSyncing || !isOnline}
+        >
+          <Ionicons
+            name={isSyncing ? "sync" : "refresh-outline"}
+            size={20}
+            color={isOnline ? "#3b82f6" : "#475569"}
+          />
+          <Text
+            style={[styles.menuText, { color: isOnline ? "#fff" : "#475569" }]}
+          >
+            {isSyncing ? "Syncing..." : "Force Sync"}
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color="#475569" />
+        </TouchableOpacity>
       </View>
 
       {/* Actions */}
@@ -40,7 +95,7 @@ export default function ProfileTab() {
         <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
 
-      <Text style={styles.version}>AssetsAlly v0.0.1</Text>
+      <Text style={styles.version}>AssetsAlly v0.1.0 — Offline-First</Text>
     </View>
   );
 }
@@ -54,7 +109,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#334155",
-    marginBottom: 24,
+    marginBottom: 16,
   },
   avatar: {
     width: 64,
@@ -81,7 +136,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#334155",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   menuItem: {
     flexDirection: "row",
@@ -92,6 +147,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#334155",
   },
   menuText: { flex: 1, color: "#fff", fontSize: 15 },
+  menuValue: { color: "#94a3b8", fontSize: 13 },
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",

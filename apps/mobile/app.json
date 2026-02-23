@@ -4,11 +4,9 @@
     "slug": "assetsally-mobile",
     "version": "0.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "scheme": "assetsally",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#1e293b"
     },
@@ -23,7 +21,6 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1e293b"
       },
       "package": "com.assetsally.mobile",

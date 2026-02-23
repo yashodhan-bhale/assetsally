@@ -1,0 +1,175 @@
+diff --git a/build/src/api/rest/cache/wrapFetchWithCache.js b/build/src/api/rest/cache/wrapFetchWithCache.js
+index daad31c8c31e9e3fefa4de61c325343c5fbdc35d..10f96cb00ef6f0cf1b8b15f58ffdf0039c9aecfd 100644
+--- a/build/src/api/rest/cache/wrapFetchWithCache.js
++++ b/build/src/api/rest/cache/wrapFetchWithCache.js
+@@ -4,13 +4,13 @@ Object.defineProperty(exports, "__esModule", {
+ });
+ Object.defineProperty(exports, "wrapFetchWithCache", {
+     enumerable: true,
+-    get: function() {
++    get: function () {
+         return wrapFetchWithCache;
+     }
+ });
+ function _undici() {
+     const data = require("undici");
+-    _undici = function() {
++    _undici = function () {
+         return data;
+     };
+     return data;
+@@ -36,20 +36,19 @@ function wrapFetchWithCache(fetch, cache) {
+             if (!response.ok || !response.body) {
+                 return response;
+             }
+-            // Cache the response
++            // PATCH: Read body into buffer first to avoid Node 20 undici stream.tee() bug
++            // See: docs/planning/agent_knowledge_sdk54.md #4
++            const bodyBuffer = Buffer.from(await response.arrayBuffer());
++            const { Readable } = require('node:stream');
++            const cacheBody = Readable.toWeb(Readable.from(bodyBuffer));
++            // Cache the response using a cloned body stream
+             cachedResponse = await cache.set(cacheKey, {
+-                body: response.body,
++                body: cacheBody,
+                 info: (0, _ResponseCache.getResponseInfo)(response)
+             });
+-            // Warn through debug logs that caching failed
+-            if (!cachedResponse) {
+-                debug(`Failed to cache response for: ${url}`);
+-                await cache.remove(cacheKey);
+-                return response;
+-            }
+-            // Return the cached response
+-            return new (_undici()).Response(cachedResponse.body, cachedResponse.info);
+-        } finally{
++            // Return a fresh Response from the buffered data (never touches the cached stream)
++            return new (_undici()).Response(bodyBuffer, (0, _ResponseCache.getResponseInfo)(response));
++        } finally {
+             unlock(cacheKey);
+         }
+     };
+@@ -61,9 +60,9 @@ async function lock(key) {
+         lockPromiseForKey[key] = Promise.resolve();
+     }
+     const takeLockPromise = lockPromiseForKey[key];
+-    lockPromiseForKey[key] = takeLockPromise.then(()=>new Promise((fulfill)=>{
+-            unlockFunctionForKey[key] = fulfill;
+-        }));
++    lockPromiseForKey[key] = takeLockPromise.then(() => new Promise((fulfill) => {
++        unlockFunctionForKey[key] = fulfill;
++    }));
+     return takeLockPromise;
+ }
+ function unlock(key) {
+diff --git a/build/src/api/rest/client.js b/build/src/api/rest/client.js
+index 5f4a81e44a40a69b78b527f1cd10c825f240aaca..faafe9609f0b1869fe126cf9f7592abad8df2cbe 100644
+--- a/build/src/api/rest/client.js
++++ b/build/src/api/rest/client.js
+@@ -3,37 +3,37 @@ Object.defineProperty(exports, "__esModule", {
+     value: true
+ });
+ function _export(target, all) {
+-    for(var name in all)Object.defineProperty(target, name, {
++    for (var name in all) Object.defineProperty(target, name, {
+         enumerable: true,
+         get: all[name]
+     });
+ }
+ _export(exports, {
+-    ApiV2Error: function() {
++    ApiV2Error: function () {
+         return ApiV2Error;
+     },
+-    UnexpectedServerData: function() {
++    UnexpectedServerData: function () {
+         return UnexpectedServerData;
+     },
+-    UnexpectedServerError: function() {
++    UnexpectedServerError: function () {
+         return UnexpectedServerError;
+     },
+-    createCachedFetch: function() {
++    createCachedFetch: function () {
+         return createCachedFetch;
+     },
+-    fetchAsync: function() {
++    fetchAsync: function () {
+         return fetchAsync;
+     },
+-    getResponseDataOrThrow: function() {
++    getResponseDataOrThrow: function () {
+         return getResponseDataOrThrow;
+     },
+-    wrapFetchWithCredentials: function() {
++    wrapFetchWithCredentials: function () {
+         return wrapFetchWithCredentials;
+     }
+ });
+ function _path() {
+     const data = /*#__PURE__*/ _interop_require_default(require("path"));
+-    _path = function() {
++    _path = function () {
+         return data;
+     };
+     return data;
+@@ -56,7 +56,7 @@ function _interop_require_default(obj) {
+     };
+ }
+ class ApiV2Error extends Error {
+-    constructor(response){
++    constructor(response) {
+         super(response.message), this.name = 'ApiV2Error';
+         this.code = response.code;
+         this.expoApiV2ErrorCode = response.code;
+@@ -70,12 +70,12 @@ class ApiV2Error extends Error {
+     }
+ }
+ class UnexpectedServerError extends Error {
+-    constructor(...args){
++    constructor(...args) {
+         super(...args), this.name = 'UnexpectedServerError';
+     }
+ }
+ class UnexpectedServerData extends Error {
+-    constructor(...args){
++    constructor(...args) {
+         super(...args), this.name = 'UnexpectedServerData';
+     }
+ }
+@@ -127,7 +127,7 @@ function wrapFetchWithCredentials(fetchFunction) {
+         } catch (error) {
+             // When running `expo start`, but wifi or internet has issues
+             if (isNetworkError(error) || // node-fetch error handling
+-            'cause' in error && isNetworkError(error.cause) // undici error handling
++                'cause' in error && isNetworkError(error.cause) // undici error handling
+             ) {
+                 (0, _settings.disableNetwork)();
+                 throw new _errors.CommandError('OFFLINE', 'Network connection is unreliable. Try again with the environment variable `EXPO_OFFLINE=1` to skip network requests.');
+@@ -142,14 +142,25 @@ function wrapFetchWithCredentials(fetchFunction) {
+  *   - `ENOTFOUND` is thrown when the DNS lookup failed
+  *   - `EAI_AGAIN` is thrown when DNS lookup failed due to a server-side error
+  *   - `UND_ERR_CONNECT_TIMEOUT` is thrown after DNS is resolved, but server can't be reached
++ *   - `ECONNREFUSED` is thrown when server actively refuses the connection
++ *   - `ECONNRESET` is thrown when connection is reset mid-flight
++ *   - `ETIMEDOUT` is thrown on generic TCP timeout
++ *   - `TypeError: fetch failed` is undici's generic wrapper for all of the above on Node 20
+  *
+  * @see https://nodejs.org/api/errors.html
+  * @see https://github.com/nodejs/undici#network-address-family-autoselection
+  */ function isNetworkError(error) {
++    // PATCH: Also catch undici's generic "fetch failed" TypeError (Node 20+)
++    if (error instanceof TypeError && error.message === 'fetch failed') {
++        return true;
++    }
+     return 'code' in error && error.code && [
+         'ENOTFOUND',
+         'EAI_AGAIN',
+-        'UND_ERR_CONNECT_TIMEOUT'
++        'UND_ERR_CONNECT_TIMEOUT',
++        'ECONNREFUSED',
++        'ECONNRESET',
++        'ETIMEDOUT'
+     ].includes(error.code);
+ }
+ const fetchWithOffline = (0, _wrapFetchWithOffline.wrapFetchWithOffline)((0, _wrapFetchWithUserAgent.wrapFetchWithUserAgent)(_fetch.fetch));

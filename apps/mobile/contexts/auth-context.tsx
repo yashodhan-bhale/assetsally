@@ -16,6 +16,7 @@ import {
   getToken,
   getUser,
 } from "../lib/api";
+import { clearLocalData } from "../services/sync-engine";
 
 interface User {
   id: string;
@@ -62,6 +63,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await mobileApi.logout();
+    // Clear local WatermelonDB data on logout
+    try {
+      await clearLocalData();
+    } catch (err) {
+      console.warn("Failed to clear local data:", err);
+    }
     setUserState(null);
     router.replace("/");
   }, []);
