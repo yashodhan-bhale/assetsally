@@ -16,7 +16,6 @@ model User {
   appType              AppType
   role                 String
   status               UserStatus      @default(ACTIVE)
-  assignedLocationId   String?
   departmentIds        String[]
   allDepartmentsAccess Boolean         @default(false)
   clientRoleId         String?
@@ -28,8 +27,9 @@ model User {
   refreshTokens        RefreshToken[]
   reportComments       ReportComment[]
   syncQueueItems       SyncQueue[]
-  assignedLocation     Location?       @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
   clientRole           ClientRole?     @relation(fields: [clientRoleId], references: [id])
+  assignedLocationId   String?
+  assignedLocation     Location?       @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
 
   @@index([email])
   @@index([appType])

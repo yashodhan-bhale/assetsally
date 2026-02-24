@@ -9,6 +9,7 @@ import { InventoryModule } from "./inventory/inventory.module";
 import { LocationsModule } from "./locations/locations.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { QrTagsModule } from "./qr-tags/qr-tags.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { QrTagsModule } from "./qr-tags/qr-tags.module";
     AuditsModule,
     QrTagsModule,
     ImportsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],

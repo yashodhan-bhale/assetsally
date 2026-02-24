@@ -204,6 +204,22 @@ class ApiClient {
   wipeData() {
     return this.request("/imports/wipe", { method: "DELETE" });
   }
+
+  // Users
+  getUsers() {
+    return this.request("/users");
+  }
+  createUser(data: any) {
+    return this.request("/users", {
+      method: "POST",
+      body: data,
+    });
+  }
+  deleteUser(id: string) {
+    return this.request(`/users/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const api = new ApiClient();
