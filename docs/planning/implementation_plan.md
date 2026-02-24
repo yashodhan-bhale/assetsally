@@ -174,6 +174,23 @@ Reusable component that shows a thin bar at the top:
 
 ---
 
+### Component 7: User Management (API & Web)
+
+#### [NEW] [Users API](file:///d:/PROJECTS/assetsally/apps/api/src/users/)
+
+Standard NestJS module to manage system users:
+- **UsersService**: Handles hashing (bcrypt), deduplication, and CRUD.
+- **UsersController**: REST endpoints protected by `JwtAuthGuard`.
+
+#### [NEW] [Management UI](file:///d:/PROJECTS/assetsally/apps/web/src/app/dashboard/users/page.tsx)
+
+Sleek management page:
+- **Data View**: `DataTable` with name, contact, and role info.
+- **Filtering**: By role (ADMIN/AUDITOR/CLIENT).
+- **Creation**: Validation-backed modal for adding users.
+
+---
+
 ## Verification Plan
 
 ### Automated Tests

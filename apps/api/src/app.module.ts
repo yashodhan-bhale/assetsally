@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
+import { AuditScheduleModule } from "./audit-schedule/audit-schedule.module";
 import { AuditsModule } from "./audits/audits.module";
 import { AuthModule } from "./auth/auth.module";
 import { HealthModule } from "./health/health.module";
@@ -26,6 +27,7 @@ import { UsersModule } from "./users/users.module";
     QrTagsModule,
     ImportsModule,
     UsersModule,
+    AuditScheduleModule,
   ],
   controllers: [],
   providers: [],

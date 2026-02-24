@@ -172,6 +172,34 @@ class ApiClient {
     });
   }
 
+  // Audit Schedule
+  getAuditScheduleSummary() {
+    return this.request("/audit-schedule/summary");
+  }
+  getAuditScheduleCalendar() {
+    return this.request("/audit-schedule/calendar");
+  }
+  getAuditScheduleAuditors() {
+    return this.request("/audit-schedule/auditors");
+  }
+  getAuditScheduleLocations() {
+    return this.request("/audit-schedule/locations");
+  }
+  createAuditSchedule(data: any) {
+    return this.request("/audit-schedule", { method: "POST", body: data });
+  }
+  updateAuditSchedule(id: string, data: any) {
+    return this.request(`/audit-schedule/${id}`, { method: "PUT", body: data });
+  }
+  deleteAuditSchedule(id: string) {
+    return this.request(`/audit-schedule/${id}`, { method: "DELETE" });
+  }
+  deleteAuditSchedulesByLocation(locationId: string) {
+    return this.request(`/audit-schedule/location/${locationId}`, {
+      method: "DELETE",
+    });
+  }
+
   // Imports
   uploadImport(file: File, type: "locations" | "inventory") {
     const formData = new FormData();

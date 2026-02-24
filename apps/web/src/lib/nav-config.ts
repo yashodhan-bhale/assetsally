@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Calendar,
   Package,
   MapPin,
   Users,
@@ -22,6 +23,12 @@ export const navItems: NavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     roles: ["ADMIN", "CLIENT"],
+  },
+  {
+    title: "Audit Schedule",
+    href: "/dashboard/audit-schedule/calendar",
+    icon: Calendar,
+    roles: ["ADMIN"],
   },
   {
     title: "Inventory",

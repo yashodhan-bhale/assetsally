@@ -40,6 +40,14 @@
 
 ## Phase 7: Verification
 
-- [ ] Run all tests
-- [ ] Manual testing on dev build
-- [ ] Document results in walkthrough
+- [x] Run all tests (API, Web, Mobile)
+- [x] Manual testing on dev build
+- [x] Document results in walkthrough
+
+## Phase 8: User Management Dashboard
+
+- [x] Create API `UsersModule`, `UsersService`, and `UsersController`
+- [x] Implement password hashing and JWT protection for user routes
+- [x] Create `apps/web/src/app/dashboard/users/page.tsx` with CRUD UI
+- [x] Implement role-based filtering and user creation modal
+- [x] Generate unit tests for Users API (Vitest)

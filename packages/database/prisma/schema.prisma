@@ -27,6 +27,7 @@ model User {
   refreshTokens        RefreshToken[]
   reportComments       ReportComment[]
   syncQueueItems       SyncQueue[]
+  schedules            LocationSchedule[] @relation("ScheduleAuditors")
   clientRole           ClientRole?     @relation(fields: [clientRoleId], references: [id])
   assignedLocationId   String?
   assignedLocation     Location?       @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
@@ -81,6 +82,7 @@ model LocationSchedule {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  assignedAuditors User[]   @relation("ScheduleAuditors")
 
   @@unique([locationId, scheduledDate])
   @@index([scheduledDate])
