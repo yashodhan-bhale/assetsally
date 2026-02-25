@@ -1,4 +1,4 @@
-import { PartialType } from "@nestjs/mapped-types";
+import { PartialType } from "@nestjs/swagger";
 
 import { CreateAuditScheduleDto } from "./create-audit-schedule.dto";
 

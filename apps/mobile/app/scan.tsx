@@ -14,10 +14,26 @@ export default function ScanScreen() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const lookupTag = async (tagCode: string) => {
+  const extractCode = (input: string) => {
+    try {
+      // If it's a URL, get the last part
+      if (input.startsWith("http") || input.includes("//")) {
+        const url = new URL(input);
+        const parts = url.pathname.split("/");
+        return parts[parts.length - 1]; // e.g /q/QR-1234 -> QR-1234
+      }
+    } catch {
+      // Not a valid URL, treat as raw code
+    }
+    return input;
+  };
+
+  const lookupTag = async (scannedValue: string) => {
     setLoading(true);
     try {
-      const data = await mobileApi.lookupQrTag(tagCode);
+      const tagIdentifier = extractCode(scannedValue);
+      setCode(tagIdentifier);
+      const data = await mobileApi.lookupQrTag(tagIdentifier);
       setResult(data);
     } catch (err: any) {
       Alert.alert("Tag Not Found", err.message || "Could not find this QR tag");
@@ -55,9 +71,10 @@ export default function ScanScreen() {
           <TouchableOpacity
             style={styles.lookupBtn}
             onPress={() => {
-              const testCode = "QR-00001"; // Demo code
-              setCode(testCode);
-              lookupTag(testCode);
+              // Demo simulating a URL scan
+              const testUrl = "https://myapp.com/q/QR-00001";
+              setCode(testUrl);
+              lookupTag(testUrl);
             }}
           >
             <Text style={styles.lookupBtnText}>

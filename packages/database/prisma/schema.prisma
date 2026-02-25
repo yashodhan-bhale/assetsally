@@ -8,29 +8,31 @@ datasource db {
 }
 
 model User {
-  id                   String          @id @default(uuid())
-  email                String          @unique
+  id                   String             @id @default(uuid())
+  email                String             @unique
   passwordHash         String
   name                 String
   phone                String?
   appType              AppType
   role                 String
-  status               UserStatus      @default(ACTIVE)
+  status               UserStatus         @default(ACTIVE)
   departmentIds        String[]
-  allDepartmentsAccess Boolean         @default(false)
+  allDepartmentsAccess Boolean            @default(false)
   clientRoleId         String?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
   lastLoginAt          DateTime?
-  auditReports         AuditReport[]   @relation("AuditorReports")
-  reviewedReports      AuditReport[]   @relation("ReviewerReports")
+  auditReports         AuditReport[]      @relation("AuditorReports")
+  reviewedReports      AuditReport[]      @relation("ReviewerReports")
   refreshTokens        RefreshToken[]
   reportComments       ReportComment[]
   syncQueueItems       SyncQueue[]
   schedules            LocationSchedule[] @relation("ScheduleAuditors")
-  clientRole           ClientRole?     @relation(fields: [clientRoleId], references: [id])
+  clientRole           ClientRole?        @relation(fields: [clientRoleId], references: [id])
   assignedLocationId   String?
-  assignedLocation     Location?       @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
+  assignedLocation     Location?          @relation("UserAssignedLocation", fields: [assignedLocationId], references: [id])
+  QRGenerationJob      QRGenerationJob[]
+  QRBindingRecord      QRBindingRecord[]
 
   @@index([email])
   @@index([appType])
@@ -130,30 +132,30 @@ model CustomFieldDefinition {
 }
 
 model InventoryItem {
-  id                      String         @id @default(uuid())
+  id                      String            @id @default(uuid())
   locationId              String
   departmentId            String?
   categoryId              String?
-  customFields            Json           @default("{}")
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
+  customFields            Json              @default("{}")
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
   profitCenter            String?
   subCategory             String?
   unitOfMeasure           String?
-  accumulatedDepreciation Decimal?       @db.Decimal(15, 2)
-  acquisitionCost         Decimal?       @db.Decimal(15, 2)
+  accumulatedDepreciation Decimal?          @db.Decimal(15, 2)
+  acquisitionCost         Decimal?          @db.Decimal(15, 2)
   assetDescription        String?
   assetName               String
-  assetNumber             String         @unique
+  assetNumber             String            @unique
   capitalizationDate      DateTime?
   inventoryStatus         String?
-  netBookValue            Decimal?       @db.Decimal(15, 2)
+  netBookValue            Decimal?          @db.Decimal(15, 2)
   quantityAsPerBooks      Int?
   auditFindings           AuditFinding[]
-  category                AssetCategory? @relation(fields: [categoryId], references: [id])
-  department              Department?    @relation(fields: [departmentId], references: [id])
-  location                Location       @relation(fields: [locationId], references: [id])
-  qrTag                   QRCodeTag?
+  category                AssetCategory?    @relation(fields: [categoryId], references: [id])
+  department              Department?       @relation(fields: [departmentId], references: [id])
+  location                Location          @relation(fields: [locationId], references: [id])
+  QRBindingRecord         QRBindingRecord[]
 
   @@index([locationId])
   @@index([departmentId])
@@ -161,15 +163,17 @@ model InventoryItem {
 }
 
 model QRCodeTag {
-  id           String         @id @default(uuid())
-  code         String         @unique
-  status       QRTagStatus    @default(UNASSIGNED)
-  linkedItemId String?        @unique
+  id           String           @id @default(uuid())
+  code         String           @unique
+  url          String?          @unique
+  hashString   String?          @unique
+  status       QRTagStatus      @default(UNASSIGNED)
   batchId      String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   retiredAt    DateTime?
-  linkedItem   InventoryItem? @relation(fields: [linkedItemId], references: [id])
+  qrBatch      QRBatch?         @relation(fields: [batchId], references: [id])
+  binding      QRBindingRecord?
 
   @@index([code])
   @@index([status])
@@ -304,6 +308,54 @@ model SyncQueue {
   @@index([priority])
 }
 
+model QRGenerationJob {
+  id         String    @id @default(uuid())
+  baseUrl    String
+  totalCount Int
+  batchSize  Int       @default(500)
+  status     JobStatus @default(PENDING)
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  batches    QRBatch[]
+  user       User      @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@index([status])
+}
+
+model QRBatch {
+  id             String          @id @default(uuid())
+  jobId          String
+  batchNumber    Int
+  count          Int
+  status         JobStatus       @default(PENDING)
+  pdfStoragePath String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  job            QRGenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  tags           QRCodeTag[]
+
+  @@index([jobId])
+  @@index([status])
+}
+
+model QRBindingRecord {
+  id           String        @id @default(uuid())
+  qrTagId      String        @unique
+  itemId       String
+  itemSnapshot Json
+  url          String
+  boundBy      String
+  boundAt      DateTime      @default(now())
+  qrTag        QRCodeTag     @relation(fields: [qrTagId], references: [id])
+  item         InventoryItem @relation(fields: [itemId], references: [id])
+  user         User          @relation(fields: [boundBy], references: [id])
+
+  @@index([itemId])
+  @@index([boundBy])
+}
+
 model HierarchyConfig {
   level     Int      @id
   label     String
@@ -372,5 +424,13 @@ enum SyncStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  GENERATING
+  READY
+  DOWNLOADED
   FAILED
 }

@@ -165,6 +165,32 @@ class ApiClient {
       body: { count, prefix },
     });
   }
+
+  initiateQrBatch(baseUrl: string, count: number) {
+    return this.request("/qr-tags/batch/async", {
+      method: "POST",
+      body: { baseUrl, count },
+    });
+  }
+
+  getQrJobs() {
+    return this.request("/qr-tags/jobs");
+  }
+
+  getQrBatches(jobId: string) {
+    return this.request(`/qr-tags/jobs/${jobId}/batches`);
+  }
+
+  generateBatchPdf(batchId: string) {
+    return this.request(`/qr-tags/batches/${batchId}/generate-pdf`, {
+      method: "POST",
+    });
+  }
+
+  // Helper stream method (could just be used as a simple href)
+  getBatchDownloadUrl(batchId: string) {
+    return `${API_BASE}/qr-tags/batches/${batchId}/download`;
+  }
   assignQrTag(code: string, itemId: string) {
     return this.request(`/qr-tags/${code}/assign`, {
       method: "POST",

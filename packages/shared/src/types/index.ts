@@ -85,6 +85,15 @@ export enum SyncStatus {
   FAILED = "FAILED",
 }
 
+/** Status of background generation jobs */
+export enum JobStatus {
+  PENDING = "PENDING",
+  GENERATING = "GENERATING",
+  READY = "READY",
+  DOWNLOADED = "DOWNLOADED",
+  FAILED = "FAILED",
+}
+
 // ============================================================================
 // Interfaces
 // ============================================================================
@@ -141,8 +150,39 @@ export interface InventoryItem extends BaseEntity {
 /** QR Code tag entity */
 export interface QRCodeTag extends BaseEntity {
   code: string;
+  url?: string;
+  hashString?: string;
   status: QRTagStatus;
   linkedItemId?: string;
+  batchId?: string;
+}
+
+/** QR Generation Job */
+export interface QRGenerationJob extends BaseEntity {
+  baseUrl: string;
+  totalCount: number;
+  batchSize: number;
+  status: JobStatus;
+  createdBy: string;
+}
+
+/** QR Batch Entity */
+export interface QRBatch extends BaseEntity {
+  jobId: string;
+  batchNumber: number;
+  count: number;
+  status: JobStatus;
+  pdfStoragePath?: string;
+}
+
+/** QR Binding Record Entity */
+export interface QRBindingRecord extends BaseEntity {
+  qrTagId: string;
+  itemId: string;
+  itemSnapshot: Record<string, unknown>;
+  url: string;
+  boundBy: string;
+  boundAt: Date;
 }
 
 /** Audit report entity */

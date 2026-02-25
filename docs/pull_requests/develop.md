@@ -1,26 +1,32 @@
-# PR: feat(all): implement user management and stabilize mobile offline sync
+# Pull Request: feat(web): enhance audit schedule with searchable calendar details and range display
 
 ## Overview
-This pull request introduces a full-stack User Management feature and critical stability fixes for the mobile application's offline-first synchronization engine.
+This PR significantly enhances the Audit Schedule module, improving visibility, usability, and data management across all three primary views: Calendar, Auditors, and Locations.
 
 ## Technical Changes
-### Web & API (User Management)
-- **API**: Created `UsersModule`, `UsersService`, and `UsersController` to handle CRUD operations for system users.
-- **API**: Implemented password hashing using `bcrypt` and secured endpoints with `JwtAuthGuard`.
-- **Web**: Added a new `/dashboard/users` page with a dedicated UI for managing users, including filtering by roles and a modal for adding new users.
-- **Database**: Updated Prisma schema to optimize `assignedLocation` relationships.
 
-### Mobile (Offline-First Stability)
-- **Sync Engine**: Refactored the `SyncEngine` to handle concurrent sync operations and network state changes more robustly.
-- **WatermelonDB**: Optimized database initialization and schema migrations.
-- **UI**: Added a `SyncStatusBar` to provide real-time feedback on synchronization status.
+### API (@assetsally/api)
+- **Delete by Location**: Added `removeByLocation` method to `AuditScheduleService` and a corresponding DELETE endpoint in `AuditScheduleController`. This enables clearing all audit entries for a specific location in one action.
+
+### Web App (@assetsally/web)
+- **Schedule Management**: 
+  - Added a "Clear Schedule" feature in `ScheduleForm` to allow users to reset audit dates for a location.
+  - Implemented logic to clear existing schedules before creating new ones when rescheduling, ensuring no duplicate entries.
+- **Calendar View**:
+  - Enhanced day entries to show full location names and assigned auditors.
+  - Transformed the calendar sidebar into a searchable "Daily Overview" instead of a creation form.
+  - Added expandable audit cards in the sidebar to reveal more details (MapPin for location, Users for auditors).
+  - Fixed timezone offset issues in date comparisons.
+- **Auditors View**:
+  - Refactored the workload heatmap to be larger, positioned more logically (left of the icon), and to display actual dates within day boxes.
+- **Locations View**:
+  - Renamed "Assigned Date" to "Schedule Date(s)".
+  - Implemented dynamic date range display (e.g., "DD/MM/YYYY to DD/MM/YYYY") for multi-day audits.
 
 ## Verification
-### Automated Tests
-- **API**: Generated and passed unit tests for `UsersService` and `UsersController` using Vitest (13 tests total).
-- **Web**: Verified dashboard components with existing spec files (9 tests total).
-- **Turbo Suite**: Successfully ran `pnpm turbo lint build test --concurrency 1 --force` across the entire monorepo.
+- **Linting**: Passed `next lint` for web and `eslint` for api (@assetsally/api has minor non-blocking warnings).
+- **Testing**: All relevant unit tests passed in `@assetsally/web` and `@assetsally/api`.
+- **Local Run**: UI verified locally for responsiveness and interaction patterns.
 
-### Local Verification
-- Verified user creation and deletion flow in the Admin Dashboard.
-- Confirmed mobile app bundling and sync behavior on Expo SDK 54.
+## Remote Sync
+Pushed to branch `develop`.
