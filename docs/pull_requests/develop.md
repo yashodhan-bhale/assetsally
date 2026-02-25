@@ -1,32 +1,33 @@
-# Pull Request: feat(web): enhance audit schedule with searchable calendar details and range display
+# Pull Request: feat(api): implement background QR generation and binding history
 
 ## Overview
-This PR significantly enhances the Audit Schedule module, improving visibility, usability, and data management across all three primary views: Calendar, Auditors, and Locations.
+Implemented a robust background QR generation system and a binding history tracking mechanism. This allows for high-volume QR production without blocking the API and provides an audit trail for asset bindings.
 
 ## Technical Changes
-
-### API (@assetsally/api)
-- **Delete by Location**: Added `removeByLocation` method to `AuditScheduleService` and a corresponding DELETE endpoint in `AuditScheduleController`. This enables clearing all audit entries for a specific location in one action.
-
-### Web App (@assetsally/web)
-- **Schedule Management**: 
-  - Added a "Clear Schedule" feature in `ScheduleForm` to allow users to reset audit dates for a location.
-  - Implemented logic to clear existing schedules before creating new ones when rescheduling, ensuring no duplicate entries.
-- **Calendar View**:
-  - Enhanced day entries to show full location names and assigned auditors.
-  - Transformed the calendar sidebar into a searchable "Daily Overview" instead of a creation form.
-  - Added expandable audit cards in the sidebar to reveal more details (MapPin for location, Users for auditors).
-  - Fixed timezone offset issues in date comparisons.
-- **Auditors View**:
-  - Refactored the workload heatmap to be larger, positioned more logically (left of the icon), and to display actual dates within day boxes.
-- **Locations View**:
-  - Renamed "Assigned Date" to "Schedule Date(s)".
-  - Implemented dynamic date range display (e.g., "DD/MM/YYYY to DD/MM/YYYY") for multi-day audits.
+- **API**: 
+  - Added `QrGenerationProcessor` using `pdfkit` and `qrcode` for asynchronous PDF creation.
+  - Updated `QrTagsService` to handle `QRGenerationJob` and `QRBatch` entities.
+  - Implemented transaction-based binding and retirement logic with `QRBindingRecord` for auditability.
+  - Added CSV export for asset-tag bindings.
+  - Resolved build-time namespace issues (`fs`).
+- **Web**: 
+  - Completely redesigned QR Generator dashboard with "Tags" and "Jobs" tabs.
+  - Added support for batch downloads and manual PDF regeneration triggering.
+  - Fixed React 18/19 type compatibility issues for Lucide icons.
+- **Shared**: 
+  - Updated `JobStatus` and `QRTagStatus` enums.
+  - Added types for QR jobs and batches.
+- **Database**: 
+  - Added `QRGenerationJob`, `QRBatch`, and `QRBindingRecord` models to Prisma schema.
+- **DX/Linting**:
+  - Configured `.eslintignore` to handle workspace-wide TypeScript parsing issues.
+  - Fixed multiple linting errors in API and Web packages.
 
 ## Verification
-- **Linting**: Passed `next lint` for web and `eslint` for api (@assetsally/api has minor non-blocking warnings).
-- **Testing**: All relevant unit tests passed in `@assetsally/web` and `@assetsally/api`.
-- **Local Run**: UI verified locally for responsiveness and interaction patterns.
-
-## Remote Sync
-Pushed to branch `develop`.
+- **New Tests**: 11 unit tests covering `QrTagsService` and `QrGenerationProcessor`.
+- **Test Suite**: Run successfully using `pnpm turbo lint build test --concurrency 1 --force`.
+- **Test Count**:
+  - API: 24 tests passed.
+  - Web: 9 tests passed.
+  - Mobile: Verified build stability.
+- **Build Status**: Verified all packages build successfully in production mode.
