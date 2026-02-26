@@ -19,7 +19,7 @@ const statusColors: Record<string, string> = {
   RETIRED: "bg-red-500/15 text-red-400",
 };
 
-export default function QrTagsPage() {
+export default function QrGeneratorPage() {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [showGenerate, setShowGenerate] = useState(false);
@@ -50,9 +50,9 @@ export default function QrTagsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">QR Tags</h1>
+            <h1 className="text-2xl font-bold text-white">QR Generator</h1>
             <p className="text-slate-400 text-sm mt-1">
-              Manage QR code tags for asset verification
+              Generate and manage QR code tags for asset verification
             </p>
           </div>
           <button

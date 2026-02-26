@@ -1,25 +1,25 @@
-# Pull Request: fix(mobile): resolve login failure by correcting appType and adding dynamic API base URL detection
+# PR: fix(qr-tags): resolve 404 on qr-generator and prisma type errors
 
 ## Overview
-
-This change resolves a critical issue where auditors were unable to log into the mobile application. The failure was caused by two main factors: an incorrect application type identifier and a hardcoded API endpoint that didn't account for varying network environments (physical devices vs. emulators).
+This PR addresses several critical issues in the AssetsAlly platform relating to the QR management workflow. It fixes a routing 404 error in the web application and resolves TypeScript errors in the API service caused by an out-of-sync Prisma client.
 
 ## Technical Changes
 
-### `@assetsally/mobile`
+### Web App (`apps/web`)
+- **Renamed Directory**: `app/dashboard/qr-tags` -> `app/dashboard/qr-generator` to align with the navigation configuration.
+- **UI Updates**: Updated page titles and descriptions in the QR Generator page to match the new route name.
 
-- **Logic Correction**: Updated the login payload to use `appType: "MOBILE"` instead of `"AUDITOR"`, aligning with the backend authentication service expectations.
-- **Dynamic Configuration**: Integrated `expo-constants` to dynamically detect the host's IP address. This allows the app to connect to the computer's local API (port 3001) effortlessly from physical devices (Expo Go), iOS simulators, and Android emulators without manual code changes.
-- **Network Resilience**: Enhanced the fetch wrapper with descriptive error messages for "Network request failed" scenarios to aid in troubleshooting.
-- **Code Quality**: Applied ESLint and Prettier fixes to ensure compliance with project standards.
+### API (`apps/api`)
+- **Prisma Synchronization**: Regenerated the Prisma Client types using `prisma generate`. This resolved `TS2353` errors in `qr-tags.service.ts` where `linkedItemId` and `linkedItem` were incorrectly flagged as unknown properties.
 
-### `packages/database`
-
-- **Data Integrity**: Re-verified and re-seeded the database to ensure test credentials (`auditor@demo.com` / `admin123`) are active and correctly configured.
+### Formatting (`global`)
+- **Code Consistency**: Applied project-wide formatting via `pnpm format` to resolve Prettier/ESLint discrepancies discovered during the verification phase.
 
 ## Verification
+- **Build Status**: `pnpm turbo build` verified successfully for all packages.
+- **Linting**: 0 errors found across the workspace (excluding known mobile project warnings).
+- **Testing**: Vitest suites for API and Web passed successfully.
 
-- **Test Suite**: Ran `pnpm turbo lint build test --concurrency 1`.
-- **Mobile Linting**: Corrected 5 errors and 104 warnings (fixable).
-- **Manual Verification**: Confirmed that the mobile application now successfully communicates with the NestJS backend and processes the login flow for the auditor role.
-- **Environment Tests**: Verified connectivity across Android Emulator and host machine.
+## Verification Proof
+- `pnpm turbo build` passed at 2026-02-26 09:30 AM local time.
+- `src/health/health.controller.spec.ts` (API) passed with 2 tests.
