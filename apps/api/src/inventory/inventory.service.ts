@@ -50,7 +50,11 @@ export class InventoryService {
           },
           department: { select: { id: true, code: true, name: true } },
           category: { select: { id: true, code: true, name: true } },
-          qrTag: { select: { id: true, code: true, status: true } },
+          QRBindingRecord: {
+            select: {
+              qrTag: { select: { id: true, code: true, status: true } },
+            },
+          },
         },
         skip,
         take: limit,
@@ -77,7 +81,11 @@ export class InventoryService {
         location: true,
         department: true,
         category: true,
-        qrTag: true,
+        QRBindingRecord: {
+          include: {
+            qrTag: true,
+          },
+        },
         auditFindings: {
           take: 5,
           orderBy: { createdAt: "desc" },

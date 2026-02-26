@@ -165,10 +165,64 @@ class ApiClient {
       body: { count, prefix },
     });
   }
+
+  initiateQrBatch(baseUrl: string, count: number) {
+    return this.request("/qr-tags/batch/async", {
+      method: "POST",
+      body: { baseUrl, count },
+    });
+  }
+
+  getQrJobs() {
+    return this.request("/qr-tags/jobs");
+  }
+
+  getQrBatches(jobId: string) {
+    return this.request(`/qr-tags/jobs/${jobId}/batches`);
+  }
+
+  generateBatchPdf(batchId: string) {
+    return this.request(`/qr-tags/batches/${batchId}/generate-pdf`, {
+      method: "POST",
+    });
+  }
+
+  // Helper stream method (could just be used as a simple href)
+  getBatchDownloadUrl(batchId: string) {
+    return `${API_BASE}/qr-tags/batches/${batchId}/download`;
+  }
   assignQrTag(code: string, itemId: string) {
     return this.request(`/qr-tags/${code}/assign`, {
       method: "POST",
       body: { itemId },
+    });
+  }
+
+  // Audit Schedule
+  getAuditScheduleSummary() {
+    return this.request("/audit-schedule/summary");
+  }
+  getAuditScheduleCalendar() {
+    return this.request("/audit-schedule/calendar");
+  }
+  getAuditScheduleAuditors() {
+    return this.request("/audit-schedule/auditors");
+  }
+  getAuditScheduleLocations() {
+    return this.request("/audit-schedule/locations");
+  }
+  createAuditSchedule(data: any) {
+    return this.request("/audit-schedule", { method: "POST", body: data });
+  }
+  updateAuditSchedule(id: string, data: any) {
+    return this.request(`/audit-schedule/${id}`, { method: "PUT", body: data });
+  }
+  deleteAuditSchedule(id: string) {
+    return this.request(`/audit-schedule/${id}`, { method: "DELETE" });
+  }
+  deleteAuditSchedulesByLocation(locationId: string) {
+    return this.request(`/audit-schedule/location/${locationId}`, {
+      method: "DELETE",
     });
   }
 
@@ -203,6 +257,22 @@ class ApiClient {
 
   wipeData() {
     return this.request("/imports/wipe", { method: "DELETE" });
+  }
+
+  // Users
+  getUsers() {
+    return this.request("/users");
+  }
+  createUser(data: any) {
+    return this.request("/users", {
+      method: "POST",
+      body: data,
+    });
+  }
+  deleteUser(id: string) {
+    return this.request(`/users/${id}`, {
+      method: "DELETE",
+    });
   }
 }
 

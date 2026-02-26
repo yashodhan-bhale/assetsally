@@ -1,25 +1,22 @@
-# PR: fix(qr-tags): resolve 404 on qr-generator and prisma type errors
+# PR Summary: fix(mobile): resolve android build failures by disabling new architecture and jsi for watermelondb
 
 ## Overview
-This PR addresses several critical issues in the AssetsAlly platform relating to the QR management workflow. It fixes a routing 404 error in the web application and resolves TypeScript errors in the API service caused by an out-of-sync Prisma client.
+This pull request addresses critical Android build failures encountered when integrating WatermelonDB with Expo SDK 54 (React Native 0.81). The failures were related to Kotlin version mismatches, incompatibilities with the React Native New Architecture, and path resolution issues in the `watermelondb-jsi` module.
 
 ## Technical Changes
-
-### Web App (`apps/web`)
-- **Renamed Directory**: `app/dashboard/qr-tags` -> `app/dashboard/qr-generator` to align with the navigation configuration.
-- **UI Updates**: Updated page titles and descriptions in the QR Generator page to match the new route name.
-
-### API (`apps/api`)
-- **Prisma Synchronization**: Regenerated the Prisma Client types using `prisma generate`. This resolved `TS2353` errors in `qr-tags.service.ts` where `linkedItemId` and `linkedItem` were incorrectly flagged as unknown properties.
-
-### Formatting (`global`)
-- **Code Consistency**: Applied project-wide formatting via `pnpm format` to resolve Prettier/ESLint discrepancies discovered during the verification phase.
+- **Mobile Configuration (`apps/mobile/app.json`)**:
+    - Renamed the app to `RatanRathi` to avoid Gradle naming conflicts.
+    - Added `expo-build-properties` to explicitly disable `newArchEnabled` for both Android and iOS, as WatermelonDB JSI is currently incompatible with React Native 0.76+ C++ paths.
+    - Configured `@morrowdigital/watermelondb-expo-plugin` with `disableJsi: true` to fall back to the stable legacy bridge.
+- **Android Native Project**:
+    - Re-generated the `android` directory using `npx expo prebuild --clean` to ensure a consistent state.
+- **Linting**:
+    - Applied `eslint --fix` across the mobile app to resolve Prettier and other minor linting issues.
 
 ## Verification
-- **Build Status**: `pnpm turbo build` verified successfully for all packages.
-- **Linting**: 0 errors found across the workspace (excluding known mobile project warnings).
-- **Testing**: Vitest suites for API and Web passed successfully.
+- **Local Verification**: Ran `pnpm turbo lint build test --concurrency 1`. All 13 tasks completed successfully (9 cached, 4 fresh).
+- **Cloud Build**: Successfully triggered and verified an EAS Build (Development Client) with these changes.
+- **Live Testing**: The development client was successfully installed and connected to the local Metro server.
 
-## Verification Proof
-- `pnpm turbo build` passed at 2026-02-26 09:30 AM local time.
-- `src/health/health.controller.spec.ts` (API) passed with 2 tests.
+## PR Link
+[Create Pull Request](https://github.com/yashodhan-bhale/assetsally/compare/main)
