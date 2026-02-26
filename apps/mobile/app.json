@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Ratan Rathi & Co.",
+    "name": "RatanRathi",
     "slug": "assetsally-mobile",
     "version": "0.0.1",
     "orientation": "portrait",
@@ -10,13 +10,16 @@
       "resizeMode": "contain",
       "backgroundColor": "#1e293b"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.assetsally.mobile",
       "infoPlist": {
         "NSCameraUsageDescription": "This app needs camera access to capture photos of inventory items.",
-        "NSLocationWhenInUseUsageDescription": "This app needs location access to geo-tag audit findings."
+        "NSLocationWhenInUseUsageDescription": "This app needs location access to geo-tag audit findings.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -27,17 +30,42 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
       "expo-router",
       "expo-camera",
       "expo-location",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-dev-client",
+      [
+        "@morrowdigital/watermelondb-expo-plugin",
+        {
+          "disableJsi": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "newArchEnabled": false
+          },
+          "ios": {
+            "newArchEnabled": false
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "73cd7a4d-8bfe-4c3c-982b-983de5b49c86"
+      }
     }
   }
 }

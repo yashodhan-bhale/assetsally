@@ -17,9 +17,10 @@ config.resolver.nodeModulesPaths = [
 ];
 // 3. Force Metro to resolve (and quickly skip) certain directories
 config.resolver.blockList = [
-  /.*\/apps\/web\/.*/,
-  /.*\/apps\/api\/.*/,
+  /.*\/apps\/(web|api)\/.*/,
+  /.*\/packages\/(database|ui)\/.*/,
   /.*\/dist\/.*/,
+  /.*\.git\/.*/,
 ];
 
 module.exports = config;

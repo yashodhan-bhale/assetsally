@@ -112,7 +112,7 @@ export default function AuditDetailScreen() {
       // Check if finding already exists for this item
       const existing = findings.find((f) => f.itemId === item.id);
 
-      await database.write(async () => {
+      await getDatabase().write(async () => {
         if (existing) {
           await existing.update((r: AuditFinding) => {
             r.status = status;
@@ -161,7 +161,7 @@ export default function AuditDetailScreen() {
             try {
               const reportServerId = report.serverId || report.id;
               await mobileApi.submitReport(reportServerId);
-              await database.write(async () => {
+              await getDatabase().write(async () => {
                 await report.update((r: AuditReport) => {
                   r.status = "SUBMITTED";
                   r.submittedAt = Date.now();

@@ -168,7 +168,12 @@ export const mobileApi = {
 
   // Audits
   getMyAudits: (params?: Record<string, string>) => {
-    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    const qs = params
+      ? "?" +
+        Object.entries(params)
+          .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+          .join("&")
+      : "";
     return request(`/audits${qs}`);
   },
 

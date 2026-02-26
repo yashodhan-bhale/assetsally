@@ -273,7 +273,7 @@ export async function pushData(): Promise<number> {
         await db.write(async () => {
           await report.update((r: AuditReport) => {
             r.serverId = serverReport.id;
-            r._raw.id = serverReport.id; // Remap local ID to server ID
+            // Removed _raw.id remapping as it's immutable in WatermelonDB
             r.needsSync = false;
             r.isLocallyCreated = false;
           });

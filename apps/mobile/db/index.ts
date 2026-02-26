@@ -1,4 +1,4 @@
-import { Database } from "@nozbe/watermelondb";
+import { Database, Collection, Model } from "@nozbe/watermelondb";
 import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite";
 
 import {
@@ -18,49 +18,24 @@ let _database: Database | null = null;
  */
 export function getDatabase(): Database {
   if (!_database) {
-    try {
-      const adapter = new SQLiteAdapter({
-        schema,
-        jsi: true,
-        onSetUpError: (error) => {
-          console.error("[WatermelonDB] Setup error:", error);
-        },
-      });
+    const adapter = new SQLiteAdapter({
+      schema,
+      jsi: true,
+      onSetUpError: (error) => {
+        console.error("[WatermelonDB] Setup error:", error);
+      },
+    });
 
-      _database = new Database({
-        adapter,
-        modelClasses: [
-          Location,
-          InventoryItem,
-          AuditReport,
-          AuditFinding,
-          SyncMeta,
-        ],
-      });
-    } catch (error) {
-      console.warn(
-        "[WatermelonDB] JSI failed, falling back to non-JSI (Expo Go):",
-        error,
-      );
-      const adapter = new SQLiteAdapter({
-        schema,
-        jsi: false,
-        onSetUpError: (err) => {
-          console.error("[WatermelonDB] Fallback setup error:", err);
-        },
-      });
-
-      _database = new Database({
-        adapter,
-        modelClasses: [
-          Location,
-          InventoryItem,
-          AuditReport,
-          AuditFinding,
-          SyncMeta,
-        ],
-      });
-    }
+    _database = new Database({
+      adapter,
+      modelClasses: [
+        Location,
+        InventoryItem,
+        AuditReport,
+        AuditFinding,
+        SyncMeta,
+      ],
+    });
   }
   return _database;
 }
@@ -69,10 +44,8 @@ export function getDatabase(): Database {
 // forward all property access to the real WatermelonDB Collection.
 // They exist so importing code doesn't trigger database init at import time.
 
-function lazyCollection<T extends { new (...args: any[]): any }>(
-  tableName: string,
-) {
-  return new Proxy({} as ReturnType<Database["get"]>, {
+function lazyCollection<T extends typeof Model>(tableName: string) {
+  return new Proxy({} as Collection<InstanceType<T>>, {
     get(_target, prop) {
       const collection = getDatabase().get<InstanceType<T>>(tableName);
       const value = (collection as any)[prop];
