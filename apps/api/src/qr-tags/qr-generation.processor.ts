@@ -12,7 +12,7 @@ import { PrismaService } from "../prisma/prisma.service";
 @Injectable()
 export class QrGenerationProcessor {
   private readonly logger = new Logger(QrGenerationProcessor.name);
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
   async generatePdf(batchId: string): Promise<string> {
     const batch = await this.prisma.qRBatch.findUnique({
       where: { id: batchId },

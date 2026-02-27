@@ -10,9 +10,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#1e293b"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.assetsally.mobile",

@@ -11,22 +11,10 @@
     "strictPropertyInitialization": false,
     "noEmit": false,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
-    "types": [
-      "node",
-      "multer",
-      "vitest/globals"
-    ]
+    "types": ["node", "multer", "vitest/globals"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "test"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
 }

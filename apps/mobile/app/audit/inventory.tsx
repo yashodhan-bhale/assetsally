@@ -47,7 +47,7 @@ export default function InventoryScreen() {
   const renderItem = ({ item }: { item: InventoryItem }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={{ flex: 1 }}>
+        <View style={styles.flex1}>
           <Text style={styles.itemName}>{item.assetName}</Text>
           <Text style={styles.itemNumber}>{item.assetNumber}</Text>
         </View>

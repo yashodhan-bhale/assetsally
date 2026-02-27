@@ -1,4 +1,3 @@
-import { PrismaService } from "@assetsally/database";
 import {
   Injectable,
   BadRequestException,
@@ -7,6 +6,7 @@ import {
 
 import { InventoryService } from "../inventory/inventory.service";
 import { LocationsService } from "../locations/locations.service";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class ImportsService {

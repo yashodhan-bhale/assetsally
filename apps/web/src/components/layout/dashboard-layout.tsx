@@ -5,6 +5,7 @@ import { Menu, X, LogOut, ChevronRight, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 import { useAuth } from "../../contexts/auth-context";
 import { navItems } from "../../lib/nav-config";
@@ -42,20 +43,24 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
           {isSidebarOpen ? (
             <div className="flex items-center gap-2 overflow-hidden">
-              <img
+              <Image
                 src="/client-logo.png"
                 alt="Logo"
-                className="w-8 h-8 object-contain shrink-0"
+                width={32}
+                height={32}
+                className="object-contain shrink-0"
               />
               <span className="text-lg font-bold text-white truncate">
                 Ratan Rathi & Co.
               </span>
             </div>
           ) : (
-            <img
+            <Image
               src="/client-logo.png"
               alt="Logo"
-              className="w-10 h-10 object-contain mx-auto"
+              width={40}
+              height={40}
+              className="object-contain mx-auto"
             />
           )}
           <button
@@ -130,10 +135,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex md:hidden items-center gap-2 mr-2">
-              <img
+              <Image
                 src="/client-logo.png"
                 alt="Logo"
-                className="w-8 h-8 object-contain"
+                width={32}
+                height={32}
+                className="object-contain"
               />
               <span className="text-sm font-bold text-slate-900 truncate">
                 Ratan Rathi & Co.
@@ -143,10 +150,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2 text-slate-500 text-sm">
               {!isSidebarOpen && (
                 <div className="hidden md:flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
-                  <img
+                  <Image
                     src="/client-logo.png"
                     alt="Logo"
-                    className="w-6 h-6 object-contain"
+                    width={24}
+                    height={24}
+                    className="object-contain"
                   />
                   <span className="font-bold text-slate-900 text-xs tracking-tight">
                     Ratan Rathi & Co.

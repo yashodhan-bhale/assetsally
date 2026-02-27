@@ -2,7 +2,11 @@ import { PaginationMeta } from "../";
 /**
  * Calculate pagination metadata
  */
-export declare function calculatePagination(totalItems: number, page?: number, pageSize?: number): PaginationMeta;
+export declare function calculatePagination(
+  totalItems: number,
+  page?: number,
+  pageSize?: number,
+): PaginationMeta;
 /**
  * Format a date to ISO string without time
  */
@@ -14,11 +18,17 @@ export declare function isToday(date: Date, timezone?: string): boolean;
 /**
  * Generate a materialized path from parent path and current code
  */
-export declare function generateLocationPath(parentPath: string | null, code: string): string;
+export declare function generateLocationPath(
+  parentPath: string | null,
+  code: string,
+): string;
 /**
  * Check if a path is a descendant of another path
  */
-export declare function isDescendantPath(childPath: string, parentPath: string): boolean;
+export declare function isDescendantPath(
+  childPath: string,
+  parentPath: string,
+): boolean;
 /**
  * Get the depth of a location path
  */
@@ -46,11 +56,18 @@ export declare function delay(ms: number): Promise<void>;
 /**
  * Retry a function with exponential backoff
  */
-export declare function withRetry<T>(fn: () => Promise<T>, maxAttempts?: number, baseDelayMs?: number): Promise<T>;
+export declare function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts?: number,
+  baseDelayMs?: number,
+): Promise<T>;
 /**
  * Group an array by a key
  */
-export declare function groupBy<T, K extends string | number>(items: T[], keyFn: (item: T) => K): Record<K, T[]>;
+export declare function groupBy<T, K extends string | number>(
+  items: T[],
+  keyFn: (item: T) => K,
+): Record<K, T[]>;
 /**
  * Deep clone an object
  */
@@ -58,9 +75,15 @@ export declare function deepClone<T>(obj: T): T;
 /**
  * Pick specific keys from an object
  */
-export declare function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K>;
+export declare function pick<T extends object, K extends keyof T>(
+  obj: T,
+  keys: K[],
+): Pick<T, K>;
 /**
  * Omit specific keys from an object
  */
-export declare function omit<T extends object, K extends keyof T>(obj: T, keys: K[]): Omit<T, K>;
+export declare function omit<T extends object, K extends keyof T>(
+  obj: T,
+  keys: K[],
+): Omit<T, K>;
 //# sourceMappingURL=index.d.ts.map

@@ -11,6 +11,7 @@ import {
   Building,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import React, { useState, FormEvent } from "react";
 
 import { useAuth } from "../../contexts/auth-context";
@@ -61,10 +62,12 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img
+            <Image
               src="/client-logo.png"
               alt="Logo"
-              className="w-24 h-24 object-contain"
+              width={96}
+              height={96}
+              className="object-contain"
             />
           </div>
           <h1
@@ -84,11 +87,10 @@ export default function LoginPage() {
           <div className="grid grid-cols-2 p-1 gap-1 bg-slate-800/50 rounded-xl mb-6">
             <button
               onClick={() => handleTabChange("ADMIN")}
-              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "ADMIN"
-                  ? "text-white"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
+              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === "ADMIN"
+                ? "text-white"
+                : "text-slate-400 hover:text-slate-200"
+                }`}
               data-testid="tab-admin"
             >
               {activeTab === "ADMIN" && (
@@ -106,11 +108,10 @@ export default function LoginPage() {
             </button>
             <button
               onClick={() => handleTabChange("CLIENT")}
-              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "CLIENT"
-                  ? "text-white"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
+              className={`relative flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === "CLIENT"
+                ? "text-white"
+                : "text-slate-400 hover:text-slate-200"
+                }`}
               data-testid="tab-client"
             >
               {activeTab === "CLIENT" && (
@@ -186,11 +187,10 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full text-white font-medium py-3 rounded-xl transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                  activeTab === "ADMIN"
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/25 hover:shadow-blue-500/40"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25 hover:shadow-indigo-500/40"
-                }`}
+                className={`w-full text-white font-medium py-3 rounded-xl transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${activeTab === "ADMIN"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/25 hover:shadow-blue-500/40"
+                  : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/25 hover:shadow-indigo-500/40"
+                  }`}
                 data-testid="login-submit"
               >
                 {isSubmitting ? (

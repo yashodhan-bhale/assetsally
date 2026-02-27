@@ -124,19 +124,21 @@ export default function QrGeneratorPage() {
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               onClick={() => setActiveTab("TAGS")}
-              className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${activeTab === "TAGS"
+              className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === "TAGS"
                   ? "bg-white text-slate-900 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
-                }`}
+              }`}
             >
               Inventory Tags
             </button>
             <button
               onClick={() => setActiveTab("JOBS")}
-              className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${activeTab === "JOBS"
+              className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === "JOBS"
                   ? "bg-white text-slate-900 shadow-sm border border-slate-200"
                   : "text-slate-500 hover:text-slate-700"
-                }`}
+              }`}
             >
               Generation Jobs
             </button>
@@ -146,8 +148,9 @@ export default function QrGeneratorPage() {
         {activeTab === "TAGS" && (
           <div className="flex justify-end mb-4">
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
-                }/qr-tags/export-bindings?token=${api.getToken()}`}
+              href={`${
+                process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"
+              }/qr-tags/export-bindings?token=${api.getToken()}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200 shadow-sm"
@@ -250,9 +253,10 @@ export default function QrGeneratorPage() {
                           Job: {job.id.substring(0, 8)}
                         </h4>
                         <span
-                          className={`text-xs px-2.5 py-1 rounded-full font-medium ${jobStatusColors[job.status] ||
+                          className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                            jobStatusColors[job.status] ||
                             "bg-slate-100 text-slate-600"
-                            }`}
+                          }`}
                         >
                           {job.status}
                         </span>
@@ -331,9 +335,10 @@ export default function QrGeneratorPage() {
                                   </td>
                                   <td className="p-4">
                                     <span
-                                      className={`text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide border ${jobStatusColors[batch.status] ||
+                                      className={`text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide border ${
+                                        jobStatusColors[batch.status] ||
                                         "bg-slate-100 text-slate-600 border-slate-200"
-                                        }`}
+                                      }`}
                                     >
                                       {batch.status}
                                     </span>
@@ -341,7 +346,7 @@ export default function QrGeneratorPage() {
                                   <td className="p-4 text-right">
                                     <div className="flex justify-end gap-2">
                                       {batch.status === "READY" ||
-                                        batch.status === "DOWNLOADED" ? (
+                                      batch.status === "DOWNLOADED" ? (
                                         <>
                                           <a
                                             href={`${api.getBatchDownloadUrl(
@@ -386,7 +391,7 @@ export default function QrGeneratorPage() {
                                                 "w-4 h-4",
                                                 generatePdfMutation.isPending &&
                                                   generatePdfMutation.variables ===
-                                                  batch.id
+                                                    batch.id
                                                   ? "animate-spin"
                                                   : "",
                                               )}
@@ -412,7 +417,7 @@ export default function QrGeneratorPage() {
                                           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold rounded-lg transition-all shadow-sm disabled:opacity-50"
                                         >
                                           {generatePdfMutation.isPending &&
-                                            generatePdfMutation.variables ===
+                                          generatePdfMutation.variables ===
                                             batch.id ? (
                                             <RefreshIcon className="w-3.5 h-3.5 animate-spin" />
                                           ) : (
@@ -476,10 +481,11 @@ export default function QrGeneratorPage() {
                     setPage(1);
                   }}
                   className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
-                               ${status === s
-                      ? "bg-white text-blue-600 shadow-sm border border-slate-200"
-                      : "text-slate-500 hover:text-slate-800"
-                    }`}
+                               ${
+                                 status === s
+                                   ? "bg-white text-blue-600 shadow-sm border border-slate-200"
+                                   : "text-slate-500 hover:text-slate-800"
+                               }`}
                 >
                   {s || "All Tags"}
                 </button>
@@ -519,8 +525,9 @@ export default function QrGeneratorPage() {
                           </span>
                         </div>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${statusColors[tag.status] || statusColors.UNASSIGNED
-                            }`}
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${
+                            statusColors[tag.status] || statusColors.UNASSIGNED
+                          }`}
                         >
                           {tag.status}
                         </span>
