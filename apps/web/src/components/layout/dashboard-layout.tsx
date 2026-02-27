@@ -1,17 +1,17 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, LogOut, ChevronRight, User } from "lucide-react";
+import { Menu, X, LogOut, ChevronRight, User, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const NextImage: any = Image;
 
 import { useAuth } from "../../contexts/auth-context";
 import { navItems } from "../../lib/nav-config";
-import { cn } from "../../lib/utils"; // Assuming utils exists, if not I'll create it or inline
+import { cn } from "../../lib/utils";
 
 const MenuIcon: any = Menu;
 const XIcon: any = X;
@@ -19,6 +19,40 @@ const LogOutIcon: any = LogOut;
 const ChevronRightIcon: any = ChevronRight;
 const UserIcon: any = User;
 const NavLink: any = Link;
+const AlertCircleIcon: any = AlertCircle;
+
+function ApiHealthBanner() {
+  const [isDown, setIsDown] = useState(false);
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/health`,
+        );
+        setIsDown(!res.ok);
+      } catch (e) {
+        setIsDown(true);
+      }
+    };
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!isDown) return null;
+
+  return (
+    <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top duration-300">
+      <AlertCircleIcon size={16} />
+      <span>
+        The API server is currently unreachable. Some features may not work
+        correctly.
+      </span>
+    </div>
+  );
+}
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -134,6 +168,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         )}
       >
         {/* Header */}
+        <ApiHealthBanner />
         <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex md:hidden items-center gap-2 mr-2">

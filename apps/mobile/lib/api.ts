@@ -22,7 +22,7 @@ const getApiBase = () => {
   return "http://localhost:3001/api";
 };
 
-const API_BASE = getApiBase();
+export const API_BASE = getApiBase();
 
 let accessToken: string | null = null;
 

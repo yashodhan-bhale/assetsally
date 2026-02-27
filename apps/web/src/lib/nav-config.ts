@@ -43,8 +43,20 @@ export const navItems: NavItem[] = [
     roles: ["ADMIN", "CLIENT"], // Client sees read-only or restricted view
   },
   {
-    title: "User Management",
-    href: "/dashboard/users",
+    title: "Staff",
+    href: "/dashboard/users/staff",
+    icon: Users,
+    roles: ["ADMIN"],
+  },
+  {
+    title: "Auditors",
+    href: "/dashboard/users/auditors",
+    icon: Users,
+    roles: ["ADMIN"],
+  },
+  {
+    title: "Clients",
+    href: "/dashboard/users/clients",
     icon: Users,
     roles: ["ADMIN"],
   },

@@ -18,8 +18,13 @@ function formatLastSynced(date: Date | null): string {
 }
 
 export default function SyncStatusBar() {
-  const { isOnline, isSyncing, lastSyncedAt, pendingSyncCount } =
-    useConnectivity();
+  const {
+    isOnline,
+    isApiReachable,
+    isSyncing,
+    lastSyncedAt,
+    pendingSyncCount,
+  } = useConnectivity();
 
   let bgColor: string;
   let textColor: string;
@@ -31,6 +36,11 @@ export default function SyncStatusBar() {
     textColor = "#fca5a5";
     icon = "cloud-offline-outline";
     message = `Offline — ${pendingSyncCount > 0 ? `${pendingSyncCount} changes saved locally` : "Changes saved locally"}`;
+  } else if (!isApiReachable) {
+    bgColor = "#7f1d1d";
+    textColor = "#fca5a5";
+    icon = "alert-circle-outline";
+    message = "Server Down — Cannot sync data";
   } else if (isSyncing) {
     bgColor = "#78350f";
     textColor = "#fde68a";

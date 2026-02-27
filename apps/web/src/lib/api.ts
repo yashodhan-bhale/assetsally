@@ -42,30 +42,42 @@ class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    if (res.status === 401) {
-      this.setToken(null);
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
+      if (res.status === 401) {
+        this.setToken(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("refreshToken");
+          window.location.href = "/login";
+        }
+        throw new Error("Unauthorized");
       }
-      throw new Error("Unauthorized");
-    }
 
-    if (!res.ok) {
-      const error = await res
-        .json()
-        .catch(() => ({ message: "Request failed" }));
-      throw new Error(error.message || `HTTP ${res.status}`);
-    }
+      if (!res.ok) {
+        const error = await res
+          .json()
+          .catch(() => ({ message: "Request failed" }));
+        throw new Error(error.message || `HTTP ${res.status}`);
+      }
 
-    if (res.status === 204) return null as T;
-    return res.json();
+      if (res.status === 204) return null as T;
+      return res.json();
+    } catch (err: any) {
+      if (err.message === "Unauthorized" || err.message.startsWith("HTTP")) {
+        throw err;
+      }
+      // This is likely a network error (server down)
+      const networkError = new Error(
+        "API server is unreachable. Please check if the server is running.",
+      );
+      (networkError as any).isNetworkError = true;
+      throw networkError;
+    }
   }
 
   // Auth
