@@ -10,6 +10,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../contexts/auth-context";
 import { useConnectivity } from "../../contexts/connectivity-context";
@@ -91,7 +92,7 @@ export default function AuditsTab() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#3b82f6" />
@@ -114,7 +115,7 @@ export default function AuditsTab() {
           </Text>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

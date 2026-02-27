@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   FlatList,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useConnectivity } from "../../contexts/connectivity-context";
 import {
@@ -199,235 +200,243 @@ export default function AuditDetailScreen() {
   const findingsMap = new Map(findings.map((f) => [f.itemId, f]));
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ padding: 20 }}
-    >
-      {/* Offline Badge */}
-      {!isOnline && (
-        <View style={styles.offlineBadge}>
-          <Ionicons name="cloud-offline-outline" size={14} color="#fca5a5" />
-          <Text style={styles.offlineBadgeText}>
-            Offline Mode — Changes saved locally
-          </Text>
-        </View>
-      )}
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ padding: 20 }}
+      >
+        {/* Offline Badge */}
+        {!isOnline && (
+          <View style={styles.offlineBadge}>
+            <Ionicons name="cloud-offline-outline" size={14} color="#fca5a5" />
+            <Text style={styles.offlineBadgeText}>
+              Offline Mode — Changes saved locally
+            </Text>
+          </View>
+        )}
 
-      {/* Header */}
-      <View style={styles.headerCard}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.locationName}>
-            {location?.locationName || report.locationId}
-          </Text>
-          {location && (
-            <Text style={styles.locationCode}>{location.locationCode}</Text>
-          )}
+        {/* Header */}
+        <View style={styles.headerCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.locationName}>
+              {location?.locationName || report.locationId}
+            </Text>
+            {location && (
+              <Text style={styles.locationCode}>{location.locationCode}</Text>
+            )}
+          </View>
+          <View
+            style={[styles.statusBadge, { backgroundColor: sc.color + "20" }]}
+          >
+            <Ionicons name={sc.icon as any} size={16} color={sc.color} />
+            <Text style={[styles.statusText, { color: sc.color }]}>
+              {sc.label}
+            </Text>
+          </View>
         </View>
-        <View
-          style={[styles.statusBadge, { backgroundColor: sc.color + "20" }]}
-        >
-          <Ionicons name={sc.icon as any} size={16} color={sc.color} />
-          <Text style={[styles.statusText, { color: sc.color }]}>
-            {sc.label}
-          </Text>
-        </View>
-      </View>
 
-      {/* Findings summary */}
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryNumber}>{inventoryItems.length}</Text>
-          <Text style={styles.summaryLabel}>Items</Text>
+        {/* Findings summary */}
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryNumber}>{inventoryItems.length}</Text>
+            <Text style={styles.summaryLabel}>Items</Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={[styles.summaryNumber, { color: "#22c55e" }]}>
+              {findings.length}
+            </Text>
+            <Text style={styles.summaryLabel}>Verified</Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={[styles.summaryNumber, { color: "#f59e0b" }]}>
+              {inventoryItems.length - findings.length}
+            </Text>
+            <Text style={styles.summaryLabel}>Pending</Text>
+          </View>
         </View>
-        <View style={styles.summaryCard}>
-          <Text style={[styles.summaryNumber, { color: "#22c55e" }]}>
-            {findings.length}
-          </Text>
-          <Text style={styles.summaryLabel}>Verified</Text>
-        </View>
-        <View style={styles.summaryCard}>
-          <Text style={[styles.summaryNumber, { color: "#f59e0b" }]}>
-            {inventoryItems.length - findings.length}
-          </Text>
-          <Text style={styles.summaryLabel}>Pending</Text>
-        </View>
-      </View>
 
-      {/* Inventory items with inline finding controls */}
-      <Text style={styles.sectionTitle}>
-        Inventory Items ({inventoryItems.length})
-      </Text>
+        {/* Inventory items with inline finding controls */}
+        <Text style={styles.sectionTitle}>
+          Inventory Items ({inventoryItems.length})
+        </Text>
 
-      {inventoryItems.length > 0 ? (
-        inventoryItems.map((item) => {
-          const finding = findingsMap.get(item.id);
-          return (
-            <View key={item.id} style={styles.itemCard}>
-              <View style={styles.itemHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.itemName}>{item.assetName}</Text>
-                  <Text style={styles.itemNumber}>{item.assetNumber}</Text>
-                </View>
-                {finding && (
-                  <View
-                    style={[
-                      styles.conditionBadge,
-                      {
-                        backgroundColor:
-                          finding.status === "FOUND"
-                            ? "#22c55e20"
-                            : finding.status === "NOT_FOUND"
-                              ? "#ef444420"
-                              : "#f59e0b20",
-                      },
-                    ]}
-                  >
-                    <Text
+        {inventoryItems.length > 0 ? (
+          inventoryItems.map((item) => {
+            const finding = findingsMap.get(item.id);
+            return (
+              <View key={item.id} style={styles.itemCard}>
+                <View style={styles.itemHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.itemName}>{item.assetName}</Text>
+                    <Text style={styles.itemNumber}>{item.assetNumber}</Text>
+                  </View>
+                  {finding && (
+                    <View
                       style={[
-                        styles.conditionText,
+                        styles.conditionBadge,
                         {
-                          color:
+                          backgroundColor:
                             finding.status === "FOUND"
-                              ? "#22c55e"
+                              ? "#22c55e20"
                               : finding.status === "NOT_FOUND"
-                                ? "#ef4444"
-                                : "#f59e0b",
+                                ? "#ef444420"
+                                : "#f59e0b20",
                         },
                       ]}
                     >
-                      {finding.status}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.conditionText,
+                          {
+                            color:
+                              finding.status === "FOUND"
+                                ? "#22c55e"
+                                : finding.status === "NOT_FOUND"
+                                  ? "#ef4444"
+                                  : "#f59e0b",
+                          },
+                        ]}
+                      >
+                        {finding.status}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {finding?.notes && (
+                  <Text style={styles.findingNotes}>{finding.notes}</Text>
+                )}
+
+                {/* Quick action buttons (only for DRAFT reports) */}
+                {report.status === "DRAFT" && (
+                  <View style={styles.quickActions}>
+                    <TouchableOpacity
+                      style={[
+                        styles.quickBtn,
+                        finding?.status === "FOUND" && styles.quickBtnActive,
+                      ]}
+                      onPress={() => handleRecordFinding(item, "FOUND", "GOOD")}
+                    >
+                      <Ionicons
+                        name="checkmark"
+                        size={16}
+                        color={
+                          finding?.status === "FOUND" ? "#22c55e" : "#64748b"
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.quickBtnText,
+                          finding?.status === "FOUND" && { color: "#22c55e" },
+                        ]}
+                      >
+                        Found
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.quickBtn,
+                        finding?.status === "NOT_FOUND" &&
+                          styles.quickBtnActiveRed,
+                      ]}
+                      onPress={() => handleRecordFinding(item, "NOT_FOUND")}
+                    >
+                      <Ionicons
+                        name="close"
+                        size={16}
+                        color={
+                          finding?.status === "NOT_FOUND"
+                            ? "#ef4444"
+                            : "#64748b"
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.quickBtnText,
+                          finding?.status === "NOT_FOUND" && {
+                            color: "#ef4444",
+                          },
+                        ]}
+                      >
+                        Missing
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.quickBtn,
+                        finding?.status === "DAMAGED" &&
+                          styles.quickBtnActiveYellow,
+                      ]}
+                      onPress={() =>
+                        handleRecordFinding(item, "DAMAGED", "POOR")
+                      }
+                    >
+                      <Ionicons
+                        name="warning-outline"
+                        size={16}
+                        color={
+                          finding?.status === "DAMAGED" ? "#f59e0b" : "#64748b"
+                        }
+                      />
+                      <Text
+                        style={[
+                          styles.quickBtnText,
+                          finding?.status === "DAMAGED" && { color: "#f59e0b" },
+                        ]}
+                      >
+                        Damaged
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
+            );
+          })
+        ) : (
+          <View style={styles.emptyFindings}>
+            <Ionicons name="cube-outline" size={32} color="#475569" />
+            <Text style={styles.emptyText}>
+              No inventory items for this location
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {isOnline ? "Sync to download items" : "Connect to sync data"}
+            </Text>
+          </View>
+        )}
 
-              {finding?.notes && (
-                <Text style={styles.findingNotes}>{finding.notes}</Text>
+        {/* Actions */}
+        {report.status === "DRAFT" && (
+          <View style={styles.actionsSection}>
+            <TouchableOpacity
+              style={styles.scanBtn}
+              onPress={() => router.push("/scan")}
+            >
+              <Ionicons name="qr-code-outline" size={20} color="#fff" />
+              <Text style={styles.scanBtnText}>Scan Asset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.submitBtn,
+                (submitting || !isOnline) && { opacity: 0.6 },
+              ]}
+              onPress={handleSubmit}
+              disabled={submitting || !isOnline}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="send-outline" size={20} color="#fff" />
+                  <Text style={styles.submitBtnText}>
+                    {isOnline ? "Submit for Review" : "Go Online to Submit"}
+                  </Text>
+                </>
               )}
-
-              {/* Quick action buttons (only for DRAFT reports) */}
-              {report.status === "DRAFT" && (
-                <View style={styles.quickActions}>
-                  <TouchableOpacity
-                    style={[
-                      styles.quickBtn,
-                      finding?.status === "FOUND" && styles.quickBtnActive,
-                    ]}
-                    onPress={() => handleRecordFinding(item, "FOUND", "GOOD")}
-                  >
-                    <Ionicons
-                      name="checkmark"
-                      size={16}
-                      color={
-                        finding?.status === "FOUND" ? "#22c55e" : "#64748b"
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.quickBtnText,
-                        finding?.status === "FOUND" && { color: "#22c55e" },
-                      ]}
-                    >
-                      Found
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.quickBtn,
-                      finding?.status === "NOT_FOUND" &&
-                        styles.quickBtnActiveRed,
-                    ]}
-                    onPress={() => handleRecordFinding(item, "NOT_FOUND")}
-                  >
-                    <Ionicons
-                      name="close"
-                      size={16}
-                      color={
-                        finding?.status === "NOT_FOUND" ? "#ef4444" : "#64748b"
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.quickBtnText,
-                        finding?.status === "NOT_FOUND" && { color: "#ef4444" },
-                      ]}
-                    >
-                      Missing
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.quickBtn,
-                      finding?.status === "DAMAGED" &&
-                        styles.quickBtnActiveYellow,
-                    ]}
-                    onPress={() => handleRecordFinding(item, "DAMAGED", "POOR")}
-                  >
-                    <Ionicons
-                      name="warning-outline"
-                      size={16}
-                      color={
-                        finding?.status === "DAMAGED" ? "#f59e0b" : "#64748b"
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.quickBtnText,
-                        finding?.status === "DAMAGED" && { color: "#f59e0b" },
-                      ]}
-                    >
-                      Damaged
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          );
-        })
-      ) : (
-        <View style={styles.emptyFindings}>
-          <Ionicons name="cube-outline" size={32} color="#475569" />
-          <Text style={styles.emptyText}>
-            No inventory items for this location
-          </Text>
-          <Text style={styles.emptySubtext}>
-            {isOnline ? "Sync to download items" : "Connect to sync data"}
-          </Text>
-        </View>
-      )}
-
-      {/* Actions */}
-      {report.status === "DRAFT" && (
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={styles.scanBtn}
-            onPress={() => router.push("/scan")}
-          >
-            <Ionicons name="qr-code-outline" size={20} color="#fff" />
-            <Text style={styles.scanBtnText}>Scan Asset</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.submitBtn,
-              (submitting || !isOnline) && { opacity: 0.6 },
-            ]}
-            onPress={handleSubmit}
-            disabled={submitting || !isOnline}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="send-outline" size={20} color="#fff" />
-                <Text style={styles.submitBtnText}>
-                  {isOnline ? "Submit for Review" : "Go Online to Submit"}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
-    </ScrollView>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

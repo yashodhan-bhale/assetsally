@@ -2,10 +2,12 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, LogOut, ChevronRight, User } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import Image from "next/image";
+
+const NextImage: any = Image;
 
 import { useAuth } from "../../contexts/auth-context";
 import { navItems } from "../../lib/nav-config";
@@ -43,7 +45,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
           {isSidebarOpen ? (
             <div className="flex items-center gap-2 overflow-hidden">
-              <Image
+              <NextImage
                 src="/client-logo.png"
                 alt="Logo"
                 width={32}
@@ -135,7 +137,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
             <div className="flex md:hidden items-center gap-2 mr-2">
-              <Image
+              <NextImage
                 src="/client-logo.png"
                 alt="Logo"
                 width={32}
@@ -150,7 +152,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2 text-slate-500 text-sm">
               {!isSidebarOpen && (
                 <div className="hidden md:flex items-center gap-2 mr-2 border-r pr-4 border-slate-200">
-                  <Image
+                  <NextImage
                     src="/client-logo.png"
                     alt="Logo"
                     width={24}

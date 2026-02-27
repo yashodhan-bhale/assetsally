@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useConnectivity } from "../../contexts/connectivity-context";
 import { inventoryCollection, locationsCollection } from "../../db";
@@ -91,7 +92,7 @@ export default function InventoryScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Location header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
@@ -119,13 +120,14 @@ export default function InventoryScreen() {
           </Text>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0f172a" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  flex1: { flex: 1 },
   header: {
     backgroundColor: "#1e293b",
     padding: 16,

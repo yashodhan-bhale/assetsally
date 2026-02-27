@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { mobileApi } from "../lib/api";
 
@@ -43,7 +44,7 @@ export default function ScanScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Scanner area placeholder */}
       <View style={styles.scannerArea}>
         <View style={styles.scanFrame}>
@@ -130,7 +131,7 @@ export default function ScanScreen() {
       <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
         <Text style={styles.closeBtnText}>Close Scanner</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 8,
     textTransform: "uppercase",
+    letterSpacing: 1,
   },
   inputRow: { flexDirection: "row", gap: 8 },
   input: {

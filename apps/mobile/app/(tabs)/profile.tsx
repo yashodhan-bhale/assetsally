@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../contexts/auth-context";
 import { useConnectivity } from "../../contexts/connectivity-context";
@@ -24,7 +25,7 @@ export default function ProfileTab() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       {/* User Card */}
       <View style={styles.userCard}>
         <View style={styles.avatar}>
@@ -96,7 +97,7 @@ export default function ProfileTab() {
       </TouchableOpacity>
 
       <Text style={styles.version}>AssetsAlly v0.1.0 — Offline-First</Text>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -35,7 +35,7 @@ export default function DashboardTab() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         {/* Welcome */}
         <View style={styles.welcomeCard}>
