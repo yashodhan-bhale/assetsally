@@ -1,5 +1,4 @@
 import { cleanup } from "@testing-library/react-native";
-import { afterEach, vi } from "vitest";
 
 // Automatically cleanup after each test
 afterEach(() => {
@@ -7,20 +6,20 @@ afterEach(() => {
 });
 
 // Mock common React Native modules
-vi.mock("react-native/Libraries/Animated/NativeAnimatedHelper");
-vi.mock("expo-router", () => ({
+jest.mock("react-native/Libraries/Animated/NativeAnimatedHelper");
+jest.mock("expo-router", () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
   }),
   useLocalSearchParams: () => ({}),
   Stack: ({ children }: any) => children,
   Tabs: ({ children }: any) => children,
 }));
 
-vi.mock("expo-secure-store", () => ({
-  setItemAsync: vi.fn(),
-  getItemAsync: vi.fn(),
-  deleteItemAsync: vi.fn(),
+jest.mock("expo-secure-store", () => ({
+  setItemAsync: jest.fn(),
+  getItemAsync: jest.fn(),
+  deleteItemAsync: jest.fn(),
 }));

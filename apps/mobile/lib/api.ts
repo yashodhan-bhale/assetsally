@@ -1,4 +1,4 @@
-import Constants from "expo-constants";
+import ExpoConstants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
@@ -8,7 +8,8 @@ const getApiBase = () => {
 
   // Try to get the debugger host (works for physical devices and simulators)
   // hostUri typically looks like "192.168.x.x:8081"
-  const debuggerHost = Constants.expoConfig?.hostUri || Constants.experienceUrl;
+  const debuggerHost =
+    ExpoConstants.expoConfig?.hostUri || ExpoConstants.experienceUrl;
 
   if (debuggerHost) {
     const host = debuggerHost.split(":")[0];
