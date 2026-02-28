@@ -41,6 +41,9 @@ describe("QrTagsService", () => {
     inventoryItem: {
       findUnique: vi.fn(),
     },
+    systemSettings: {
+      upsert: vi.fn(),
+    },
     $transaction: vi.fn((cb) => cb(mockPrismaService)),
   };
 
@@ -111,6 +114,9 @@ describe("QrTagsService", () => {
       mockPrismaService.qRBatch.create.mockResolvedValue({
         id: "batch-1",
         batchNumber: 1,
+      });
+      mockPrismaService.systemSettings.upsert.mockResolvedValue({
+        lastQrCodeNumber: 5,
       });
 
       const result = await service.initiateBatchGeneration(

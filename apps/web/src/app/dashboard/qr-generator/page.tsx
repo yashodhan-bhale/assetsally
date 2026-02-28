@@ -111,6 +111,18 @@ export default function QrGeneratorPage() {
     },
   });
 
+  const unassignMutation = useMutation({
+    mutationFn: (code: string) => api.unassignQrTag(code),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["qr-tags"] });
+      setSuccessMessage("Binding removed successfully.");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    },
+    onError: (error: any) => {
+      alert(error.message || "Failed to remove binding.");
+    },
+  });
+
   return (
     <RoleGuard allowedRoles={[UserRole.ADMIN]}>
       <div className="space-y-6">
@@ -543,9 +555,26 @@ export default function QrGeneratorPage() {
                           <p className="text-sm text-slate-800 font-bold truncate group-hover:text-blue-600 transition-colors">
                             {tag.binding.item.assetName}
                           </p>
-                          <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                            #{tag.binding.item.assetNumber}
-                          </p>
+                          <div className="flex items-center justify-between mt-0.5">
+                            <p className="text-[11px] text-slate-400 font-mono">
+                              #{tag.binding.item.assetNumber}
+                            </p>
+                            <button
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to remove this binding? This will make the QR code available for another item.",
+                                  )
+                                ) {
+                                  unassignMutation.mutate(tag.code);
+                                }
+                              }}
+                              disabled={unassignMutation.isPending}
+                              className="text-[10px] text-red-500 hover:text-red-600 font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                            >
+                              Unbind
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">

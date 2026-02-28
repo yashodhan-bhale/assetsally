@@ -363,6 +363,12 @@ model HierarchyConfig {
   updatedAt DateTime @updatedAt
 }
 
+model SystemSettings {
+  id        String   @id @default("GLOBAL")
+  lastQrCodeNumber Int @default(0)
+  updatedAt DateTime @updatedAt
+}
+
 enum AppType {
   ADMIN
   CLIENT

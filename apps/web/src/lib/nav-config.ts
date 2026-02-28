@@ -15,6 +15,7 @@ export interface NavItem {
   href: string;
   icon: any;
   roles?: ("ADMIN" | "CLIENT")[];
+  children?: NavItem[];
 }
 
 export const navItems: NavItem[] = [
@@ -43,22 +44,27 @@ export const navItems: NavItem[] = [
     roles: ["ADMIN", "CLIENT"], // Client sees read-only or restricted view
   },
   {
-    title: "Staff",
-    href: "/dashboard/users/staff",
+    title: "User Management",
+    href: "/dashboard/users",
     icon: Users,
     roles: ["ADMIN"],
-  },
-  {
-    title: "Auditors",
-    href: "/dashboard/users/auditors",
-    icon: Users,
-    roles: ["ADMIN"],
-  },
-  {
-    title: "Clients",
-    href: "/dashboard/users/clients",
-    icon: Users,
-    roles: ["ADMIN"],
+    children: [
+      {
+        title: "Staff",
+        href: "/dashboard/users/staff",
+        icon: Users,
+      },
+      {
+        title: "Auditors",
+        href: "/dashboard/users/auditors",
+        icon: Users,
+      },
+      {
+        title: "Clients",
+        href: "/dashboard/users/clients",
+        icon: Users,
+      },
+    ],
   },
   {
     title: "Reports",

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
@@ -37,7 +38,19 @@ describe("InventoryPage Formatting", () => {
     ];
     (api.getInventory as any).mockResolvedValue({ items: mockData });
 
-    render(<InventoryPage />);
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <InventoryPage />
+      </QueryClientProvider>,
+    );
 
     const dateCell = await screen.findByTestId("inventory-date");
     expect(dateCell).toBeDefined();
@@ -59,7 +72,19 @@ describe("InventoryPage Formatting", () => {
     ];
     (api.getInventory as any).mockResolvedValue({ items: mockData });
 
-    render(<InventoryPage />);
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <InventoryPage />
+      </QueryClientProvider>,
+    );
 
     // In India, 12,50,000. Use findAllByTestId because multiple columns use formatCurrency.
     const costCells = await screen.findAllByTestId("inventory-currency");
@@ -86,7 +111,19 @@ describe("InventoryPage Formatting", () => {
     ];
     (api.getInventory as any).mockResolvedValue({ items: mockData });
 
-    render(<InventoryPage />);
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <InventoryPage />
+      </QueryClientProvider>,
+    );
 
     const placeholders = await screen.findAllByText("-");
     expect(placeholders.length).toBeGreaterThan(0);

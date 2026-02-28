@@ -5,12 +5,13 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { api } from "../../../../lib/api";
-import { ScheduleForm } from "../components/ScheduleForm";
+import { AuditScheduleModal } from "../components/AuditScheduleModal";
 
 export default function LocationsPage() {
   const [filterScheduled, setFilterScheduled] = useState("ALL");
   const [filterAssigned, setFilterAssigned] = useState("ALL");
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isScheduling, setIsScheduling] = useState(false);
 
   const { data: locations, isLoading } = useQuery({
     queryKey: ["audit-schedule-locations"],
@@ -171,18 +172,19 @@ export default function LocationsPage() {
                   </td>
                 </tr>
               )}
-              {isLoading &&
-                (!filteredLocations || filteredLocations.length === 0) && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-20"></td>
-                  </tr>
-                )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {selectedLocation && (
+      <AuditScheduleModal
+        isOpen={isScheduling}
+        onClose={() => setIsScheduling(false)}
+        initialLocationId={selectedLocation?.id}
+        readOnly={false}
+      />
+
+      {selectedLocation && !isScheduling && (
         <div className="w-80 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-lg animate-in fade-in slide-in-from-right-8">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -201,11 +203,44 @@ export default function LocationsPage() {
             </button>
           </div>
 
-          <ScheduleForm
-            initialLocationId={selectedLocation.id}
-            onSuccess={() => setSelectedLocation(null)}
-            onCancel={() => setSelectedLocation(null)}
-          />
+          <div className="mt-4">
+            <button
+              onClick={() => setIsScheduling(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              {selectedLocation.schedules?.length > 0
+                ? "Edit Schedule"
+                : "Create Schedule"}
+            </button>
+          </div>
+
+          {selectedLocation.schedules?.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                Active Schedule
+              </h4>
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p className="text-sm font-medium text-slate-900">
+                  {new Date(
+                    selectedLocation.schedules[0].scheduledDate,
+                  ).toLocaleDateString()}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedLocation.schedules[0].assignedAuditors?.map(
+                    (a: any) => (
+                      <span
+                        key={a.id}
+                        className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-md font-bold"
+                      >
+                        {a.name}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

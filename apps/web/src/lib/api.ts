@@ -209,6 +209,11 @@ class ApiClient {
       body: { itemId },
     });
   }
+  unassignQrTag(code: string) {
+    return this.request(`/qr-tags/${code}/unassign`, {
+      method: "POST",
+    });
+  }
 
   // Audit Schedule
   getAuditScheduleSummary() {

@@ -176,6 +176,13 @@ export class QrTagsController {
     return this.qrTagsService.assignToItem(code, body.itemId, req.user.id);
   }
 
+  @Post(":code/unassign")
+  @Roles("ADMIN", "SUPER_ADMIN")
+  @ApiOperation({ summary: "Remove QR tag binding from an inventory item" })
+  async unassign(@Param("code") code: string) {
+    return this.qrTagsService.unassignFromItem(code);
+  }
+
   @Post(":code/retire")
   @Roles("ADMIN", "SUPER_ADMIN")
   @ApiOperation({ summary: "Retire a QR tag" })

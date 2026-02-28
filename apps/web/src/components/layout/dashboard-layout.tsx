@@ -56,16 +56,27 @@ function ApiHealthBanner() {
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
   // Filter nav items based on user role
   const filteredNavItems = navItems.filter((item) => {
     if (!user?.appType) return false;
-    // Map appType to Role for simplicity or check both
     const userRole = user.appType === "ADMIN" ? "ADMIN" : "CLIENT";
     return item.roles?.includes(userRole);
   });
+
+  const toggleMenu = (title: string) => {
+    if (!isSidebarOpen) {
+      setIsSidebarOpen(true);
+      setExpandedMenus([title]);
+      return;
+    }
+    setExpandedMenus((prev) =>
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -109,39 +120,105 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
           {filteredNavItems.map((item) => {
-            const isActive = pathname === item.href;
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedMenus.includes(item.title);
+            const isActive =
+              pathname === item.href ||
+              (hasChildren &&
+                item.children?.some((child) => pathname === child.href));
+
             return (
-              <NavLink
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center rounded-lg transition-all duration-200 group relative py-2.5",
-                  isSidebarOpen ? "gap-3 px-3" : "justify-center px-0",
-                  isActive
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800",
+              <div key={item.title} className="space-y-1">
+                {hasChildren ? (
+                  <button
+                    onClick={() => toggleMenu(item.title)}
+                    className={cn(
+                      "flex items-center w-full rounded-lg transition-all duration-200 group relative py-2.5",
+                      isSidebarOpen ? "gap-3 px-3" : "justify-center px-0",
+                      isActive
+                        ? "bg-slate-800 text-white"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800",
+                    )}
+                  >
+                    <item.icon
+                      size={20}
+                      className={cn(
+                        "flex-shrink-0 transition-colors",
+                        isActive
+                          ? "text-blue-400"
+                          : "text-slate-500 group-hover:text-blue-400",
+                      )}
+                    />
+                    {isSidebarOpen && (
+                      <div className="flex items-center justify-between flex-1">
+                        <span className="font-medium whitespace-nowrap">
+                          {item.title}
+                        </span>
+                        <ChevronRightIcon
+                          size={14}
+                          className={cn(
+                            "transition-transform duration-200",
+                            isExpanded ? "rotate-90" : "",
+                          )}
+                        />
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  <NavLink
+                    href={item.href}
+                    className={cn(
+                      "flex items-center rounded-lg transition-all duration-200 group relative py-2.5",
+                      isSidebarOpen ? "gap-3 px-3" : "justify-center px-0",
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800",
+                    )}
+                  >
+                    <item.icon
+                      size={20}
+                      className={cn(
+                        "flex-shrink-0 transition-colors",
+                        isActive
+                          ? "text-white"
+                          : "text-slate-500 group-hover:text-blue-400",
+                      )}
+                    />
+                    {isSidebarOpen && (
+                      <span className="font-medium whitespace-nowrap opacity-100 transition-opacity duration-300">
+                        {item.title}
+                      </span>
+                    )}
+                    {!isSidebarOpen && (
+                      <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
+                        {item.title}
+                      </div>
+                    )}
+                  </NavLink>
                 )}
-              >
-                <item.icon
-                  size={20}
-                  className={cn(
-                    "flex-shrink-0 transition-colors",
-                    isActive
-                      ? "text-white"
-                      : "text-slate-500 group-hover:text-blue-400",
-                  )}
-                />
-                {isSidebarOpen && (
-                  <span className="font-medium whitespace-nowrap opacity-100 transition-opacity duration-300">
-                    {item.title}
-                  </span>
-                )}
-                {!isSidebarOpen && (
-                  <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
-                    {item.title}
+
+                {hasChildren && isExpanded && isSidebarOpen && (
+                  <div className="pl-10 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                    {item.children?.map((child) => {
+                      const isChildActive = pathname === child.href;
+                      return (
+                        <NavLink
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "flex items-center py-2 px-3 rounded-lg text-sm font-medium transition-colors",
+                            isChildActive
+                              ? "text-blue-400 bg-blue-500/5 font-semibold"
+                              : "text-slate-500 hover:text-slate-300 hover:bg-slate-800/50",
+                          )}
+                        >
+                          {child.title}
+                        </NavLink>
+                      );
+                    })}
                   </div>
                 )}
-              </NavLink>
+              </div>
             );
           })}
         </nav>

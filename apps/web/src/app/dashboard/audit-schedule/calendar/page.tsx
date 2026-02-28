@@ -8,10 +8,12 @@ import {
   MapPin,
   Users,
   Calendar as CalendarIcon,
+  Edit2,
 } from "lucide-react";
 import { useState } from "react";
 
 import { api } from "../../../../lib/api";
+import { AuditScheduleModal } from "../components/AuditScheduleModal";
 
 import { AuditCalendar } from "./components/AuditCalendar";
 
@@ -19,6 +21,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedAuditId, setExpandedAuditId] = useState<string | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState<any>(null);
 
   const { data: schedules } = useQuery({
     queryKey: ["audit-schedule-calendar"],
@@ -58,6 +61,16 @@ export default function CalendarPage() {
           }}
         />
       </div>
+
+      <AuditScheduleModal
+        isOpen={!!editingSchedule}
+        onClose={() => setEditingSchedule(null)}
+        initialDate={
+          editingSchedule ? new Date(editingSchedule.scheduledDate) : null
+        }
+        initialLocationId={editingSchedule?.locationId}
+        readOnly={false} // Requirement says "editing... should be possible", implying write access
+      />
 
       {selectedDate && (
         <div className="w-96 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-xl animate-in fade-in slide-in-from-right-8 flex flex-col">
@@ -118,11 +131,23 @@ export default function CalendarPage() {
                         {audit.location?.locationName}
                       </h4>
                     </div>
-                    {expandedAuditId === audit.id ? (
-                      <ChevronUp className="w-5 h-5 text-slate-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-slate-400" />
-                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingSchedule(audit);
+                        }}
+                        className="p-1.5 hover:bg-white rounded-md text-slate-400 hover:text-blue-600 transition-colors shadow-sm border border-transparent hover:border-blue-100"
+                        title="Edit Schedule"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      {expandedAuditId === audit.id ? (
+                        <ChevronUp className="w-5 h-5 text-slate-400" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                      )}
+                    </div>
                   </button>
 
                   {expandedAuditId === audit.id && (

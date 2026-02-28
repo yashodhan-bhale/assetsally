@@ -1,15 +1,17 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState, useMemo } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
+import { AuditScheduleModal } from "../audit-schedule/components/AuditScheduleModal";
 
 const LoaderIcon: any = Loader2;
 const NavLink: any = Link;
+const CalendarIcon: any = Calendar;
 
 interface Location {
   id: string;
@@ -38,6 +40,8 @@ export default function LocationsPage() {
     "Level 3",
     "Level 4",
   ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalLocationId, setModalLocationId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -123,6 +127,22 @@ export default function LocationsPage() {
         accessorKey: "level1",
         header: headers[0],
       },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <button
+            onClick={() => {
+              setModalLocationId(row.original.id);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+          >
+            <CalendarIcon size={14} />
+            Schedule
+          </button>
+        ),
+      },
     ],
     [headers],
   );
@@ -146,6 +166,16 @@ export default function LocationsPage() {
         columns={columns}
         data={data}
         placeholder="Search locations..."
+      />
+
+      <AuditScheduleModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalLocationId(null);
+        }}
+        initialLocationId={modalLocationId}
+        readOnly={false}
       />
     </div>
   );

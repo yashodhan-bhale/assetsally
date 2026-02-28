@@ -1,26 +1,44 @@
-# PR Summary: fix(mobile): resolve android build failures by disabling new architecture and jsi for watermelondb
+# PR: feat(web, mobile): separate user management and handle api health status
 
 ## Overview
 
-This pull request addresses critical Android build failures encountered when integrating WatermelonDB with Expo SDK 54 (React Native 0.81). The failures were related to Kotlin version mismatches, incompatibilities with the React Native New Architecture, and path resolution issues in the `watermelondb-jsi` module.
+This pull request implements two major improvements:
+
+1. **User Management Separation**: The single "User Management" page has been split into three specialized pages (Staff, Auditors, Clients) with appropriate default roles and platform filters.
+2. **API Health Monitoring**: Implemented real-time API reachability checks in both Web and Mobile applications. Users are now gracefully notified via a banner (Web) or status bar update (Mobile) when the API server is unreachable.
 
 ## Technical Changes
 
-- **Mobile Configuration (`apps/mobile/app.json`)**:
-  - Renamed the app to `RatanRathi` to avoid Gradle naming conflicts.
-  - Added `expo-build-properties` to explicitly disable `newArchEnabled` for both Android and iOS, as WatermelonDB JSI is currently incompatible with React Native 0.76+ C++ paths.
-  - Configured `@morrowdigital/watermelondb-expo-plugin` with `disableJsi: true` to fall back to the stable legacy bridge.
-- **Android Native Project**:
-  - Re-generated the `android` directory using `npx expo prebuild --clean` to ensure a consistent state.
-- **Linting**:
-  - Applied `eslint --fix` across the mobile app to resolve Prettier and other minor linting issues.
+### Web Application
+
+- **Components**:
+  - Created `UserManagementTable` (`src/components/users/user-management-table.tsx`): A reusable, type-safe table for managing different user pools.
+  - Updated `DashboardLayout`: Added `ApiHealthBanner` to the header to show real-time server status.
+- **Routing**:
+  - New pages for `/staff`, `/auditors`, and `/clients` under `dashboard/users`.
+  - Implemented a redirect in the old `/users` page for backward compatibility.
+- **API Client**:
+  - Enhanced `ApiClient` in `src/lib/api.ts` to detect and throw specific network errors when the fetch fails due to connectivity.
+
+### Mobile Application
+
+- **Context**:
+  - Enhanced `ConnectivityProvider` in `contexts/connectivity-context.tsx` to include an `isApiReachable` state, updated via periodic health checks.
+- **UI**:
+  - Updated `SyncStatusBar` component to reflect "Server Down" state when the API is unreachable.
+- **Library**:
+  - Exported `API_BASE` from `lib/api.ts` to allow shared usage of the base URL for health checks.
 
 ## Verification
 
-- **Local Verification**: Ran `pnpm turbo lint build test --concurrency 1`. All 13 tasks completed successfully (9 cached, 4 fresh).
-- **Cloud Build**: Successfully triggered and verified an EAS Build (Development Client) with these changes.
-- **Live Testing**: The development client was successfully installed and connected to the local Metro server.
+- **Test Suite**: Fresh run of `turbo lint build test` passed across all packages.
+  - **API Tests**: 24 tests passed (Health, Users, QR Tags).
+  - **Web Tests**: 9 tests passed (Inventory, Reports, Login).
+- **Linting**: All ESLint and Prettier warnings/errors were resolved, including missing dependency warnings in new components.
+- **Manual Verification**: Verified navigation flow and API error reporting logic.
 
-## PR Link
+## Verification Proof
 
-[Create Pull Request](https://github.com/yashodhan-bhale/assetsally/compare/main)
+- Web Tests pass (Vitest)
+- API Tests pass (Vitest)
+- Linting (ESLint/Prettier) passed for `@assetsally/web` and `@assetsally/mobile`.

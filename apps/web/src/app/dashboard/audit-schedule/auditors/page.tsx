@@ -5,7 +5,7 @@ import { Plus, CalendarDays } from "lucide-react";
 import { useState } from "react";
 
 import { api } from "../../../../lib/api";
-import { ScheduleForm } from "../components/ScheduleForm";
+import { AuditScheduleModal } from "../components/AuditScheduleModal";
 
 export default function AuditorsPage() {
   const [filterDate, setFilterDate] = useState("");
@@ -55,12 +55,13 @@ export default function AuditorsPage() {
     });
 
     return (
-      <div className="absolute z-[100] hidden group-hover/heatmap:grid grid-cols-5 gap-1.5 w-[320px] p-4 bg-white border border-slate-200 rounded-xl shadow-2xl right-full mr-4 top-1/2 -translate-y-1/2 animate-in fade-in zoom-in-95 backdrop-blur-sm bg-white/95">
-        <div className="col-span-5 text-xs font-bold text-slate-700 mb-2 border-b border-slate-100 pb-2 flex justify-between items-center">
-          <span>Workload: Next 30 Days</span>
-          <span className="text-[10px] font-normal text-slate-400">
-            ● Available ○ Scheduled
-          </span>
+      <div className="absolute z-[200] hidden group-hover/heatmap:grid grid-cols-10 gap-1 w-[180px] p-2.5 bg-white border border-slate-200 rounded-xl shadow-2xl right-full mr-4 top-1/2 -translate-y-1/2 animate-in fade-in zoom-in-95 backdrop-blur-sm bg-white/95">
+        <div className="col-span-10 text-[9px] font-bold text-slate-700 mb-1 border-b border-slate-100 pb-1 flex justify-between items-center">
+          <span>Heated Workload (30d)</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+          </div>
         </div>
         {days.map((day, i) => {
           const isScheduled = schedules.some((s: any) => {
@@ -72,23 +73,19 @@ export default function AuditorsPage() {
             );
           });
 
+          // Formatter to remove day of week, e.g. "02/28/2026"
+          const dateStr = day.toLocaleDateString("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+          });
+
           return (
             <div
               key={i}
-              className={`flex flex-col items-center justify-center p-1.5 rounded-md border transition-all ${isScheduled ? "bg-blue-600 border-blue-700 text-white shadow-sm ring-1 ring-blue-500/20" : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-white hover:border-blue-300"}`}
-            >
-              <span className="text-[10px] uppercase font-bold tracking-tighter opacity-70">
-                {day
-                  .toLocaleDateString("en-US", { weekday: "short" })
-                  .slice(0, 2)}
-              </span>
-              <span className="text-sm font-bold leading-tight">
-                {day.getUTCDate()}
-              </span>
-              <span className="text-[9px] opacity-60">
-                {day.toLocaleDateString("en-US", { month: "short" })}
-              </span>
-            </div>
+              title={`${dateStr} - ${isScheduled ? "Scheduled" : "Available"}`}
+              className={`w-3 h-3 rounded-[2px] border transition-all ${isScheduled ? "bg-blue-600 border-blue-700 shadow-sm" : "bg-slate-50 border-slate-100 hover:border-blue-300"}`}
+            />
           );
         })}
       </div>
@@ -153,7 +150,7 @@ export default function AuditorsPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr className="text-sm font-medium text-slate-500">
@@ -210,25 +207,24 @@ export default function AuditorsPage() {
               ))}
               {filteredAuditors?.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={4} className="text-center py-8 text-slate-500">
+                  <td colSpan={5} className="text-center py-8 text-slate-500">
                     No auditors match your filters.
                   </td>
                 </tr>
               )}
-              {isLoading &&
-                (!filteredAuditors || filteredAuditors.length === 0) && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-20">
-                      {/* Placeholder while loading */}
-                    </td>
-                  </tr>
-                )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {selectedAuditor && (
+      <AuditScheduleModal
+        isOpen={isScheduling}
+        onClose={() => setIsScheduling(false)}
+        initialLocationId={null}
+        readOnly={false}
+      />
+
+      {selectedAuditor && !isScheduling && (
         <div className="w-80 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-lg animate-in fade-in slide-in-from-right-8">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -238,10 +234,7 @@ export default function AuditorsPage() {
               <p className="text-sm text-slate-500">{selectedAuditor.email}</p>
             </div>
             <button
-              onClick={() => {
-                setSelectedAuditor(null);
-                setIsScheduling(false);
-              }}
+              onClick={() => setSelectedAuditor(null)}
               className="text-slate-400 hover:text-slate-600"
             >
               ✕
@@ -249,53 +242,44 @@ export default function AuditorsPage() {
           </div>
 
           <div className="space-y-6">
-            {isScheduling ? (
-              <div className="animate-in fade-in slide-in-from-right-4">
-                <ScheduleForm
-                  onSuccess={() => setIsScheduling(false)}
-                  onCancel={() => setIsScheduling(false)}
-                />
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-medium text-slate-700">
+                  Assigned Locations
+                </h4>
+                <button
+                  onClick={() => setIsScheduling(true)}
+                  className="text-xs flex items-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Schedule
+                </button>
               </div>
-            ) : (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-medium text-slate-700">
-                    Assigned Locations
-                  </h4>
-                  <button
-                    onClick={() => setIsScheduling(true)}
-                    className="text-xs flex items-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-                  >
-                    <Plus className="w-3 h-3" /> Schedule
-                  </button>
-                </div>
-                {selectedAuditor.schedules &&
-                selectedAuditor.schedules.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedAuditor.schedules.map((s: any) => (
-                      <div
-                        key={s.id}
-                        className="p-3 rounded-lg bg-slate-50 border border-slate-200"
-                      >
-                        <div className="text-xs text-slate-500 font-mono mb-1">
-                          {new Date(s.scheduledDate).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm font-medium text-slate-900">
-                          {s.location.locationName}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {s.location.locationCode}
-                        </div>
+              {selectedAuditor.schedules &&
+              selectedAuditor.schedules.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedAuditor.schedules.map((s: any) => (
+                    <div
+                      key={s.id}
+                      className="p-3 rounded-lg bg-slate-50 border border-slate-200"
+                    >
+                      <div className="text-xs text-slate-500 font-mono mb-1">
+                        {new Date(s.scheduledDate).toLocaleDateString()}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
-                    No assignments found.
-                  </p>
-                )}
-              </div>
-            )}
+                      <div className="text-sm font-medium text-slate-900">
+                        {s.location.locationName}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {s.location.locationCode}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                  No assignments found.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}

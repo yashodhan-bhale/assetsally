@@ -1,7 +1,8 @@
 "use client";
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Loader2, MapPin, X } from "lucide-react";
+import { Unlink, AlertCircle, Loader2, MapPin, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from "react";
 
@@ -11,6 +12,8 @@ import { api } from "../../../lib/api";
 const LoaderIcon: any = Loader2;
 const MapPinIcon: any = MapPin;
 const XIcon: any = X;
+const UnlinkIcon: any = Unlink;
+const AlertCircleIcon: any = AlertCircle;
 
 // Type definition based on API response
 interface InventoryItem {
@@ -31,10 +34,15 @@ interface InventoryItem {
   capitalizationDate?: string;
   inventoryStatus?: string;
   // Audit fields (blank for now)
-  auditStatus?: string;
-  auditCondition?: string;
   auditRemarks?: string;
   auditDate?: string;
+  QRBindingRecord?: Array<{
+    qrTag: {
+      id: string;
+      code: string;
+      status: string;
+    };
+  }>;
 }
 
 const formatDate = (date: string | null | undefined) => {
@@ -178,7 +186,69 @@ const columns: ColumnDef<InventoryItem>[] = [
     header: "Audit Date",
     cell: () => <span className="text-slate-300">-</span>,
   },
+  {
+    id: "qrCode",
+    header: "QR Code",
+    cell: ({ row }) => {
+      const binding = row.original.QRBindingRecord?.[0];
+      if (!binding)
+        return <span className="text-slate-300 italic text-xs">Unbound</span>;
+
+      return <QrCell tagCode={binding.qrTag.code} />;
+    },
+  },
 ];
+
+function QrCell({ tagCode }: { tagCode: string }) {
+  const queryClient = useQueryClient();
+  const [isHovered, setIsHovered] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: () => api.unassignQrTag(tagCode),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      alert("QR code unbound successfully.");
+    },
+    onError: (err: any) => {
+      alert(err.message || "Failed to unbind QR code.");
+    },
+  });
+
+  const handleUnbind = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (
+      confirm(
+        `Are you sure you want to unbind QR code ${tagCode} from this item?\n\nThis will make the QR code available for another item.`,
+      )
+    ) {
+      mutation.mutate();
+    }
+  };
+
+  return (
+    <div
+      className="flex items-center gap-2 group/qr"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700">
+        {tagCode}
+      </span>
+      <button
+        onClick={handleUnbind}
+        disabled={mutation.isPending}
+        className="opacity-0 group-hover/qr:opacity-100 p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-all disabled:opacity-50"
+        title="Unbind QR Code"
+      >
+        {mutation.isPending ? (
+          <LoaderIcon className="w-3 h-3 animate-spin" />
+        ) : (
+          <UnlinkIcon size={12} />
+        )}
+      </button>
+    </div>
+  );
+}
 
 function InventoryContent() {
   const [data, setData] = useState<InventoryItem[]>([]);
@@ -189,6 +259,7 @@ function InventoryContent() {
   const router = useRouter();
   const locationId = searchParams.get("locationId");
 
+  const queryClient = useQueryClient();
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -222,6 +293,28 @@ function InventoryContent() {
     }
     loadData();
   }, [locationId]);
+
+  // Use react-query to manage inventory data for better refresh handling
+  const { data: qData, isLoading: qLoading } = useQuery({
+    queryKey: ["inventory", locationId],
+    queryFn: () => {
+      const params: Record<string, string> = {};
+      if (locationId) params.locationId = locationId;
+      return api.getInventory(params);
+    },
+  });
+
+  useEffect(() => {
+    if (qData) {
+      if (qData.items) setData(qData.items);
+      else if (Array.isArray(qData)) setData(qData);
+    }
+  }, [qData]);
+
+  useEffect(() => {
+    if (qLoading && !data.length) setLoading(true);
+    else setLoading(false);
+  }, [qLoading, data.length]);
 
   const clearFilter = () => {
     router.push("/dashboard/inventory");

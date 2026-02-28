@@ -119,7 +119,7 @@ export class QrTagsService {
     });
 
     // 2. Create sub-batches & tags
-    let startNum = 1;
+    const startNum = 1;
     for (let i = 0; i < numBatches; i++) {
       const isLastBatch = i === numBatches - 1;
       const countForThisBatch =
@@ -136,10 +136,23 @@ export class QrTagsService {
         },
       });
 
+      // 3. Get next starting number from global settings in a transaction
+      const startNumForThisBatch = await this.prisma.$transaction(
+        async (tx) => {
+          const settings = await tx.systemSettings.upsert({
+            where: { id: "GLOBAL" },
+            update: { lastQrCodeNumber: { increment: countForThisBatch } },
+            create: { id: "GLOBAL", lastQrCodeNumber: countForThisBatch },
+          });
+          return settings.lastQrCodeNumber - countForThisBatch + 1;
+        },
+      );
+
       const tagsData = [];
       for (let j = 0; j < countForThisBatch; j++) {
-        const seqNumber = String(startNum + j).padStart(5, "0");
-        const codeIdentifier = `QR-${job.id.substring(0, 8)}-${seqNumber}`;
+        const currentSerial = startNumForThisBatch + j;
+        const serialStr = currentSerial.toString().padStart(6, "0");
+        const codeIdentifier = `QR-${serialStr}`;
         const urlToEncode = `${baseUrl}${baseUrl.endsWith("/") ? "" : "/"}${codeIdentifier}`;
 
         tagsData.push({
@@ -154,8 +167,6 @@ export class QrTagsService {
       if (tagsData.length > 0) {
         await this.prisma.qRCodeTag.createMany({ data: tagsData });
       }
-
-      startNum += countForThisBatch;
     }
 
     return { jobId: job.id, message: "Batch initiated and tags generated" };
@@ -331,6 +342,63 @@ export class QrTagsService {
     });
 
     return [headers, ...rows].join("\n");
+  }
+
+  async unassignFromItem(tagCode: string) {
+    const tag = await this.prisma.qRCodeTag.findFirst({
+      where: {
+        OR: [{ code: tagCode }, { hashString: tagCode }, { url: tagCode }],
+      },
+      include: {
+        binding: {
+          include: {
+            item: {
+              include: {
+                location: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!tag) throw new NotFoundException("QR tag not found");
+    if (!tag.binding) throw new BadRequestException("Tag is not assigned");
+
+    const locationId = tag.binding.item.locationId;
+
+    // Check for ANY submitted or approved report for this location
+    // The requirement says "Audit report is not submitted. Once submitted, no QR binding can be changed."
+    const submittedReport = await this.prisma.auditReport.findFirst({
+      where: {
+        locationId,
+        status: {
+          in: ["SUBMITTED", "APPROVED"],
+        },
+      },
+    });
+
+    if (submittedReport) {
+      throw new BadRequestException(
+        "Cannot unbind QR code because the audit report for this location has already been submitted.",
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Delete the binding record
+      await tx.qRBindingRecord.delete({
+        where: { id: tag.binding!.id },
+      });
+
+      // Reset the tag status to UNASSIGNED
+      return tx.qRCodeTag.update({
+        where: { id: tag.id },
+        data: {
+          status: QRTagStatus.UNASSIGNED,
+          updatedAt: new Date(),
+        },
+      });
+    });
   }
 
   async retire(tagCode: string) {
