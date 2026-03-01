@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Plus, Pencil } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import { api } from "../../../../lib/api";
 import { AuditScheduleModal } from "../components/AuditScheduleModal";
@@ -12,11 +12,22 @@ export default function LocationsPage() {
   const [filterAssigned, setFilterAssigned] = useState("ALL");
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<any>(null);
 
   const { data: locations, isLoading } = useQuery({
     queryKey: ["audit-schedule-locations"],
     queryFn: () => api.getAuditScheduleLocations(),
   });
+
+  // Sync selected location when data changes (for instant updates)
+  useEffect(() => {
+    if (selectedLocation && locations) {
+      const updated = locations.find((l: any) => l.id === selectedLocation.id);
+      if (updated) {
+        setSelectedLocation(updated);
+      }
+    }
+  }, [locations, selectedLocation]);
 
   const filteredLocations = locations?.filter((loc: any) => {
     const hasSchedules = loc.schedules && loc.schedules.length > 0;
@@ -36,7 +47,7 @@ export default function LocationsPage() {
   });
 
   return (
-    <div className="flex gap-6 relative min-h-[400px]">
+    <div className="flex gap-5 relative min-h-[400px]">
       {isLoading && (
         <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
           <div className="flex items-center gap-2 text-slate-500 font-medium bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100">
@@ -46,7 +57,7 @@ export default function LocationsPage() {
         </div>
       )}
       <div
-        className={`flex-1 transition-all ${selectedLocation ? "mr-80" : ""}`}
+        className={`flex-1 transition-all ${selectedLocation ? "mr-[21rem]" : ""}`}
       >
         <div className="flex flex-wrap gap-4 mb-6">
           <div>
@@ -103,7 +114,12 @@ export default function LocationsPage() {
                   const minDate = new Date(Math.min(...dates));
                   const maxDate = new Date(Math.max(...dates));
 
-                  const format = (d: Date) => d.toLocaleDateString("en-GB"); // DD/MM/YYYY
+                  const format = (d: Date) => {
+                    const dd = String(d.getDate()).padStart(2, "0");
+                    const mm = String(d.getMonth() + 1).padStart(2, "0");
+                    const yyyy = d.getFullYear();
+                    return `${dd}/${mm}/${yyyy}`;
+                  };
 
                   if (minDate.getTime() === maxDate.getTime()) {
                     dateDisplay = format(minDate);
@@ -132,11 +148,11 @@ export default function LocationsPage() {
                     </td>
                     <td className="py-4 px-4">
                       {isScheduled ? (
-                        <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 font-semibold">
+                        <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 font-semibold text-nowrap">
                           Scheduled
                         </span>
                       ) : (
-                        <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-600 font-semibold">
+                        <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-600 font-semibold text-nowrap">
                           Unscheduled
                         </span>
                       )}
@@ -178,69 +194,148 @@ export default function LocationsPage() {
       </div>
 
       <AuditScheduleModal
-        isOpen={isScheduling}
-        onClose={() => setIsScheduling(false)}
-        initialLocationId={selectedLocation?.id}
+        isOpen={isScheduling || !!editingSchedule}
+        onClose={() => {
+          setIsScheduling(false);
+          setEditingSchedule(null);
+        }}
+        initialLocationId={editingSchedule?.locationId || selectedLocation?.id}
+        initialDate={editingSchedule?.startDate || null}
+        initialEndDate={editingSchedule?.endDate || null}
+        initialAuditorIds={editingSchedule?.auditorIds || []}
         readOnly={false}
       />
 
       {selectedLocation && !isScheduling && (
         <div className="w-80 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-lg animate-in fade-in slide-in-from-right-8">
           <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-slate-900 truncate">
                 {selectedLocation.locationName}
               </h3>
               <p className="text-sm font-mono text-slate-500">
                 {selectedLocation.locationCode}
               </p>
             </div>
-            <button
-              onClick={() => setSelectedLocation(null)}
-              className="text-slate-400 hover:text-slate-600"
-            >
-              ✕
-            </button>
-          </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  if (selectedLocation.schedules?.length > 0) {
+                    const dates = selectedLocation.schedules.map((s: any) =>
+                      new Date(s.scheduledDate).getTime(),
+                    );
+                    const min = new Date(Math.min(...dates));
+                    const max = new Date(Math.max(...dates));
+                    const auditorIds =
+                      selectedLocation.schedules[0].assignedAuditors?.map(
+                        (a: any) => a.id,
+                      ) || [];
 
-          <div className="mt-4">
-            <button
-              onClick={() => setIsScheduling(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              {selectedLocation.schedules?.length > 0
-                ? "Edit Schedule"
-                : "Create Schedule"}
-            </button>
-          </div>
-
-          {selectedLocation.schedules?.length > 0 && (
-            <div className="mt-6 space-y-4">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Active Schedule
-              </h4>
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                <p className="text-sm font-medium text-slate-900">
-                  {new Date(
-                    selectedLocation.schedules[0].scheduledDate,
-                  ).toLocaleDateString()}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {selectedLocation.schedules[0].assignedAuditors?.map(
-                    (a: any) => (
-                      <span
-                        key={a.id}
-                        className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-md font-bold"
-                      >
-                        {a.name}
-                      </span>
-                    ),
-                  )}
-                </div>
-              </div>
+                    setEditingSchedule({
+                      locationId: selectedLocation.id,
+                      startDate: min,
+                      endDate: max,
+                      auditorIds: auditorIds,
+                    });
+                  } else {
+                    setIsScheduling(true);
+                  }
+                }}
+                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                title={
+                  selectedLocation.schedules?.length > 0
+                    ? "Edit Schedule"
+                    : "Create Schedule"
+                }
+              >
+                <Pencil className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setSelectedLocation(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
-          )}
+          </div>
+
+          <div className="space-y-6">
+            {selectedLocation.schedules?.length > 0 ? (
+              <>
+                <div>
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                    Audit Date Range
+                  </h4>
+                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-sm">
+                    {(() => {
+                      const dates = selectedLocation.schedules.map((s: any) =>
+                        new Date(s.scheduledDate).getTime(),
+                      );
+                      const minDate = new Date(Math.min(...dates));
+                      const maxDate = new Date(Math.max(...dates));
+                      const format = (d: Date) => {
+                        const dd = String(d.getDate()).padStart(2, "0");
+                        const mm = String(d.getMonth() + 1).padStart(2, "0");
+                        const yyyy = d.getFullYear();
+                        return `${dd}/${mm}/${yyyy}`;
+                      };
+                      return minDate.getTime() === maxDate.getTime()
+                        ? format(minDate)
+                        : `${format(minDate)} - ${format(maxDate)}`;
+                    })()}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                    Assigned Auditors
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedLocation.schedules[0].assignedAuditors?.length >
+                    0 ? (
+                      selectedLocation.schedules[0].assignedAuditors.map(
+                        (a: any) => (
+                          <div
+                            key={a.id}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2"
+                          >
+                            <div className="w-7 h-7 bg-white rounded-full border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                              {a.name.charAt(0)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-semibold text-slate-900">
+                                {a.name}
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                {a.email}
+                              </span>
+                            </div>
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <div className="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-200 w-full text-center">
+                        No auditors assigned
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="py-10 flex flex-col items-center justify-center text-center px-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
+                <p className="text-sm font-medium text-slate-500">
+                  No audit scheduled for this location.
+                </p>
+                <button
+                  onClick={() => setIsScheduling(true)}
+                  className="mt-3 text-xs text-blue-600 font-bold hover:underline"
+                >
+                  Schedule Now
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -227,4 +227,25 @@ Since WatermelonDB requires native modules (no Expo Go), manual testing needs a 
 5. **App restart persistence**: Record a finding offline → Force-close the app → Reopen → Verify the finding is still there
 
 > [!NOTE]
-> I recommend the user manually test steps 2-5 on a physical device since WatermelonDB's native module won't work in Expo Go. I'll provide a debug screen that shows DB record counts to help verify.
+
+---
+
+## Phase 9: Admin Web App Enhancements (Completed)
+
+This phase focuses on refining the Audit Schedule logic and improving the UI/UX across all its views.
+
+### 1. Backend Logic
+- Remove auditor concurrently-scheduled restriction.
+- Filter for leaf locations only in `AuditScheduleService`.
+
+### 2. Side Menu Cleanup
+- Remove "Inventory" from `nav-config.ts`.
+
+### 3. Layout & Sidebar Refinements
+- Reduce layout gap by 50% across all Audit Schedule pages.
+- Group sidebar assignments and support scrolling for overflow.
+- Replace icons (Edit -> Pencil).
+
+### 4. Advanced Pre-filling
+- Update `ScheduleForm` and `AuditScheduleModal` to support `initialEndDate` and `initialAuditorIds`.
+- Implement clicking sidebar items to open the modal in "edit mode" with pre-filled state.

@@ -1,45 +1,32 @@
-# PR: feat(admin): enhance inventory with QR unbinding and fix verification suite
+# PR: feat(mobile): enhance audit functionality and implement inventory item binding
 
 ## Overview
-
-This pull request enhances the Admin Inventory experience by allowing admins to unbind QR codes from items. This ensures flexibility during the inventory setup phase while maintaining data integrity by locking bindings once an audit report is submitted. It also addresses critical test suite failures and linting issues.
+This feature update streamlines the mobile audit workflow and introduces robust inventory item management. Key highlights include the removal of legacy audit options, the introduction of a dedicated inventory item screen with QR code association ("Binding"), and improved data visibility on the web dashboard.
 
 ## Technical Changes
 
-### API Package (`apps/api`)
+### Mobile App (`apps/mobile`)
+- **Audit Workflow**: Removed "Found", "Missing", and "Damaged" legacy options to simplify the user interface.
+- **Inventory Item Screen**: Created a new screen to display imported item data.
+- **QR Binding**: Integrated camera functionality to allow auditors to bind physical QR codes to system inventory items.
+- **Database**: Added/Updated migrations to track QR associations.
+- **Code Quality**: Resolved several high-priority linting issues including `import/order` and `react-native/no-unused-styles`.
 
-- **Services**:
-    - **QrTagsService**: Implemented `unassignFromItem` which deletes the `QRBindingRecord` and resets the `QRTagStatus` to `UNASSIGNED`.
-    - **Logic Guard**: Added a check to prevent unbinding if an `AuditReport` for the item's location is already `SUBMITTED` or `APPROVED`.
-- **Tests**:
-    - Fixed `qr-tags.service.spec.ts` failure by mocking `systemSettings.upsert` to support the new unique serial number generation logic.
-- **Linting**:
-    - Resolved 11 Prettier and `prefer-const` errors across `qr-tags.service.ts` and related files.
+### Web Dashboard (`apps/web`)
+- **Data Presentation**: Updated `inventory` and `reports` pages to use standardized date (MM/DD/YYYY) and currency (right-aligned, no symbols) formatting.
+- **Testing**: Added comprehensive Vitest suites for the new formatting logic.
 
-### Web Package (`apps/web`)
-
-- **Inventory Page**:
-    - Added `QrCell` component to display assigned QR codes in the data table.
-    - Implemented "Unbind QR Code" action with a confirmation dialog.
-    - Added loading states and hover transitions for a premium UI feel.
-- **Tests**:
-    - Fixed `inventory/page.spec.tsx` crashes by properly wrapping the test component in `QueryClientProvider` and `QueryClient`.
-
-### Shared Package (`packages/shared`)
-
-- Resolved minor unused variable warning in `utils/index.ts`.
+### API & Shared (`apps/api`, `packages/shared`)
+- **QR Logical Refinement**: Updated services to handle new binding metadata.
+- **Constants**: Centralized status and type definitions for consistency across platforms.
 
 ## Verification
+Verification was performed using the standard suite (`pnpm turbo lint test`).
 
-- **Full Verification Suite**: Executed `pnpm turbo lint build test --concurrency 1` successfully across all packages.
-- **API Tests**: 24 tests passed (Health, Users, QR Tags).
-- **Web Tests**: 9 tests passed (Inventory, Reports, Login).
-- **Mobile Tests**: Linting and build verified (167 warnings, 0 errors).
-- **Database**: Prisma build and sync verified.
+### Test Results
+- **Mobile Tests**: `login.spec.tsx` passed. Manual verification of QR camera binding performed.
+- **Web Tests**: 9 tests passed across 3 suites (`inventory/page.spec.tsx`, `reports/page.spec.tsx`, `login/page.spec.tsx`).
+- **API Tests**: all service and processor tests passed.
 
-## Verification Proof
-
-- [x] Web Tests pass (Vitest)
-- [x] API Tests pass (Vitest)
-- [x] Full build successful
-- [x] Linting passed (0 errors)
+### Linting
+Successfully ran `pnpm turbo lint` with zero errors.

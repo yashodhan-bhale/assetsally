@@ -9,7 +9,9 @@ interface AuditScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialDate?: Date | null;
+  initialEndDate?: Date | null;
   initialLocationId?: string | null;
+  initialAuditorIds?: string[];
   readOnly?: boolean;
 }
 
@@ -17,7 +19,9 @@ export function AuditScheduleModal({
   isOpen,
   onClose,
   initialDate,
+  initialEndDate,
   initialLocationId,
+  initialAuditorIds,
   readOnly = false,
 }: AuditScheduleModalProps) {
   if (!isOpen) return null;
@@ -52,7 +56,9 @@ export function AuditScheduleModal({
           <div className="p-6 overflow-y-auto custom-scrollbar">
             <ScheduleForm
               initialDate={initialDate}
+              initialEndDate={initialEndDate}
               initialLocationId={initialLocationId}
+              initialAuditorIds={initialAuditorIds}
               onSuccess={() => {
                 onClose();
               }}

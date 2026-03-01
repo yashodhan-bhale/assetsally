@@ -162,4 +162,18 @@ SELECT items WHERE:
   - **Lazy DB Init**: `db/index.ts` now uses an ES Proxy to defer WatermelonDB initialization until the first collection or database property is accessed.
 - **Rationale**:
   - **Stability**: The CLI patch ensures the development environment remains usable even when upstream Expo APIs/connectivity are unreliable.
-  - **Accessibility**: Lazy initialization allows the app to bundle and run in the standard **Expo Go** app for UI development. While database features will fail at runtime in Expo Go (missing native modules), developers can still build and test UI screens without needing a custom development build locally. Full offline functionality still requires a custom development client (`npx expo run:android`).
+---
+
+## Audit Schedule Enhancements
+
+### 14. Auditor Assignment Flexibility
+
+- **Decision**: Remove the restriction preventing an auditor from being assigned to multiple locations on the same day.
+- **Rationale**: Real-world audit scenarios often require an auditor to visit multiple nearby locations or perform quick audits across multiple sites in a single shift.
+- **Implementation**: Commented out the daily limit check in `AuditScheduleService`.
+
+### 15. Location Hierarchy Display (Audit)
+
+- **Decision**: Only show "leaf" locations (smallest units with no children) in Audit Schedule views and modals.
+- **Rationale**: Audits are performed at the final unit level. Showing parent levels (Regions, Cities, etc.) in a flat scheduling list is confusing and leads to incorrect assignments.
+- **Implementation**: Added `where: { children: { none: {} } }` filtering to the Audit Schedule API.

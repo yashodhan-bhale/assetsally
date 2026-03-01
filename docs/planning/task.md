@@ -50,4 +50,17 @@
 - [x] Implement password hashing and JWT protection for user routes
 - [x] Create `apps/web/src/app/dashboard/users/page.tsx` with CRUD UI
 - [x] Implement role-based filtering and user creation modal
-- [x] Generate unit tests for Users API (Vitest)
+
+## Phase 9: Audit Schedule Enhancements (Completed)
+
+- [x] Backend: Remove auditor same-day assignment restriction in `AuditScheduleService`
+- [x] Sidebar layout: Reduce content-to-sidebar gap across all audit views
+- [x] Calendar View: Compress location items and remove auditor names
+- [x] Calendar View: Limit display to 3 schedules + "x more" note
+- [x] Auditors View: Remove Workload Heatmap
+- [x] Auditors View Sidebar: Add scrollbar and group locations by date-range
+- [x] Auditors View Sidebar: Open pre-filled modal on clicking assignment
+- [x] Locations View: Filter for leaf-level locations only
+- [x] Locations View Sidebar: Change Edit icon to Pencil
+- [x] Locations View Sidebar: Enable full pre-filling of existing schedule data
+- [x] App Core: Remove "Inventory" from side navigation

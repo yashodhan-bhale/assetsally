@@ -52,8 +52,10 @@ export default function CalendarPage() {
       }) || [];
 
   return (
-    <div className="flex gap-6 relative min-h-[600px]">
-      <div className={`flex-1 transition-all ${selectedDate ? "mr-96" : ""}`}>
+    <div className="flex gap-5 relative min-h-[600px]">
+      <div
+        className={`flex-1 transition-all ${selectedDate ? "mr-[25rem]" : ""}`}
+      >
         <AuditCalendar
           onDayClick={(date) => {
             setSelectedDate(date);
@@ -74,7 +76,7 @@ export default function CalendarPage() {
 
       {selectedDate && (
         <div className="w-96 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-xl animate-in fade-in slide-in-from-right-8 flex flex-col">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-6 shrink-0">
             <div>
               <h3 className="text-xl font-bold text-slate-900 leading-tight">
                 {selectedDate.toLocaleDateString("en-US", { weekday: "long" })}
@@ -95,7 +97,7 @@ export default function CalendarPage() {
             </button>
           </div>
 
-          <div className="mb-4 relative">
+          <div className="mb-4 relative shrink-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
@@ -155,6 +157,46 @@ export default function CalendarPage() {
                       <div className="grid gap-4 mt-4">
                         <div className="flex items-start gap-3">
                           <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm">
+                            <CalendarIcon className="w-4 h-4 text-slate-500" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              Date Range
+                            </p>
+                            <p className="text-sm font-bold text-blue-600">
+                              {(() => {
+                                const related = schedules?.filter(
+                                  (s: any) => s.locationId === audit.locationId,
+                                );
+                                if (!related || related.length === 0)
+                                  return "N/A";
+                                const dates = related.map((s: any) =>
+                                  new Date(s.scheduledDate).getTime(),
+                                );
+                                const min = new Date(Math.min(...dates));
+                                const max = new Date(Math.max(...dates));
+                                const format = (d: Date) => {
+                                  const dd = String(d.getDate()).padStart(
+                                    2,
+                                    "0",
+                                  );
+                                  const mm = String(d.getMonth() + 1).padStart(
+                                    2,
+                                    "0",
+                                  );
+                                  const yyyy = d.getFullYear();
+                                  return `${dd}/${mm}/${yyyy}`;
+                                };
+                                return min.getTime() === max.getTime()
+                                  ? format(min)
+                                  : `${format(min)} - ${format(max)}`;
+                              })()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm">
                             <MapPin className="w-4 h-4 text-slate-500" />
                           </div>
                           <div>
@@ -201,7 +243,7 @@ export default function CalendarPage() {
                         {audit.notes && (
                           <div className="flex items-start gap-3">
                             <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm">
-                              <CalendarIcon className="w-4 h-4 text-slate-500" />
+                              <Edit2 className="w-4 h-4 text-slate-500" />
                             </div>
                             <div>
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">

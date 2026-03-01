@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Plus, CalendarDays } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { api } from "../../../../lib/api";
 import { AuditScheduleModal } from "../components/AuditScheduleModal";
@@ -13,11 +13,22 @@ export default function AuditorsPage() {
   const [sortBy, setSortBy] = useState("NAME"); // NAME, ASSIGNMENTS
   const [selectedAuditor, setSelectedAuditor] = useState<any>(null);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<any>(null);
 
   const { data: auditors, isLoading } = useQuery({
     queryKey: ["audit-schedule-auditors"],
     queryFn: () => api.getAuditScheduleAuditors(),
   });
+
+  // Sync selected auditor when data changes (for instant updates)
+  useEffect(() => {
+    if (selectedAuditor && auditors) {
+      const updated = auditors.find((a: any) => a.id === selectedAuditor.id);
+      if (updated) {
+        setSelectedAuditor(updated);
+      }
+    }
+  }, [auditors, selectedAuditor]);
 
   const filteredAuditors = (auditors || [])
     .filter((auditor: any) => {
@@ -44,58 +55,10 @@ export default function AuditorsPage() {
       return a.name.localeCompare(b.name);
     });
 
-  const renderHeatmap = (schedules: any[]) => {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    const days = Array.from({ length: 30 }, (_, i) => {
-      const d = new Date(today);
-      d.setUTCDate(today.getUTCDate() + i);
-      return d;
-    });
-
-    return (
-      <div className="absolute z-[200] hidden group-hover/heatmap:grid grid-cols-10 gap-1 w-[180px] p-2.5 bg-white border border-slate-200 rounded-xl shadow-2xl right-full mr-4 top-1/2 -translate-y-1/2 animate-in fade-in zoom-in-95 backdrop-blur-sm bg-white/95">
-        <div className="col-span-10 text-[9px] font-bold text-slate-700 mb-1 border-b border-slate-100 pb-1 flex justify-between items-center">
-          <span>Heated Workload (30d)</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-          </div>
-        </div>
-        {days.map((day, i) => {
-          const isScheduled = schedules.some((s: any) => {
-            const sd = new Date(s.scheduledDate);
-            return (
-              sd.getUTCDate() === day.getUTCDate() &&
-              sd.getUTCMonth() === day.getUTCMonth() &&
-              sd.getUTCFullYear() === day.getUTCFullYear()
-            );
-          });
-
-          // Formatter to remove day of week, e.g. "02/28/2026"
-          const dateStr = day.toLocaleDateString("en-US", {
-            month: "2-digit",
-            day: "2-digit",
-            year: "numeric",
-          });
-
-          return (
-            <div
-              key={i}
-              title={`${dateStr} - ${isScheduled ? "Scheduled" : "Available"}`}
-              className={`w-3 h-3 rounded-[2px] border transition-all ${isScheduled ? "bg-blue-600 border-blue-700 shadow-sm" : "bg-slate-50 border-slate-100 hover:border-blue-300"}`}
-            />
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
-    <div className="flex gap-6 relative min-h-[400px]">
+    <div className="flex gap-5 relative min-h-[400px]">
       <div
-        className={`flex-1 transition-all ${selectedAuditor ? "mr-80" : ""}`}
+        className={`flex-1 transition-all ${selectedAuditor ? "mr-[21rem]" : ""}`}
       >
         {isLoading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center min-h-[400px]">
@@ -158,7 +121,6 @@ export default function AuditorsPage() {
                 <th className="py-3 px-4 font-normal">Locations Count</th>
                 <th className="py-3 px-4 font-normal">Assigned Locations</th>
                 <th className="py-3 px-4 font-normal">Status</th>
-                <th className="py-3 px-4 w-48 font-normal">Workload Heatmap</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -197,17 +159,11 @@ export default function AuditorsPage() {
                       {auditor.status}
                     </span>
                   </td>
-                  <td className="py-4 px-4">
-                    <div className="relative group/heatmap inline-flex items-center justify-center p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors cursor-help">
-                      <CalendarDays className="w-5 h-5" />
-                      {renderHeatmap(auditor.schedules || [])}
-                    </div>
-                  </td>
                 </tr>
               ))}
               {filteredAuditors?.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-slate-500">
+                  <td colSpan={4} className="text-center py-8 text-slate-500">
                     No auditors match your filters.
                   </td>
                 </tr>
@@ -218,15 +174,21 @@ export default function AuditorsPage() {
       </div>
 
       <AuditScheduleModal
-        isOpen={isScheduling}
-        onClose={() => setIsScheduling(false)}
-        initialLocationId={null}
+        isOpen={isScheduling || !!editingSchedule}
+        onClose={() => {
+          setIsScheduling(false);
+          setEditingSchedule(null);
+        }}
+        initialLocationId={editingSchedule?.locationId || null}
+        initialDate={editingSchedule?.startDate || null}
+        initialEndDate={editingSchedule?.endDate || null}
+        initialAuditorIds={editingSchedule?.auditorIds || []}
         readOnly={false}
       />
 
       {selectedAuditor && !isScheduling && (
-        <div className="w-80 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-lg animate-in fade-in slide-in-from-right-8">
-          <div className="flex justify-between items-start mb-6">
+        <div className="w-80 absolute right-0 top-0 h-full bg-white border border-slate-200 rounded-xl p-5 shadow-lg animate-in fade-in slide-in-from-right-8 flex flex-col">
+          <div className="flex justify-between items-start mb-6 shrink-0">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">
                 {selectedAuditor.name}
@@ -235,50 +197,110 @@ export default function AuditorsPage() {
             </div>
             <button
               onClick={() => setSelectedAuditor(null)}
-              className="text-slate-400 hover:text-slate-600"
+              className="text-slate-400 hover:text-slate-600 p-1"
             >
               ✕
             </button>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-medium text-slate-700">
-                  Assigned Locations
-                </h4>
-                <button
-                  onClick={() => setIsScheduling(true)}
-                  className="text-xs flex items-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-                >
-                  <Plus className="w-3 h-3" /> Schedule
-                </button>
-              </div>
-              {selectedAuditor.schedules &&
-              selectedAuditor.schedules.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedAuditor.schedules.map((s: any) => (
-                    <div
-                      key={s.id}
-                      className="p-3 rounded-lg bg-slate-50 border border-slate-200"
-                    >
-                      <div className="text-xs text-slate-500 font-mono mb-1">
-                        {new Date(s.scheduledDate).toLocaleDateString()}
-                      </div>
-                      <div className="text-sm font-medium text-slate-900">
-                        {s.location.locationName}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {s.location.locationCode}
-                      </div>
-                    </div>
-                  ))}
+          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-medium text-slate-700">
+                    Assigned Locations
+                  </h4>
+                  <button
+                    onClick={() => setIsScheduling(true)}
+                    className="text-xs flex items-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                  >
+                    <Plus className="w-3 h-3" /> Schedule
+                  </button>
                 </div>
-              ) : (
-                <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
-                  No assignments found.
-                </p>
-              )}
+                {selectedAuditor.schedules &&
+                selectedAuditor.schedules.length > 0 ? (
+                  <div className="space-y-3">
+                    {(() => {
+                      const grouped = selectedAuditor.schedules.reduce(
+                        (acc: any, s: any) => {
+                          const locId = s.location.id;
+                          if (!acc[locId]) {
+                            acc[locId] = {
+                              location: s.location,
+                              dates: [],
+                            };
+                          }
+                          acc[locId].dates.push(new Date(s.scheduledDate));
+                          return acc;
+                        },
+                        {},
+                      );
+
+                      return Object.values(grouped).map((group: any) => {
+                        const sortedDates = group.dates.sort(
+                          (a: Date, b: Date) => a.getTime() - b.getTime(),
+                        );
+                        const minDate = sortedDates[0];
+                        const maxDate = sortedDates[sortedDates.length - 1];
+
+                        const formatDate = (d: Date) => {
+                          const dd = String(d.getDate()).padStart(2, "0");
+                          const mm = String(d.getMonth() + 1).padStart(2, "0");
+                          const yyyy = d.getFullYear();
+                          return `${dd}/${mm}/${yyyy}`;
+                        };
+
+                        const dateRange =
+                          minDate.getTime() === maxDate.getTime()
+                            ? formatDate(minDate)
+                            : `${formatDate(minDate)} - ${formatDate(maxDate)}`;
+
+                        return (
+                          <div
+                            key={group.location.id}
+                            onClick={() => {
+                              // Find all relevant auditor IDs for this location from the auditor's schedules
+                              const locSchedules =
+                                selectedAuditor.schedules.filter(
+                                  (s: any) =>
+                                    s.location.id === group.location.id,
+                                );
+                              // We use the first schedule's assigned auditors
+                              // (assuming consistency across the range for this auditor/location pair)
+                              const auditorIds =
+                                locSchedules[0]?.assignedAuditors?.map(
+                                  (a: any) => a.id,
+                                ) || [selectedAuditor.id];
+
+                              setEditingSchedule({
+                                locationId: group.location.id,
+                                startDate: minDate,
+                                endDate: maxDate,
+                                auditorIds: auditorIds,
+                              });
+                            }}
+                            className="p-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-blue-200 cursor-pointer transition-colors"
+                          >
+                            <div className="text-xs text-blue-600 font-bold mb-1">
+                              {dateRange}
+                            </div>
+                            <div className="text-sm font-medium text-slate-900">
+                              {group.location.locationName}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {group.location.locationCode}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 bg-slate-50 p-4 rounded-lg border border-slate-200 text-center">
+                    No assignments found.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

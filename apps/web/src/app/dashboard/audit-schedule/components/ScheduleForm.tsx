@@ -14,7 +14,9 @@ import { api } from "../../../../lib/api";
 
 interface ScheduleFormProps {
   initialDate?: Date | null;
+  initialEndDate?: Date | null;
   initialLocationId?: string | null;
+  initialAuditorIds?: string[];
   onSuccess?: () => void;
   onCancel?: () => void;
   readOnly?: boolean;
@@ -22,7 +24,9 @@ interface ScheduleFormProps {
 
 export function ScheduleForm({
   initialDate,
+  initialEndDate,
   initialLocationId,
+  initialAuditorIds,
   onSuccess,
   onCancel,
   readOnly = false,
@@ -32,10 +36,16 @@ export function ScheduleForm({
     initialDate ? initialDate.toISOString().split("T")[0] : "",
   );
   const [endDate, setEndDate] = useState(
-    initialDate ? initialDate.toISOString().split("T")[0] : "",
+    initialEndDate
+      ? initialEndDate.toISOString().split("T")[0]
+      : initialDate
+        ? initialDate.toISOString().split("T")[0]
+        : "",
   );
   const [locationId, setLocationId] = useState(initialLocationId || "");
-  const [auditorIds, setAuditorIds] = useState<string[]>([]);
+  const [auditorIds, setAuditorIds] = useState<string[]>(
+    initialAuditorIds || [],
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 

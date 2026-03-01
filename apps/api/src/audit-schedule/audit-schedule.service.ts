@@ -1,6 +1,5 @@
 import {
   Injectable,
-  BadRequestException,
   NotFoundException,
   ConflictException,
 } from "@nestjs/common";
@@ -16,16 +15,23 @@ export class AuditScheduleService {
   constructor(private prisma: PrismaService) {}
 
   async getSummary() {
-    const totalLocations = await this.prisma.location.count();
+    const leafFilter = { children: { none: {} } };
+    const totalLocations = await this.prisma.location.count({
+      where: leafFilter,
+    });
 
     // Locations without any schedules
     const unscheduledLocations = await this.prisma.location.count({
-      where: { schedules: { none: {} } },
+      where: {
+        ...leafFilter,
+        schedules: { none: {} },
+      },
     });
 
     // Locations with schedules but no auditors assigned
     const unassignedLocations = await this.prisma.location.count({
       where: {
+        ...leafFilter,
         schedules: { some: {} },
         AND: {
           schedules: { none: { assignedAuditors: { some: {} } } },
@@ -98,6 +104,7 @@ export class AuditScheduleService {
 
   async getLocations() {
     return this.prisma.location.findMany({
+      where: { children: { none: {} } },
       include: {
         schedules: {
           include: {
@@ -133,6 +140,8 @@ export class AuditScheduleService {
     }
 
     // Daily Limit: Ensure no auditor is assigned to another location on the same date
+    // NOTE (Task 1): As per new requirements, an auditor can now be assigned to multiple locations on the same day.
+    /*
     if (dto.assignedAuditorIds && dto.assignedAuditorIds.length > 0) {
       const concurrentAssignments = await this.prisma.locationSchedule.findMany(
         {
@@ -151,6 +160,7 @@ export class AuditScheduleService {
         );
       }
     }
+    */
 
     const result = await this.prisma.locationSchedule.create({
       data: {
@@ -191,6 +201,8 @@ export class AuditScheduleService {
     const endOfDay = new Date(newDate);
     endOfDay.setUTCHours(23, 59, 59, 999);
 
+    // NOTE (Task 1): As per new requirements, an auditor can now be assigned to multiple locations on the same day.
+    /*
     if (auditorIds && auditorIds.length > 0) {
       const concurrentAssignments = await this.prisma.locationSchedule.findMany(
         {
@@ -209,6 +221,7 @@ export class AuditScheduleService {
         );
       }
     }
+    */
 
     const result = await this.prisma.locationSchedule.update({
       where: { id },

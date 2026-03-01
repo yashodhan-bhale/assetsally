@@ -123,24 +123,20 @@ export function AuditCalendar({
               </div>
 
               <div className="mt-2 space-y-1">
-                {daySchedules.map((schedule: any) => (
+                {daySchedules.slice(0, 3).map((schedule: any) => (
                   <div
                     key={schedule.id}
-                    className="text-[11px] p-2 bg-blue-50 border border-blue-100 rounded shadow-sm hover:shadow-md transition-shadow"
+                    className="text-[10px] py-1 px-1.5 bg-blue-50 border border-blue-100 rounded text-blue-800 font-bold truncate hover:bg-blue-100 transition-colors"
+                    title={`${schedule.location.locationName} (${schedule.location.locationCode})`}
                   >
-                    <div className="font-bold text-blue-800 truncate">
-                      {schedule.location.locationName}
-                    </div>
-                    <div className="text-[10px] text-blue-600 font-medium truncate mb-1">
-                      {schedule.location.locationCode}
-                    </div>
-                    <div className="text-[9px] text-slate-500 truncate border-t border-blue-100 pt-1">
-                      {schedule.assignedAuditors
-                        ?.map((a: any) => a.name)
-                        .join(", ") || "Unassigned"}
-                    </div>
+                    {schedule.location.locationName}
                   </div>
                 ))}
+                {daySchedules.length > 3 && (
+                  <div className="text-[9px] text-slate-400 font-bold pl-1 pt-0.5">
+                    {daySchedules.length - 3} more audits scheduled
+                  </div>
+                )}
               </div>
             </div>
           );
