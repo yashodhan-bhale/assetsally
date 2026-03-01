@@ -1,32 +1,24 @@
-# PR: feat(mobile): enhance audit functionality and implement inventory item binding
+# PR Summary: feat(admin): enhance audit schedule UI/UX and assignment flexibility
 
 ## Overview
-This feature update streamlines the mobile audit workflow and introduces robust inventory item management. Key highlights include the removal of legacy audit options, the introduction of a dedicated inventory item screen with QR code association ("Binding"), and improved data visibility on the web dashboard.
+This PR enhances the Audit Schedule system in the Admin Web App. It introduces more flexible auditor assignments (multiple locations per day), stricter location filtering (leaf levels only), and significant UI/UX improvements across all audit views (Auditors, Locations, Calendar).
 
 ## Technical Changes
-
-### Mobile App (`apps/mobile`)
-- **Audit Workflow**: Removed "Found", "Missing", and "Damaged" legacy options to simplify the user interface.
-- **Inventory Item Screen**: Created a new screen to display imported item data.
-- **QR Binding**: Integrated camera functionality to allow auditors to bind physical QR codes to system inventory items.
-- **Database**: Added/Updated migrations to track QR associations.
-- **Code Quality**: Resolved several high-priority linting issues including `import/order` and `react-native/no-unused-styles`.
-
-### Web Dashboard (`apps/web`)
-- **Data Presentation**: Updated `inventory` and `reports` pages to use standardized date (MM/DD/YYYY) and currency (right-aligned, no symbols) formatting.
-- **Testing**: Added comprehensive Vitest suites for the new formatting logic.
-
-### API & Shared (`apps/api`, `packages/shared`)
-- **QR Logical Refinement**: Updated services to handle new binding metadata.
-- **Constants**: Centralized status and type definitions for consistency across platforms.
+- **Backend (`apps/api/src/audit-schedule/`)**:
+    - Removed the restriction preventing an auditor from being assigned to multiple locations on the same day.
+    - Added `where: { children: { none: {} } }` filtering to `getSummary` and `getLocations` to focus on the smallest units of the hierarchy.
+- **Frontend (`apps/web/src/app/dashboard/audit-schedule/`)**:
+    - **General**: Reduced content-to-sidebar gaps by 50% for a cleaner, more compact layout.
+    - **Calendar View**: Compressed location items, removed auditor labels from cells, and added an "x more" note for busy days. Added date-range display in the sidebar.
+    - **Auditors View**: Removed the workload heatmap. Improved sidebar with scrollable assignment lists and grouping by date range (DD/MM/YYYY).
+    - **Locations View**: Updated the Edit icon to a pencil. Refined sidebar with direct auditor and date-range visibility.
+    - **Modals**: Updated `ScheduleForm` and `AuditScheduleModal` to support full pre-filling of existing schedule data (location, date-range, and current auditors).
 
 ## Verification
-Verification was performed using the standard suite (`pnpm turbo lint test`).
-
-### Test Results
-- **Mobile Tests**: `login.spec.tsx` passed. Manual verification of QR camera binding performed.
-- **Web Tests**: 9 tests passed across 3 suites (`inventory/page.spec.tsx`, `reports/page.spec.tsx`, `login/page.spec.tsx`).
-- **API Tests**: all service and processor tests passed.
-
-### Linting
-Successfully ran `pnpm turbo lint` with zero errors.
+- **Checks**: Ran `pnpm turbo lint test --concurrency 4`.
+- **Lint**: All packages passed.
+- **Tests**: 25 tests passed successfully across Web, API, and Mobile.
+- **Manual Proof**:
+    - Verified that only leaf-level locations appear in dropdowns and tables.
+    - Confirmed that clicking edit on any audit sidebar item correctly pre-populates the modal fields.
+    - Verified navigation cleanup by confirming "Inventory" is removed from the sidebar.

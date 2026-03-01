@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { ColumnDef } from "@tanstack/react-table";
 import {
   FileText,
   Filter,
@@ -12,275 +14,368 @@ import {
   Clock,
   Printer,
   FileSpreadsheet,
+  Loader2,
+  TrendingUp,
+  Package,
+  QrCode,
+  DollarSign,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
-const FileIcon: any = FileText;
-const FilterIcon: any = Filter;
-const CalendarIcon: any = Calendar;
-const ChevronDownIcon: any = ChevronDown;
-const PrinterIcon: any = Printer;
-const ExcelIcon: any = FileSpreadsheet;
+import { DataTable } from "../../../components/ui/data-table";
+import { api } from "../../../lib/api";
+
+const LoaderIcon: any = Loader2;
+const DownloadIcon: any = Download;
+const PackageIcon: any = Package;
+const DollarSignIcon: any = DollarSign;
+const TrendingUpIcon: any = TrendingUp;
+const QrCodeIcon: any = QrCode;
+
+interface InventoryItem {
+  id: string;
+  assetNumber: string;
+  assetName: string;
+  acquisitionCost?: number;
+  netBookValue?: number;
+  inventoryStatus?: string;
+  quantityAsPerBooks?: number;
+  quantityAsPerPhysical?: number;
+  quantityDifference?: number;
+  location?: { id: string; locationName: string; locationCode: string };
+  category?: { id: string; name: string };
+  QRBindingRecord?: any[];
+}
+
+interface LocationStat {
+  name: string;
+  count: number;
+  asPerBooks: number;
+  asPerPhysical: number;
+  difference: number;
+  foundOk: number;
+  discrepancies: number;
+}
+
+const locationColumns: ColumnDef<LocationStat>[] = [
+  {
+    accessorKey: "name",
+    header: "Location",
+    cell: ({ row }) => (
+      <div className="font-medium text-slate-900">{row.original.name}</div>
+    ),
+  },
+  {
+    accessorKey: "count",
+    header: "Asset Count",
+    cell: ({ row }) => <div className="text-right">{row.original.count}</div>,
+  },
+  {
+    accessorKey: "asPerBooks",
+    header: "As per Books",
+    cell: ({ row }) => (
+      <div className="text-right">{row.original.asPerBooks}</div>
+    ),
+  },
+  {
+    accessorKey: "asPerPhysical",
+    header: "As per Physical",
+    cell: ({ row }) => (
+      <div className="text-right">{row.original.asPerPhysical}</div>
+    ),
+  },
+  {
+    accessorKey: "difference",
+    header: "Difference",
+    cell: ({ row }) => (
+      <div
+        className={`text-right font-medium ${
+          row.original.difference !== 0 ? "text-red-600" : "text-slate-600"
+        }`}
+      >
+        {row.original.difference}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "foundOk",
+    header: "Total Found OK",
+    cell: ({ row }) => (
+      <div className="text-right text-green-600 font-bold">
+        {row.original.foundOk}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "discrepancies",
+    header: "Total Discrepancies",
+    cell: ({ row }) => (
+      <div className="text-right text-orange-600 font-bold">
+        {row.original.discrepancies}
+      </div>
+    ),
+  },
+];
 
 export default function ReportsPage() {
-  const [dateRange, setDateRange] = useState("Feb 1 - Feb 28, 2026");
-  const [selectedZone, setSelectedZone] = useState("All Zones");
-  const [selectedAuditor, setSelectedAuditor] = useState("Select Auditor");
+  // Fetch all inventory items (assuming reasonable volume for reports processing)
+  const { data: inventoryData, isLoading } = useQuery({
+    queryKey: ["inventory-reports"],
+    queryFn: () => api.getInventory({ limit: "10000" }),
+  });
 
-  const reportData = [
-    {
-      zone: "Amravati Zone",
-      totalAssets: 8272,
-      verified: 7610,
-      discrepancy: 150,
-      compliance: "92%",
-    },
-    {
-      zone: "Karad Zone",
-      totalAssets: 1906,
-      verified: 858,
-      discrepancy: 50,
-      compliance: "45%",
-    },
-    {
-      zone: "Nagpur Zone",
-      totalAssets: 500,
-      verified: 75,
-      discrepancy: 24,
-      compliance: "15%",
-    },
-  ];
+  const items = useMemo(() => {
+    if (!inventoryData) return [];
+    return (inventoryData.items || inventoryData) as InventoryItem[];
+  }, [inventoryData]);
+
+  // Process data for reports
+  const stats = useMemo(() => {
+    const totalAssets = items.length;
+    const totalCost = items.reduce(
+      (sum, item) => sum + (Number(item.acquisitionCost) || 0),
+      0,
+    );
+    const totalNBV = items.reduce(
+      (sum, item) => sum + (Number(item.netBookValue) || 0),
+      0,
+    );
+    const qrBound = items.filter(
+      (item) => item.QRBindingRecord && item.QRBindingRecord.length > 0,
+    ).length;
+    const qrCompliance = totalAssets > 0 ? (qrBound / totalAssets) * 100 : 0;
+
+    // Location breakdown
+    const locationMap = new Map<string, LocationStat>();
+    items.forEach((item) => {
+      const locName = item.location?.locationName || "Unassigned";
+      const existing = locationMap.get(locName) || {
+        name: locName,
+        count: 0,
+        asPerBooks: 0,
+        asPerPhysical: 0,
+        difference: 0,
+        foundOk: 0,
+        discrepancies: 0,
+      };
+
+      existing.count += 1;
+      existing.asPerBooks += Number(item.quantityAsPerBooks) || 0;
+      existing.asPerPhysical += Number(item.quantityAsPerPhysical) || 0;
+      existing.difference += Number(item.quantityDifference) || 0;
+
+      const status = item.inventoryStatus?.trim() || "";
+      if (status.toLowerCase() === "found ok") {
+        existing.foundOk += 1;
+      } else if (status !== "") {
+        existing.discrepancies += 1;
+      }
+
+      locationMap.set(locName, existing);
+    });
+
+    // Category breakdown
+    const categoryMap = new Map<string, any>();
+    items.forEach((item) => {
+      const catName = item.category?.name || "Uncategorized";
+      const existing = categoryMap.get(catName) || {
+        name: catName,
+        count: 0,
+        cost: 0,
+      };
+      existing.count += 1;
+      existing.cost += Number(item.acquisitionCost) || 0;
+      categoryMap.set(catName, existing);
+    });
+
+    return {
+      totalAssets,
+      totalCost,
+      totalNBV,
+      qrCompliance,
+      locationBreakdown: Array.from(locationMap.values()).sort(
+        (a, b) => b.count - a.count,
+      ),
+      categoryBreakdown: Array.from(categoryMap.values()).sort(
+        (a, b) => b.count - a.count,
+      ),
+    };
+  }, [items]);
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <LoaderIcon className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Reports Engine
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Reports Engine
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Comprehensive analytics and financial summaries for your assets.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+            <DownloadIcon size={16} />
+            Export Data
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar - Parameters */}
-        <aside className="w-full lg:w-80 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center gap-2 mb-6 text-slate-900 font-semibold">
-              <FilterIcon size={18} className="text-slate-500" />
-              <h2>Report Parameters</h2>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <PackageIcon size={20} />
             </div>
+            <span className="text-xs font-medium text-slate-400">Total</span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">
+            {stats.totalAssets}
+          </div>
+          <div className="text-sm text-slate-500 mt-1">Total Assets</div>
+        </div>
 
-            <div className="space-y-6">
-              {/* Date Range */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Date Range
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={dateRange}
-                    readOnly
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  />
-                  <CalendarIcon
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                </div>
-              </div>
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+              <DollarSignIcon size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">
+              Financial
+            </span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">
+            {formatCurrency(stats.totalCost)}
+          </div>
+          <div className="text-sm text-slate-500 mt-1">Acquisition Cost</div>
+        </div>
 
-              {/* Zone / Region */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Zone / Region
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedZone}
-                    onChange={(e) => setSelectedZone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm text-slate-600 appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  >
-                    <option>All Zones</option>
-                    <option>Amravati Zone</option>
-                    <option>Karad Zone</option>
-                    <option>Nagpur Zone</option>
-                  </select>
-                  <ChevronDownIcon
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                  />
-                </div>
-              </div>
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+              <TrendingUpIcon size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">Current</span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">
+            {formatCurrency(stats.totalNBV)}
+          </div>
+          <div className="text-sm text-slate-500 mt-1">Net Book Value</div>
+        </div>
 
-              {/* Status */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-700">
-                  Status
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { label: "Verified", color: "bg-green-500" },
-                    { label: "Missing", color: "bg-red-500" },
-                    { label: "Discrepancy", color: "bg-orange-500" },
-                    { label: "Pending Audit", color: "bg-slate-400" },
-                  ].map((status) => (
-                    <div key={status.label} className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id={`status-${status.label}`}
-                        className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <label
-                        htmlFor={`status-${status.label}`}
-                        className="text-sm text-slate-600"
-                      >
-                        {status.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+              <QrCodeIcon size={20} />
+            </div>
+            <span className="text-xs font-medium text-slate-400">Status</span>
+          </div>
+          <div className="text-2xl font-bold text-slate-900">
+            {stats.qrCompliance.toFixed(1)}%
+          </div>
+          <div className="text-sm text-slate-500 mt-1">QR Bound Scale</div>
+        </div>
+      </div>
 
-              {/* Auditor */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">
-                  Auditor
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedAuditor}
-                    onChange={(e) => setSelectedAuditor(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-sm text-slate-600 appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                  >
-                    <option>Select Auditor</option>
-                    <option>Admin User</option>
-                    <option>Demo Auditor</option>
-                  </select>
-                  <ChevronDownIcon
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                  />
-                </div>
-              </div>
-
-              <button className="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-medium py-2.5 rounded-lg transition-colors mt-4 shadow-sm">
-                Generate Report
-              </button>
+      <div className="space-y-6">
+        {/* Location Breakdown */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                Location Breakdown
+              </h2>
+              <p className="text-xs text-slate-500">
+                Audit and reconciliation metrics by storage location
+              </p>
             </div>
           </div>
-        </aside>
-
-        {/* Main Content - Report Preview */}
-        <main className="flex-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Executive Summary
-                </h2>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-1 mt-3">
-                  <div className="text-xs text-slate-400">
-                    Report Type:{" "}
-                    <span className="text-slate-600 font-medium">
-                      Verification Status
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-400">
-                    Generated By:{" "}
-                    <span className="text-slate-600 font-medium">
-                      Admin User
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-400">
-                    Period:{" "}
-                    <span className="text-slate-600 font-medium">
-                      Feb 1 - Feb 28, 2026
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-400">
-                    Scope:{" "}
-                    <span className="text-slate-600 font-medium">
-                      All Zones
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
-                  <PrinterIcon size={16} />
-                  Export PDF
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 border border-green-600 text-green-700 hover:bg-green-50 text-sm font-medium rounded-lg transition-colors">
-                  <ExcelIcon size={16} />
-                  Export Excel
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold text-indigo-900">
-                  Zone Performance Breakdown
-                </h3>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 text-left">
-                      <th className="px-4 py-3 text-xs font-semibold text-indigo-900 border-b border-slate-200">
-                        Zone
-                      </th>
-                      <th className="px-4 py-3 text-xs font-semibold text-indigo-900 border-b border-slate-200">
-                        Total Assets
-                      </th>
-                      <th className="px-4 py-3 text-xs font-semibold text-indigo-900 border-b border-slate-200">
-                        Verified
-                      </th>
-                      <th className="px-4 py-3 text-xs font-semibold text-indigo-900 border-b border-slate-200">
-                        Discrepancy
-                      </th>
-                      <th className="px-4 py-3 text-xs font-semibold text-indigo-900 border-b border-slate-200 border-r-0">
-                        Compliance
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {reportData.map((row, idx) => (
-                      <tr
-                        key={idx}
-                        className="hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-4 py-4 text-sm text-slate-600 font-medium">
-                          {row.zone}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-slate-600">
-                          {row.totalAssets}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-slate-600">
-                          {row.verified}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-orange-500 font-medium">
-                          {row.discrepancy}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-slate-900 font-bold">
-                          {row.compliance}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="mt-8 text-center">
-                <p className="text-xs text-slate-400 italic">
-                  * This is a preview. Detailed line items will be included in
-                  the export.
-                </p>
-              </div>
-            </div>
+          <div className="p-6">
+            <DataTable
+              columns={locationColumns}
+              data={stats.locationBreakdown}
+              placeholder="Search locations..."
+            />
           </div>
-        </main>
+        </div>
+
+        {/* Category Breakdown */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900">
+              Category Breakdown
+            </h2>
+            <span className="text-xs text-slate-400">Financial Weight</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b border-slate-200">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 border-b border-slate-200 text-right">
+                    Asset Count
+                  </th>
+                  <th className="px-6 py-3 border-b border-slate-200 text-right">
+                    Financial Value
+                  </th>
+                  <th className="px-6 py-3 border-b border-slate-200 text-right">
+                    Avg / Item
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {stats.categoryBreakdown.map((row) => (
+                  <tr
+                    key={row.name}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm text-slate-700 font-medium">
+                      {row.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600 text-right">
+                      {row.count}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600 text-right">
+                      {formatCurrency(row.cost)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-400 text-right">
+                      {formatCurrency(row.cost / row.count)}
+                    </td>
+                  </tr>
+                ))}
+                {stats.categoryBreakdown.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-6 py-10 text-center text-slate-400 italic"
+                    >
+                      No category data available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

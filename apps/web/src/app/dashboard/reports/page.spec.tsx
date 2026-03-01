@@ -1,27 +1,71 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
+
+import { api } from "../../../lib/api";
 
 import ReportsPage from "./page";
 
+// Mock the API
+vi.mock("../../../lib/api", () => ({
+  api: {
+    getInventory: vi.fn(),
+  },
+}));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+const renderWithQuery = (ui: React.ReactElement) => {
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+};
+
 describe("ReportsPage", () => {
-  it("renders reports engine title", () => {
-    render(<ReportsPage />);
-    expect(screen.getByText(/Reports Engine/i)).toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (api.getInventory as any).mockResolvedValue({
+      items: [
+        {
+          id: "1",
+          assetNumber: "A001",
+          assetName: "Test Asset",
+          location: { id: "loc1", locationName: "Amravati Zone" },
+          inventoryStatus: "Found OK",
+          quantityAsPerBooks: 10,
+          quantityAsPerPhysical: 10,
+          quantityDifference: 0,
+        },
+      ],
+    });
   });
 
-  it("renders report parameters section", () => {
-    render(<ReportsPage />);
-    expect(screen.getByText(/Report Parameters/i)).toBeInTheDocument();
+  it("renders reports engine title", async () => {
+    renderWithQuery(<ReportsPage />);
+    expect(await screen.findByText(/Reports Engine/i)).toBeInTheDocument();
   });
 
-  it("renders executive summary", () => {
-    render(<ReportsPage />);
-    expect(screen.getByText(/Executive Summary/i)).toBeInTheDocument();
+  it("renders summary cards", async () => {
+    renderWithQuery(<ReportsPage />);
+    expect(await screen.findByText(/Total Assets/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Acquisition Cost/i)).toBeInTheDocument();
   });
 
-  it("renders data table with zone information", () => {
-    render(<ReportsPage />);
-    expect(screen.getAllByText(/Amravati Zone/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Karad Zone/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Nagpur Zone/i).length).toBeGreaterThan(0);
+  it("renders location breakdown table", async () => {
+    renderWithQuery(<ReportsPage />);
+    expect(await screen.findByText(/Location Breakdown/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Amravati Zone/i)).toBeInTheDocument();
+  });
+
+  it("shows found ok and discrepancies counts", async () => {
+    renderWithQuery(<ReportsPage />);
+    expect(await screen.findByText(/Total Found OK/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Total Discrepancies/i)).toBeInTheDocument();
   });
 });
