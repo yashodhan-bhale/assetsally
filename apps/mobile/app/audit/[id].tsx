@@ -307,88 +307,20 @@ export default function AuditDetailScreen() {
                   <Text style={styles.findingNotes}>{finding.notes}</Text>
                 )}
 
-                {/* Quick action buttons (only for DRAFT reports) */}
-                {report.status === "DRAFT" && (
-                  <View style={styles.quickActions}>
-                    <TouchableOpacity
-                      style={[
-                        styles.quickBtn,
-                        finding?.status === "FOUND" && styles.quickBtnActive,
-                      ]}
-                      onPress={() => handleRecordFinding(item, "FOUND", "GOOD")}
-                    >
-                      <Ionicons
-                        name="checkmark"
-                        size={16}
-                        color={
-                          finding?.status === "FOUND" ? "#22c55e" : "#64748b"
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.quickBtnText,
-                          finding?.status === "FOUND" && { color: "#22c55e" },
-                        ]}
-                      >
-                        Found
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.quickBtn,
-                        finding?.status === "NOT_FOUND" &&
-                          styles.quickBtnActiveRed,
-                      ]}
-                      onPress={() => handleRecordFinding(item, "NOT_FOUND")}
-                    >
-                      <Ionicons
-                        name="close"
-                        size={16}
-                        color={
-                          finding?.status === "NOT_FOUND"
-                            ? "#ef4444"
-                            : "#64748b"
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.quickBtnText,
-                          finding?.status === "NOT_FOUND" && {
-                            color: "#ef4444",
-                          },
-                        ]}
-                      >
-                        Missing
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.quickBtn,
-                        finding?.status === "DAMAGED" &&
-                          styles.quickBtnActiveYellow,
-                      ]}
-                      onPress={() =>
-                        handleRecordFinding(item, "DAMAGED", "POOR")
-                      }
-                    >
-                      <Ionicons
-                        name="warning-outline"
-                        size={16}
-                        color={
-                          finding?.status === "DAMAGED" ? "#f59e0b" : "#64748b"
-                        }
-                      />
-                      <Text
-                        style={[
-                          styles.quickBtnText,
-                          finding?.status === "DAMAGED" && { color: "#f59e0b" },
-                        ]}
-                      >
-                        Damaged
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                <TouchableOpacity
+                  style={styles.detailsBtn}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/audit/item/[itemId]",
+                      params: { itemId: item.id, reportId: report.id },
+                    })
+                  }
+                >
+                  <Text style={styles.detailsBtnText}>
+                    View Details & Record
+                  </Text>
+                  <Ionicons name="chevron-forward" size={16} color="#3b82f6" />
+                </TouchableOpacity>
               </View>
             );
           })
@@ -407,13 +339,6 @@ export default function AuditDetailScreen() {
         {/* Actions */}
         {report.status === "DRAFT" && (
           <View style={styles.actionsSection}>
-            <TouchableOpacity
-              style={styles.scanBtn}
-              onPress={() => router.push("/scan")}
-            >
-              <Ionicons name="qr-code-outline" size={20} color="#fff" />
-              <Text style={styles.scanBtnText}>Scan Asset</Text>
-            </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.submitBtn,
@@ -518,40 +443,16 @@ const styles = StyleSheet.create({
   conditionBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   conditionText: { fontSize: 11, fontWeight: "600" },
   findingNotes: { color: "#94a3b8", fontSize: 12, marginTop: 6 },
-  quickActions: {
-    flexDirection: "row",
-    gap: 6,
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#334155",
-    paddingTop: 10,
-  },
-  quickBtn: {
-    flex: 1,
+  detailsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "#0f172a",
+    justifyContent: "space-between",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#334155",
   },
-  quickBtnActive: {
-    backgroundColor: "#22c55e15",
-    borderWidth: 1,
-    borderColor: "#22c55e30",
-  },
-  quickBtnActiveRed: {
-    backgroundColor: "#ef444415",
-    borderWidth: 1,
-    borderColor: "#ef444430",
-  },
-  quickBtnActiveYellow: {
-    backgroundColor: "#f59e0b15",
-    borderWidth: 1,
-    borderColor: "#f59e0b30",
-  },
-  quickBtnText: { color: "#64748b", fontSize: 12, fontWeight: "600" },
+  detailsBtnText: { color: "#3b82f6", fontSize: 13, fontWeight: "600" },
   emptyFindings: {
     backgroundColor: "#1e293b",
     borderRadius: 14,
@@ -564,16 +465,7 @@ const styles = StyleSheet.create({
   emptyText: { color: "#94a3b8", fontSize: 14, marginTop: 8 },
   emptySubtext: { color: "#64748b", fontSize: 12, marginTop: 4 },
   actionsSection: { gap: 10, marginTop: 8, marginBottom: 24 },
-  scanBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#3b82f6",
-    padding: 14,
-    borderRadius: 12,
-  },
-  scanBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+
   submitBtn: {
     flexDirection: "row",
     alignItems: "center",

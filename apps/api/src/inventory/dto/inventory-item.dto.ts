@@ -93,6 +93,27 @@ export class CreateInventoryItemDto {
   @Min(0)
   @IsOptional()
   accumulatedDepreciation?: number;
+
+  @ApiPropertyOptional({ example: 10 })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  quantityAsPerPhysical?: number;
+
+  @ApiPropertyOptional({ example: 0 })
+  @IsNumber()
+  @IsOptional()
+  quantityDifference?: number;
+
+  @ApiPropertyOptional({ example: "TAG-12345" })
+  @IsString()
+  @IsOptional()
+  biometricTag?: string;
+
+  @ApiPropertyOptional({ example: "Imported from legacy system" })
+  @IsString()
+  @IsOptional()
+  importRemarks?: string;
 }
 
 export class UpdateInventoryItemDto {
@@ -174,4 +195,24 @@ export class UpdateInventoryItemDto {
   @Min(0)
   @IsOptional()
   accumulatedDepreciation?: number;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  quantityAsPerPhysical?: number;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  quantityDifference?: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  biometricTag?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  importRemarks?: string;
 }

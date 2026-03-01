@@ -9,7 +9,8 @@ export default defineConfig({
     isolate: true,
     exclude: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
     pool: "forks",
-    fileParallelism: false,
+    fileParallelism: true,
+    maxConcurrency: 4,
   },
   plugins: [
     // This is required to build the test files with SWC

@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ConflictException,
 } from "@nestjs/common";
+import { AuditReportStatus } from "@prisma/client";
 
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -80,7 +81,15 @@ export class AuditScheduleService {
         email: true,
         status: true,
         schedules: {
-          where: { scheduledDate: { gte: new Date() } },
+          where: {
+            scheduledDate: {
+              gte: (() => {
+                const d = new Date();
+                d.setUTCHours(0, 0, 0, 0);
+                return d;
+              })(),
+            },
+          },
           include: { location: { select: { id: true, locationName: true } } },
         },
       },
@@ -143,7 +152,7 @@ export class AuditScheduleService {
       }
     }
 
-    return this.prisma.locationSchedule.create({
+    const result = await this.prisma.locationSchedule.create({
       data: {
         locationId: dto.locationId,
         scheduledDate: scheduleDate,
@@ -155,6 +164,13 @@ export class AuditScheduleService {
       },
       include: { assignedAuditors: true, location: true },
     });
+
+    // Ensure assigned auditors have a DRAFT audit report for this location
+    if (dto.assignedAuditorIds && dto.assignedAuditorIds.length > 0) {
+      await this.ensureAuditReports(dto.locationId, dto.assignedAuditorIds);
+    }
+
+    return result;
   }
 
   async update(id: string, dto: UpdateAuditScheduleDto) {
@@ -194,7 +210,7 @@ export class AuditScheduleService {
       }
     }
 
-    return this.prisma.locationSchedule.update({
+    const result = await this.prisma.locationSchedule.update({
       where: { id },
       data: {
         scheduledDate: dto.scheduledDate ? newDate : undefined,
@@ -208,6 +224,16 @@ export class AuditScheduleService {
       },
       include: { assignedAuditors: true, location: true },
     });
+
+    // Sync reports for the newly assigned auditors
+    if (auditorIds && auditorIds.length > 0) {
+      await this.ensureAuditReports(
+        dto.locationId || schedule.locationId,
+        auditorIds,
+      );
+    }
+
+    return result;
   }
 
   async remove(id: string) {
@@ -218,5 +244,28 @@ export class AuditScheduleService {
     return this.prisma.locationSchedule.deleteMany({
       where: { locationId },
     });
+  }
+
+  private async ensureAuditReports(locationId: string, auditorIds: string[]) {
+    for (const auditorId of auditorIds) {
+      // Check if a DRAFT report already exists
+      const existingReport = await this.prisma.auditReport.findFirst({
+        where: {
+          locationId,
+          auditorId,
+          status: AuditReportStatus.DRAFT,
+        },
+      });
+
+      if (!existingReport) {
+        await this.prisma.auditReport.create({
+          data: {
+            locationId,
+            auditorId,
+            status: AuditReportStatus.DRAFT,
+          },
+        });
+      }
+    }
   }
 }

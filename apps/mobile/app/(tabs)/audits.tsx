@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Q } from "@nozbe/watermelondb";
 import { router, useFocusEffect } from "expo-router";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,15 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../contexts/auth-context";
 import { useConnectivity } from "../../contexts/connectivity-context";
-import { auditReportsCollection } from "../../db";
+import { auditReportsCollection, locationsCollection } from "../../db";
 import AuditReport from "../../db/models/AuditReport";
+import { useSync } from "../../hooks/useSync";
 
 const statusConfig: Record<string, { color: string; icon: string }> = {
   DRAFT: { color: "#94a3b8", icon: "create-outline" },
@@ -29,13 +31,29 @@ export default function AuditsTab() {
   const { isOnline } = useConnectivity();
   const [reports, setReports] = useState<AuditReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [locationMap, setLocationMap] = useState<Record<string, string>>({});
+  const { syncNow } = useSync();
 
   const loadAudits = useCallback(async () => {
-    setLoading(true);
+    if (!refreshing) setLoading(true);
     try {
       const results = await auditReportsCollection
         .query(Q.where("auditor_id", user?.id || ""))
         .fetch();
+
+      // Fetch location names for display
+      const locIds = [...new Set(results.map((r) => r.locationId))];
+      const locs = await locationsCollection
+        .query(Q.where("server_id", Q.oneOf(locIds)))
+        .fetch();
+
+      const map: Record<string, string> = {};
+      locs.forEach((l) => {
+        map[l.serverId] = l.locationName;
+      });
+      setLocationMap(map);
+
       // Sort by created_at descending
       results.sort(
         (a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0),
@@ -45,7 +63,16 @@ export default function AuditsTab() {
       console.error("Failed to load audits from local DB:", err);
     }
     setLoading(false);
-  }, [user?.id]);
+    setRefreshing(false);
+  }, [user?.id, refreshing]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    if (isOnline) {
+      await syncNow();
+    }
+    await loadAudits();
+  }, [isOnline, syncNow, loadAudits]);
 
   useFocusEffect(
     useCallback(() => {
@@ -55,6 +82,8 @@ export default function AuditsTab() {
 
   const renderReport = ({ item }: { item: AuditReport }) => {
     const sc = statusConfig[item.status] || statusConfig.DRAFT;
+    const locationName = locationMap[item.locationId] || item.locationId;
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -62,7 +91,7 @@ export default function AuditsTab() {
       >
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>{item.locationId}</Text>
+            <Text style={styles.cardTitle}>{locationName}</Text>
             <Text style={styles.cardDate}>
               {item.createdAt?.toLocaleDateString() || ""}
             </Text>
@@ -93,7 +122,7 @@ export default function AuditsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right"]}>
-      {loading ? (
+      {loading && !refreshing ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#3b82f6" />
         </View>
@@ -103,17 +132,40 @@ export default function AuditsTab() {
           keyExtractor={(item) => item.id}
           renderItem={renderReport}
           contentContainerStyle={{ padding: 16, gap: 12 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#3b82f6"
+              colors={["#3b82f6"]}
+            />
+          }
         />
       ) : (
-        <View style={styles.center}>
-          <Ionicons name="clipboard-outline" size={48} color="#475569" />
-          <Text style={styles.emptyText}>No audit reports yet</Text>
-          <Text style={styles.emptySubtext}>
-            {isOnline
-              ? "Create one from the dashboard"
-              : "Connect to internet to sync data"}
-          </Text>
-        </View>
+        <FlatList
+          data={[]}
+          renderItem={null}
+          ListEmptyComponent={
+            <View style={styles.center}>
+              <Ionicons name="clipboard-outline" size={48} color="#475569" />
+              <Text style={styles.emptyText}>No audit reports yet</Text>
+              <Text style={styles.emptySubtext}>
+                {isOnline
+                  ? "Pull down to sync or create one from the dashboard"
+                  : "Connect to internet to sync data"}
+              </Text>
+            </View>
+          }
+          contentContainerStyle={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#3b82f6"
+              colors={["#3b82f6"]}
+            />
+          }
+        />
       )}
     </SafeAreaView>
   );

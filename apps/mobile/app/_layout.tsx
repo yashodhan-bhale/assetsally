@@ -49,6 +49,10 @@ export default function RootLayout() {
               options={{ title: "Audit Report" }}
             />
             <Stack.Screen
+              name="audit/item/[itemId]"
+              options={{ title: "Inventory Item" }}
+            />
+            <Stack.Screen
               name="audit/inventory"
               options={{ title: "Location Inventory" }}
             />

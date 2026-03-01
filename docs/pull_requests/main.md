@@ -1,44 +1,45 @@
-# PR: feat(web, mobile): separate user management and handle api health status
+# PR: feat(admin): enhance inventory with QR unbinding and fix verification suite
 
 ## Overview
 
-This pull request implements two major improvements:
-
-1. **User Management Separation**: The single "User Management" page has been split into three specialized pages (Staff, Auditors, Clients) with appropriate default roles and platform filters.
-2. **API Health Monitoring**: Implemented real-time API reachability checks in both Web and Mobile applications. Users are now gracefully notified via a banner (Web) or status bar update (Mobile) when the API server is unreachable.
+This pull request enhances the Admin Inventory experience by allowing admins to unbind QR codes from items. This ensures flexibility during the inventory setup phase while maintaining data integrity by locking bindings once an audit report is submitted. It also addresses critical test suite failures and linting issues.
 
 ## Technical Changes
 
-### Web Application
+### API Package (`apps/api`)
 
-- **Components**:
-  - Created `UserManagementTable` (`src/components/users/user-management-table.tsx`): A reusable, type-safe table for managing different user pools.
-  - Updated `DashboardLayout`: Added `ApiHealthBanner` to the header to show real-time server status.
-- **Routing**:
-  - New pages for `/staff`, `/auditors`, and `/clients` under `dashboard/users`.
-  - Implemented a redirect in the old `/users` page for backward compatibility.
-- **API Client**:
-  - Enhanced `ApiClient` in `src/lib/api.ts` to detect and throw specific network errors when the fetch fails due to connectivity.
+- **Services**:
+    - **QrTagsService**: Implemented `unassignFromItem` which deletes the `QRBindingRecord` and resets the `QRTagStatus` to `UNASSIGNED`.
+    - **Logic Guard**: Added a check to prevent unbinding if an `AuditReport` for the item's location is already `SUBMITTED` or `APPROVED`.
+- **Tests**:
+    - Fixed `qr-tags.service.spec.ts` failure by mocking `systemSettings.upsert` to support the new unique serial number generation logic.
+- **Linting**:
+    - Resolved 11 Prettier and `prefer-const` errors across `qr-tags.service.ts` and related files.
 
-### Mobile Application
+### Web Package (`apps/web`)
 
-- **Context**:
-  - Enhanced `ConnectivityProvider` in `contexts/connectivity-context.tsx` to include an `isApiReachable` state, updated via periodic health checks.
-- **UI**:
-  - Updated `SyncStatusBar` component to reflect "Server Down" state when the API is unreachable.
-- **Library**:
-  - Exported `API_BASE` from `lib/api.ts` to allow shared usage of the base URL for health checks.
+- **Inventory Page**:
+    - Added `QrCell` component to display assigned QR codes in the data table.
+    - Implemented "Unbind QR Code" action with a confirmation dialog.
+    - Added loading states and hover transitions for a premium UI feel.
+- **Tests**:
+    - Fixed `inventory/page.spec.tsx` crashes by properly wrapping the test component in `QueryClientProvider` and `QueryClient`.
+
+### Shared Package (`packages/shared`)
+
+- Resolved minor unused variable warning in `utils/index.ts`.
 
 ## Verification
 
-- **Test Suite**: Fresh run of `turbo lint build test` passed across all packages.
-  - **API Tests**: 24 tests passed (Health, Users, QR Tags).
-  - **Web Tests**: 9 tests passed (Inventory, Reports, Login).
-- **Linting**: All ESLint and Prettier warnings/errors were resolved, including missing dependency warnings in new components.
-- **Manual Verification**: Verified navigation flow and API error reporting logic.
+- **Full Verification Suite**: Executed `pnpm turbo lint build test --concurrency 1` successfully across all packages.
+- **API Tests**: 24 tests passed (Health, Users, QR Tags).
+- **Web Tests**: 9 tests passed (Inventory, Reports, Login).
+- **Mobile Tests**: Linting and build verified (167 warnings, 0 errors).
+- **Database**: Prisma build and sync verified.
 
 ## Verification Proof
 
-- Web Tests pass (Vitest)
-- API Tests pass (Vitest)
-- Linting (ESLint/Prettier) passed for `@assetsally/web` and `@assetsally/mobile`.
+- [x] Web Tests pass (Vitest)
+- [x] API Tests pass (Vitest)
+- [x] Full build successful
+- [x] Linting passed (0 errors)

@@ -36,9 +36,9 @@ export function AuditScheduleModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
             <h3 className="text-lg font-bold text-slate-900">
               {readOnly ? "View Audit Details" : "Schedule Audit"}
             </h3>
@@ -49,7 +49,7 @@ export function AuditScheduleModal({
               <X size={20} />
             </button>
           </div>
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto custom-scrollbar">
             <ScheduleForm
               initialDate={initialDate}
               initialLocationId={initialLocationId}

@@ -122,10 +122,15 @@ export async function pullData(userId: string): Promise<void> {
               ? Number(item.netBookValue)
               : null;
             r.quantityAsPerBooks = item.quantityAsPerBooks || null;
+            r.quantityAsPerPhysical = item.quantityAsPerPhysical || null;
+            r.quantityDifference = item.quantityDifference || null;
+            r.biometricTag = item.biometricTag || null;
+            r.importRemarks = item.importRemarks || null;
             r.inventoryStatus = item.inventoryStatus || null;
             r.profitCenter = item.profitCenter || null;
             r.subCategory = item.subCategory || null;
             r.unitOfMeasure = item.unitOfMeasure || null;
+            r.needsSync = false;
           };
 
           if (existing.length > 0) {
@@ -154,6 +159,9 @@ export async function pullData(userId: string): Promise<void> {
   try {
     const auditsData = await mobileApi.getMyAudits({ auditorId: userId });
     const reports: any[] = auditsData?.reports || [];
+    console.log(
+      `[SyncEngine] Received ${reports.length} audit reports from server`,
+    );
 
     await db.write(async () => {
       for (const report of reports) {
@@ -326,6 +334,31 @@ export async function pushData(): Promise<number> {
     }
   }
 
+  // 3. Push dirty inventory items (QR binding or physical qty updates)
+  const dirtyItems = await inventoryCollection
+    .query(Q.where("needs_sync", true))
+    .fetch();
+
+  for (const item of dirtyItems) {
+    try {
+      await mobileApi.updateInventoryItem(item.serverId, {
+        quantityAsPerPhysical: item.quantityAsPerPhysical || undefined,
+        quantityDifference: item.quantityDifference || undefined,
+        biometricTag: item.biometricTag || undefined,
+        importRemarks: item.importRemarks || undefined,
+      });
+
+      await db.write(async () => {
+        await item.update((r: InventoryItem) => {
+          r.needsSync = false;
+        });
+      });
+      synced++;
+    } catch (err) {
+      console.warn(`[SyncEngine] Failed to push item ${item.id}:`, err);
+    }
+  }
+
   if (synced > 0) {
     await setSyncMeta("last_pushed_at", new Date().toISOString());
   }
@@ -338,13 +371,27 @@ export async function pushData(): Promise<number> {
 
 /** Count records that need syncing */
 export async function getPendingSyncCount(): Promise<number> {
-  const dirtyReports = await auditReportsCollection
-    .query(Q.where("needs_sync", true))
-    .fetchCount();
-  const dirtyFindings = await auditFindingsCollection
-    .query(Q.where("needs_sync", true))
-    .fetchCount();
-  return dirtyReports + dirtyFindings;
+  try {
+    const dirtyReports = await auditReportsCollection
+      .query(Q.where("needs_sync", true))
+      .fetchCount();
+    const dirtyFindings = await auditFindingsCollection
+      .query(Q.where("needs_sync", true))
+      .fetchCount();
+    const dirtyItems = await inventoryCollection
+      .query(Q.where("needs_sync", true))
+      .fetchCount();
+    return dirtyReports + dirtyFindings + dirtyItems;
+  } catch (error: any) {
+    if (error?.message?.includes("no such column")) {
+      console.error(
+        "[SyncEngine] Corrupted schema detected, resetting database...",
+      );
+      await clearLocalData();
+      return 0;
+    }
+    throw error;
+  }
 }
 
 /** Get last synced time */

@@ -6,14 +6,25 @@ const getApiBase = () => {
   // If running in a web browser (via Expo Web)
   if (Platform.OS === "web") return "http://localhost:3001/api";
 
-  // Try to get the debugger host (works for physical devices and simulators)
+  // Use env variable if set (preferred for Development Client builds)
+  // Set EXPO_PUBLIC_API_URL in .env.local to your LAN IP
+  // e.g. EXPO_PUBLIC_API_URL=http://192.168.x.x:3001/api
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  // Try to get the debugger host from Expo constants
   // hostUri typically looks like "192.168.x.x:8081"
+  // NOTE: This is unreliable in Development Client builds (often returns 127.0.0.1)
   const debuggerHost =
     ExpoConstants.expoConfig?.hostUri || ExpoConstants.experienceUrl;
 
   if (debuggerHost) {
     const host = debuggerHost.split(":")[0];
-    return `http://${host}:3001/api`;
+    // Only use if it's a real LAN IP (not loopback)
+    if (host && host !== "127.0.0.1" && host !== "localhost") {
+      return `http://${host}:3001/api`;
+    }
   }
 
   // Fallback for Android Emulator if hostUri is unavailable
@@ -191,6 +202,8 @@ export const mobileApi = {
 
   // QR Tags
   lookupQrTag: (code: string) => request(`/qr-tags/${code}`),
+  bindQrTag: (code: string, itemId: string) =>
+    request(`/qr-tags/${code}/assign`, { method: "POST", body: { itemId } }),
 
   // Locations
   getLocations: () => request("/locations"),
@@ -198,4 +211,7 @@ export const mobileApi = {
   // Inventory
   getInventoryByLocation: (locationId: string) =>
     request(`/inventory?locationId=${locationId}`),
+
+  updateInventoryItem: (id: string, data: any) =>
+    request(`/inventory/${id}`, { method: "PATCH", body: data }),
 };

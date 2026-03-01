@@ -33,6 +33,11 @@ interface InventoryItem {
   netBookValue?: number;
   capitalizationDate?: string;
   inventoryStatus?: string;
+  quantityAsPerBooks?: number;
+  quantityAsPerPhysical?: number;
+  quantityDifference?: number;
+  biometricTag?: string;
+  importRemarks?: string;
   // Audit fields (blank for now)
   auditRemarks?: string;
   auditDate?: string;
@@ -133,8 +138,27 @@ const columns: ColumnDef<InventoryItem>[] = [
   },
   {
     accessorKey: "quantityAsPerBooks",
-    header: "Qty",
+    header: "As per Books",
     cell: ({ row }) => formatNumber(row.getValue("quantityAsPerBooks")),
+  },
+  {
+    accessorKey: "quantityAsPerPhysical",
+    header: "As per Physical",
+    cell: ({ row }) => formatNumber(row.getValue("quantityAsPerPhysical")),
+  },
+  {
+    accessorKey: "quantityDifference",
+    header: "Difference",
+    cell: ({ row }) => formatNumber(row.getValue("quantityDifference")),
+  },
+  {
+    accessorKey: "biometricTag",
+    header: "Bimatric Tag",
+    cell: ({ row }) => (
+      <span className="font-mono text-[10px] bg-slate-50 px-1 rounded border border-slate-100 text-slate-600">
+        {row.original.biometricTag || "-"}
+      </span>
+    ),
   },
   {
     accessorKey: "acquisitionCost",
@@ -169,11 +193,6 @@ const columns: ColumnDef<InventoryItem>[] = [
   {
     accessorKey: "auditStatus",
     header: "Audit Status",
-    cell: () => <span className="text-slate-300">-</span>,
-  },
-  {
-    accessorKey: "auditCondition",
-    header: "Condition",
     cell: () => <span className="text-slate-300">-</span>,
   },
   {

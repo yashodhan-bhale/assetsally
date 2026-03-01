@@ -126,6 +126,10 @@ export class InventoryService {
         netBookValue: dto.netBookValue,
         accumulatedDepreciation: dto.accumulatedDepreciation,
         quantityAsPerBooks: dto.quantityAsPerBooks,
+        quantityAsPerPhysical: dto.quantityAsPerPhysical,
+        quantityDifference: dto.quantityDifference,
+        biometricTag: dto.biometricTag,
+        importRemarks: dto.importRemarks,
         inventoryStatus: dto.inventoryStatus,
         profitCenter: dto.profitCenter,
         subCategory: dto.subCategory,
@@ -306,6 +310,13 @@ export class InventoryService {
             ),
           ) || undefined;
         const quantityAsPerBooks = parseInt(row["As per Books"]) || undefined;
+        const quantityAsPerPhysical =
+          parseInt(row["As per Physical Verification"]) || undefined;
+        const quantityDifference = parseInt(row["Difference"]) || undefined;
+        const biometricTag = row["Bimatric Tag"]
+          ? String(row["Bimatric Tag"])
+          : undefined;
+        const importRemarks = row["Remark"] ? String(row["Remark"]) : undefined;
         const inventoryStatus = row["Status"]
           ? String(row["Status"])
           : undefined;
@@ -330,6 +341,10 @@ export class InventoryService {
           netBookValue,
           accumulatedDepreciation,
           quantityAsPerBooks,
+          quantityAsPerPhysical,
+          quantityDifference,
+          biometricTag,
+          importRemarks,
           inventoryStatus,
           capitalizationDate,
           profitCenter,

@@ -128,7 +128,7 @@ export class InventoryController {
   }
 
   @Patch(":id")
-  @Roles("ADMIN", "SUPER_ADMIN")
+  @Roles("ADMIN", "SUPER_ADMIN", "AUDITOR")
   @ApiOperation({ summary: "Update inventory item" })
   update(
     @Param("id") id: string,

@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     environment: "happy-dom",
     isolate: false,
-    fileParallelism: false,
+    fileParallelism: true,
     setupFiles: ["./test/setup.ts"],
     exclude: [
       "**/node_modules/**",
@@ -16,7 +16,13 @@ export default defineConfig({
       "**/.next/**",
       "**/coverage/**",
     ],
-    pool: "threads",
+    pool: "forks",
+    poolOptions: {
+      forks: {
+        minForks: 1,
+        maxForks: 4,
+      },
+    },
   },
   resolve: {
     alias: {

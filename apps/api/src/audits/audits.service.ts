@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from "@nestjs/common";
 import {
   VerificationStatus,
@@ -16,6 +17,8 @@ import { CreateAuditReportDto, SubmitFindingDto, ReviewReportDto } from "./dto";
 
 @Injectable()
 export class AuditsService {
+  private readonly logger = new Logger(AuditsService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async findAll(query?: {
@@ -31,7 +34,11 @@ export class AuditsService {
 
     const where: any = {};
     if (query?.locationId) where.locationId = query.locationId;
-    if (query?.auditorId) where.auditorId = query.auditorId;
+    if (query?.auditorId) {
+      where.auditorId = query.auditorId;
+      // Sync reports from schedules for this auditor to ensure they see their tasks
+      await this.syncDraftReportsFromSchedules(query.auditorId);
+    }
     if (query?.status) where.status = query.status;
 
     const [reports, total] = await Promise.all([
@@ -190,5 +197,61 @@ export class AuditsService {
         reviewNotes: dto.reviewNotes,
       },
     });
+  }
+
+  private async syncDraftReportsFromSchedules(auditorId: string) {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    // Look back 7 days to handle timezone differences or slightly past-due assignments
+    const lookbackDate = new Date(today);
+    lookbackDate.setUTCDate(today.getUTCDate() - 7);
+
+    this.logger.log(
+      `Syncing draft reports for auditor ${auditorId} from ${lookbackDate.toISOString()}`,
+    );
+
+    // Find all schedules for this auditor from lookback date onwards
+    const schedules = await this.prisma.locationSchedule.findMany({
+      where: {
+        assignedAuditors: { some: { id: auditorId } },
+        scheduledDate: { gte: lookbackDate },
+      },
+      select: { locationId: true, scheduledDate: true },
+    });
+
+    this.logger.log(
+      `Found ${schedules.length} schedules for auditor ${auditorId}`,
+    );
+
+    const locationIds = [...new Set(schedules.map((s) => s.locationId))];
+    let createdCount = 0;
+
+    for (const locationId of locationIds) {
+      const existing = await this.prisma.auditReport.findFirst({
+        where: {
+          locationId,
+          auditorId,
+          status: AuditReportStatus.DRAFT,
+        },
+      });
+
+      if (!existing) {
+        await this.prisma.auditReport.create({
+          data: {
+            locationId,
+            auditorId,
+            status: AuditReportStatus.DRAFT,
+          },
+        });
+        createdCount++;
+      }
+    }
+
+    if (createdCount > 0) {
+      this.logger.log(
+        `Created ${createdCount} new draft reports for auditor ${auditorId}`,
+      );
+    }
   }
 }

@@ -151,6 +151,10 @@ model InventoryItem {
   inventoryStatus         String?
   netBookValue            Decimal?          @db.Decimal(15, 2)
   quantityAsPerBooks      Int?
+  quantityAsPerPhysical   Int?
+  quantityDifference      Int?
+  biometricTag            String?
+  importRemarks           String?
   auditFindings           AuditFinding[]
   category                AssetCategory?    @relation(fields: [categoryId], references: [id])
   department              Department?       @relation(fields: [departmentId], references: [id])

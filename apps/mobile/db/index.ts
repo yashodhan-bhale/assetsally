@@ -1,6 +1,7 @@
 import { Database, Collection, Model } from "@nozbe/watermelondb";
 import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite";
 
+import migrations from "./migrations";
 import {
   Location,
   InventoryItem,
@@ -15,14 +16,49 @@ let _database: Database | null = null;
 /**
  * Lazily initialize the database. This avoids crashing in Expo Go
  * where WatermelonDB's JSI native modules are not available.
+ *
+ * If a migration error is detected (e.g. partial migration left the DB
+ * in an inconsistent state), we destroy and recreate the database so
+ * the app can start fresh with correct schema.
  */
 export function getDatabase(): Database {
   if (!_database) {
     const adapter = new SQLiteAdapter({
       schema,
+      migrations,
       jsi: true,
-      onSetUpError: (error) => {
-        console.error("[WatermelonDB] Setup error:", error);
+      onSetUpError: async (error) => {
+        console.error(
+          "[WatermelonDB] Setup error — resetting database:",
+          error,
+        );
+        // Database is in an unrecoverable state (e.g. partial migration).
+        // Wipe it so the next launch creates tables from the current schema.
+        try {
+          const resetAdapter = new SQLiteAdapter({
+            schema,
+            // No migrations — just create from scratch
+            jsi: true,
+          });
+          const tempDb = new Database({
+            adapter: resetAdapter,
+            modelClasses: [
+              Location,
+              InventoryItem,
+              AuditReport,
+              AuditFinding,
+              SyncMeta,
+            ],
+          });
+          await tempDb.write(async () => {
+            await tempDb.unsafeResetDatabase();
+          });
+          console.log(
+            "[WatermelonDB] Database reset successful — please reload the app",
+          );
+        } catch (resetError) {
+          console.error("[WatermelonDB] Failed to reset database:", resetError);
+        }
       },
     });
 

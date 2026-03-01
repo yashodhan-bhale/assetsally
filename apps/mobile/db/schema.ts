@@ -1,6 +1,6 @@
 import { appSchema, tableSchema } from "@nozbe/watermelondb";
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export default appSchema({
   version: SCHEMA_VERSION,
@@ -33,11 +33,16 @@ export default appSchema({
         { name: "acquisition_cost", type: "number", isOptional: true },
         { name: "net_book_value", type: "number", isOptional: true },
         { name: "quantity_as_per_books", type: "number", isOptional: true },
+        { name: "quantity_as_per_physical", type: "number", isOptional: true },
+        { name: "quantity_difference", type: "number", isOptional: true },
+        { name: "biometric_tag", type: "string", isOptional: true },
+        { name: "import_remarks", type: "string", isOptional: true },
         { name: "inventory_status", type: "string", isOptional: true },
         { name: "custom_fields", type: "string" }, // JSON stringified
         { name: "profit_center", type: "string", isOptional: true },
         { name: "sub_category", type: "string", isOptional: true },
         { name: "unit_of_measure", type: "string", isOptional: true },
+        { name: "needs_sync", type: "boolean" },
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },
       ],
