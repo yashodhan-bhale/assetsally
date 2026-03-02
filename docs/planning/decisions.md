@@ -177,3 +177,9 @@ SELECT items WHERE:
 - **Decision**: Only show "leaf" locations (smallest units with no children) in Audit Schedule views and modals.
 - **Rationale**: Audits are performed at the final unit level. Showing parent levels (Regions, Cities, etc.) in a flat scheduling list is confusing and leads to incorrect assignments.
 - **Implementation**: Added `where: { children: { none: {} } }` filtering to the Audit Schedule API.
+
+### 16. Test Suite Optimization
+
+- **Decision**: Disable Vitest isolation for API tests.
+- **Implementation**: Set `isolate: false` in `apps/api/vitest.config.ts`.
+- **Rationale**: NestJS/Prisma tests have significant bootstrap overhead. Disabling isolation allows Vitest to reuse the transformation cache and compiled modules across test files within the same worker, reducing total test time by ~40% for the API suite.

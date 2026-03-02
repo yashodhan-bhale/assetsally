@@ -193,6 +193,17 @@ Sleek management page:
 
 ---
 
+### Component 8: Phase 10 - Test Health & Refinement (Completed)
+
+**Goal:** Ensure 100% reliability of the testing suite and finalize premium UI aesthetics.
+
+- [x] Fix failing Web Inventory tests (data-testid & auth mocking)
+- [x] Add API unit tests for `AuthService` and `InventoryService`
+- [x] Refine Inventory Page UI with mono fonts and right alignment
+- [x] Optimize API tests with `isolate: false` in `vitest.config.ts`
+
+---
+
 ## Verification Plan
 
 ### Automated Tests
@@ -226,8 +237,6 @@ Since WatermelonDB requires native modules (no Expo Go), manual testing needs a 
 4. **Sync on reconnect**: Turn off airplane mode → Verify the finding syncs to the API (check API logs or database) → Verify sync status indicator updates
 5. **App restart persistence**: Record a finding offline → Force-close the app → Reopen → Verify the finding is still there
 
-> [!NOTE]
-
 ---
 
 ## Phase 9: Admin Web App Enhancements (Completed)
@@ -235,7 +244,7 @@ Since WatermelonDB requires native modules (no Expo Go), manual testing needs a 
 This phase focuses on refining the Audit Schedule logic and improving the UI/UX across all its views.
 
 ### 1. Backend Logic
-- Remove auditor concurrently-scheduled restriction.
+- Remove auditor same-day assignment restriction in `AuditScheduleService`.
 - Filter for leaf locations only in `AuditScheduleService`.
 
 ### 2. Side Menu Cleanup

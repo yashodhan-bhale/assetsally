@@ -3,16 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useAuth } from "../../../../contexts/auth-context";
 import { cn } from "../../../../lib/utils";
 
-const tabs = [
+const allTabs = [
   { name: "Calendar", href: "/dashboard/audit-schedule/calendar" },
-  { name: "Auditors", href: "/dashboard/audit-schedule/auditors" },
+  { name: "Auditors", href: "/dashboard/audit-schedule/auditors", roles: ["ADMIN"] },
   { name: "Locations", href: "/dashboard/audit-schedule/locations" },
 ];
 
 export function AuditScheduleNav() {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const userRole = user?.appType === "ADMIN" ? "ADMIN" : "CLIENT";
+  const tabs = allTabs.filter(tab => !tab.roles || tab.roles.includes(userRole));
 
   return (
     <nav className="flex space-x-4 border-b border-slate-200 mb-6">

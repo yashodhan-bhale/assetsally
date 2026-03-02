@@ -12,12 +12,15 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { useAuth } from "../../../../contexts/auth-context";
 import { api } from "../../../../lib/api";
 import { AuditScheduleModal } from "../components/AuditScheduleModal";
 
 import { AuditCalendar } from "./components/AuditCalendar";
 
 export default function CalendarPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.appType === "ADMIN";
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedAuditId, setExpandedAuditId] = useState<string | null>(null);
@@ -45,9 +48,10 @@ export default function CalendarPage() {
         return (
           s.location?.locationName?.toLowerCase().includes(query) ||
           s.location?.locationCode?.toLowerCase().includes(query) ||
-          s.assignedAuditors?.some((a: any) =>
-            a.name.toLowerCase().includes(query),
-          )
+          (isAdmin &&
+            s.assignedAuditors?.some((a: any) =>
+              a.name.toLowerCase().includes(query),
+            ))
         );
       }) || [];
 
@@ -101,7 +105,7 @@ export default function CalendarPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search audits, locations, auditors..."
+              placeholder={isAdmin ? "Search audits, locations, auditors..." : "Search audits, locations..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -212,33 +216,35 @@ export default function CalendarPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm">
-                            <Users className="w-4 h-4 text-slate-500" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                              Auditors
-                            </p>
-                            <div className="flex flex-wrap gap-1.5 mt-1">
-                              {audit.assignedAuditors &&
-                              audit.assignedAuditors.length > 0 ? (
-                                audit.assignedAuditors.map((a: any) => (
-                                  <span
-                                    key={a.id}
-                                    className="px-2 py-0.5 bg-white border border-slate-200 text-slate-700 text-xs rounded-md shadow-sm font-medium"
-                                  >
-                                    {a.name}
+                        {isAdmin && (
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm">
+                              <Users className="w-4 h-4 text-slate-500" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                Auditors
+                              </p>
+                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                {audit.assignedAuditors &&
+                                  audit.assignedAuditors.length > 0 ? (
+                                  audit.assignedAuditors.map((a: any) => (
+                                    <span
+                                      key={a.id}
+                                      className="px-2 py-0.5 bg-white border border-slate-200 text-slate-700 text-xs rounded-md shadow-sm font-medium"
+                                    >
+                                      {a.name}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="text-xs italic text-slate-400">
+                                    None assigned
                                   </span>
-                                ))
-                              ) : (
-                                <span className="text-xs italic text-slate-400">
-                                  None assigned
-                                </span>
-                              )}
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )}
 
                         {audit.notes && (
                           <div className="flex items-start gap-3">

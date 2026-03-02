@@ -4,10 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { useAuth } from "../../../../contexts/auth-context";
 import { api } from "../../../../lib/api";
 import { AuditScheduleModal } from "../components/AuditScheduleModal";
 
 export default function LocationsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.appType === "ADMIN";
   const [filterScheduled, setFilterScheduled] = useState("ALL");
   const [filterAssigned, setFilterAssigned] = useState("ALL");
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
@@ -74,20 +77,22 @@ export default function LocationsPage() {
               <option value="UNSCHEDULED">Unscheduled</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs text-slate-500 mb-1">
-              Assignment
-            </label>
-            <select
-              value={filterAssigned}
-              onChange={(e) => setFilterAssigned(e.target.value)}
-              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="ALL">All Assignments</option>
-              <option value="ASSIGNED">Assigned</option>
-              <option value="UNASSIGNED">Unassigned</option>
-            </select>
-          </div>
+          {isAdmin && (
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">
+                Assignment
+              </label>
+              <select
+                value={filterAssigned}
+                onChange={(e) => setFilterAssigned(e.target.value)}
+                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="ALL">All Assignments</option>
+                <option value="ASSIGNED">Assigned</option>
+                <option value="UNASSIGNED">Unassigned</option>
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -97,7 +102,7 @@ export default function LocationsPage() {
                 <th className="py-3 px-4 font-normal">Location</th>
                 <th className="py-3 px-4 font-normal">Audit Status</th>
                 <th className="py-3 px-4 font-normal">Schedule Date(s)</th>
-                <th className="py-3 px-4 font-normal">Assigned Auditors</th>
+                {isAdmin && <th className="py-3 px-4 font-normal">Assigned Auditors</th>}
               </tr>
             </thead>
             <tbody>
@@ -160,30 +165,32 @@ export default function LocationsPage() {
                     <td className="py-4 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">
                       {dateDisplay}
                     </td>
-                    <td className="py-4 px-4 text-slate-600">
-                      {hasAuditors ? (
-                        <div className="flex flex-wrap gap-1">
-                          {latestSchedule.assignedAuditors.map((a: any) => (
-                            <span
-                              key={a.id}
-                              className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100 font-medium"
-                            >
-                              {a.name}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 text-xs italic">
-                          Unassigned
-                        </span>
-                      )}
-                    </td>
+                    {isAdmin && (
+                      <td className="py-4 px-4 text-slate-600">
+                        {hasAuditors ? (
+                          <div className="flex flex-wrap gap-1">
+                            {latestSchedule.assignedAuditors.map((a: any) => (
+                              <span
+                                key={a.id}
+                                className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100 font-medium"
+                              >
+                                {a.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">
+                            Unassigned
+                          </span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
               {filteredLocations?.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={4} className="text-center py-8 text-slate-500">
+                  <td colSpan={isAdmin ? 4 : 3} className="text-center py-8 text-slate-500">
                     No locations match your filters.
                   </td>
                 </tr>
@@ -287,40 +294,42 @@ export default function LocationsPage() {
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    Assigned Auditors
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedLocation.schedules[0].assignedAuditors?.length >
-                    0 ? (
-                      selectedLocation.schedules[0].assignedAuditors.map(
-                        (a: any) => (
-                          <div
-                            key={a.id}
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2"
-                          >
-                            <div className="w-7 h-7 bg-white rounded-full border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
-                              {a.name.charAt(0)}
+                {isAdmin && (
+                  <div>
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      Assigned Auditors
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedLocation.schedules[0].assignedAuditors?.length >
+                        0 ? (
+                        selectedLocation.schedules[0].assignedAuditors.map(
+                          (a: any) => (
+                            <div
+                              key={a.id}
+                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2"
+                            >
+                              <div className="w-7 h-7 bg-white rounded-full border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                {a.name.charAt(0)}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-slate-900">
+                                  {a.name}
+                                </span>
+                                <span className="text-[10px] text-slate-500">
+                                  {a.email}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-semibold text-slate-900">
-                                {a.name}
-                              </span>
-                              <span className="text-[10px] text-slate-500">
-                                {a.email}
-                              </span>
-                            </div>
-                          </div>
-                        ),
-                      )
-                    ) : (
-                      <div className="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-200 w-full text-center">
-                        No auditors assigned
-                      </div>
-                    )}
+                          ),
+                        )
+                      ) : (
+                        <div className="text-xs italic text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-200 w-full text-center">
+                          No auditors assigned
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             ) : (
               <div className="py-10 flex flex-col items-center justify-center text-center px-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed">

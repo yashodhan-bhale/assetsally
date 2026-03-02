@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     root: "./",
     environment: "node",
-    isolate: true,
+    isolate: false,
     exclude: ["**/node_modules/**", "**/dist/**", "**/coverage/**"],
     pool: "forks",
     fileParallelism: true,

@@ -1,24 +1,24 @@
-# PR Summary: feat(admin): enhance audit schedule UI/UX and assignment flexibility
+# Pull Request: feat(web): implement working data-driven reports page with location breakdown and search
 
 ## Overview
-This PR enhances the Audit Schedule system in the Admin Web App. It introduces more flexible auditor assignments (multiple locations per day), stricter location filtering (leaf levels only), and significant UI/UX improvements across all audit views (Auditors, Locations, Calendar).
+This PR transforms the static reports mockup into a fully functional, data-driven Reports Engine for the AssetsAlly web application. It transitions from static mock data to real-time inventory insights, focusing on financial summaries and location-based audit reconciliation.
 
 ## Technical Changes
-- **Backend (`apps/api/src/audit-schedule/`)**:
-    - Removed the restriction preventing an auditor from being assigned to multiple locations on the same day.
-    - Added `where: { children: { none: {} } }` filtering to `getSummary` and `getLocations` to focus on the smallest units of the hierarchy.
-- **Frontend (`apps/web/src/app/dashboard/audit-schedule/`)**:
-    - **General**: Reduced content-to-sidebar gaps by 50% for a cleaner, more compact layout.
-    - **Calendar View**: Compressed location items, removed auditor labels from cells, and added an "x more" note for busy days. Added date-range display in the sidebar.
-    - **Auditors View**: Removed the workload heatmap. Improved sidebar with scrollable assignment lists and grouping by date range (DD/MM/YYYY).
-    - **Locations View**: Updated the Edit icon to a pencil. Refined sidebar with direct auditor and date-range visibility.
-    - **Modals**: Updated `ScheduleForm` and `AuditScheduleModal` to support full pre-filling of existing schedule data (location, date-range, and current auditors).
+- **Web App (`apps/web`)**:
+  - `reports/page.tsx`: 
+    - Implemented dynamic data fetching using `@tanstack/react-query`.
+    - Added comprehensive data processing logic for summary metrics (Total Assets, Acquisition Cost, Net Book Value, QR Compliance).
+    - Integrated `DataTable` for the **Location Breakdown**, adding search, pagination, and audit-centric columns (As per Books, Physical, Difference, Found OK, Discrepancies).
+    - Updated UI to remove unnecessary sidebars and focus on core data views.
+  - `reports/page.spec.tsx`:
+    - Updated tests to handle `useQuery` via `QueryClientProvider`.
+    - Mocked API calls to verify the new dynamic UI components.
 
 ## Verification
-- **Checks**: Ran `pnpm turbo lint test --concurrency 4`.
-- **Lint**: All packages passed.
-- **Tests**: 25 tests passed successfully across Web, API, and Mobile.
-- **Manual Proof**:
-    - Verified that only leaf-level locations appear in dropdowns and tables.
-    - Confirmed that clicking edit on any audit sidebar item correctly pre-populates the modal fields.
-    - Verified navigation cleanup by confirming "Inventory" is removed from the sidebar.
+- **Automated Tests**:
+  - `pnpm turbo lint test` executed and passed across all packages (`web`, `api`, `mobile`).
+  - Web unit tests specifically verified for `ReportsPage` component.
+- **Manual Verification**:
+  - Verified summary metric accuracy against inventory base.
+  - Confirmed table pagination and search functionality in Location Breakdown.
+  - Validated currency formatting (₹) and status-based counting for discrepancies.

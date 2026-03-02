@@ -4,10 +4,74 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Unlink, AlertCircle, Loader2, MapPin, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense, useMemo } from "react";
 
+import { useAuth } from "../../../contexts/auth-context";
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
+
+interface InventoryItem {
+  id: string;
+  assetNumber: string;
+  assetName: string;
+  location?: {
+    id: string;
+    locationName: string;
+    locationCode: string
+  };
+  department?: { id: string; name: string };
+  category?: { id: string; name: string };
+  subCategory?: string;
+  profitCenter?: string;
+  unitOfMeasure?: string;
+  quantityAsPerBooks?: number;
+  quantityAsPerPhysical?: number;
+  quantityDifference?: number;
+  biometricTag?: string;
+  acquisitionCost?: number;
+  accumulatedDepreciation?: number;
+  netBookValue?: number;
+  capitalizationDate?: string;
+  inventoryStatus?: string;
+  QRBindingRecord?: Array<{
+    qrTag: {
+      code: string;
+    };
+  }>;
+}
+
+const formatNumber = (val: any) => {
+  if (val === undefined || val === null) return "-";
+  return (
+    <div className="font-mono text-right" data-testid="inventory-number">
+      {new Intl.NumberFormat("en-IN").format(Number(val))}
+    </div>
+  );
+};
+
+const formatCurrency = (val: any) => {
+  if (val === undefined || val === null) return "-";
+  return (
+    <div className="font-mono text-right" data-testid="inventory-currency">
+      {new Intl.NumberFormat("en-IN", {
+        maximumFractionDigits: 0,
+      }).format(Number(val))}
+    </div>
+  );
+};
+
+const formatDate = (val: any) => {
+  if (!val) return "-";
+  return (
+    <div className="font-mono" data-testid="inventory-date">
+      {new Date(val).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })}
+    </div>
+  );
+};
 
 const LoaderIcon: any = Loader2;
 const MapPinIcon: any = MapPin;
@@ -15,210 +79,7 @@ const XIcon: any = X;
 const UnlinkIcon: any = Unlink;
 const AlertCircleIcon: any = AlertCircle;
 
-// Type definition based on API response
-interface InventoryItem {
-  id: string;
-  assetNumber: string;
-  assetName: string;
-  assetDescription?: string;
-  location: { locationName: string; locationCode: string };
-  department?: { name: string; code: string };
-  category?: { name: string; code: string };
-  subCategory?: string;
-  profitCenter?: string;
-  unitOfMeasure?: string;
-  quantityAsPerBooks?: number;
-  acquisitionCost?: number;
-  accumulatedDepreciation?: number;
-  netBookValue?: number;
-  capitalizationDate?: string;
-  inventoryStatus?: string;
-  quantityAsPerBooks?: number;
-  quantityAsPerPhysical?: number;
-  quantityDifference?: number;
-  biometricTag?: string;
-  importRemarks?: string;
-  // Audit fields (blank for now)
-  auditRemarks?: string;
-  auditDate?: string;
-  QRBindingRecord?: Array<{
-    qrTag: {
-      id: string;
-      code: string;
-      status: string;
-    };
-  }>;
-}
-
-const formatDate = (date: string | null | undefined) => {
-  if (!date) return "-";
-  try {
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "-";
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const year = d.getFullYear();
-    return (
-      <span className="font-mono" data-testid="inventory-date">
-        {`${month}/${day}/${year}`}
-      </span>
-    );
-  } catch (e) {
-    return "-";
-  }
-};
-
-const formatNumber = (val: any) => {
-  if (val === null || val === undefined) return "-";
-  return (
-    <span className="font-mono" data-testid="inventory-number">
-      {val}
-    </span>
-  );
-};
-
-const formatCurrency = (val: any) => {
-  const amount = parseFloat(String(val || "0"));
-  if (isNaN(amount)) return "-";
-  return (
-    <div className="text-right font-mono" data-testid="inventory-currency">
-      {new Intl.NumberFormat("en-IN", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount)}
-    </div>
-  );
-};
-
-const columns: ColumnDef<InventoryItem>[] = [
-  {
-    accessorKey: "assetNumber",
-    header: "Asset ID",
-    cell: ({ row }) => (
-      <span className="font-mono">{row.original.assetNumber}</span>
-    ),
-  },
-  {
-    accessorKey: "assetName",
-    header: "Description",
-  },
-  {
-    accessorKey: "location.locationName",
-    header: "Location",
-    cell: ({ row }) => (
-      <div>
-        <div className="text-slate-900">
-          {row.original.location?.locationName}
-        </div>
-        <div className="text-xs text-slate-500 font-mono">
-          {row.original.location?.locationCode}
-        </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "department.name",
-    header: "Department",
-  },
-  {
-    accessorKey: "category.name",
-    header: "Category",
-  },
-  {
-    accessorKey: "subCategory",
-    header: "Sub Category",
-  },
-  {
-    accessorKey: "profitCenter",
-    header: "Profit Center",
-  },
-  {
-    accessorKey: "unitOfMeasure",
-    header: "UOM",
-  },
-  {
-    accessorKey: "quantityAsPerBooks",
-    header: "As per Books",
-    cell: ({ row }) => formatNumber(row.getValue("quantityAsPerBooks")),
-  },
-  {
-    accessorKey: "quantityAsPerPhysical",
-    header: "As per Physical",
-    cell: ({ row }) => formatNumber(row.getValue("quantityAsPerPhysical")),
-  },
-  {
-    accessorKey: "quantityDifference",
-    header: "Difference",
-    cell: ({ row }) => formatNumber(row.getValue("quantityDifference")),
-  },
-  {
-    accessorKey: "biometricTag",
-    header: "Bimatric Tag",
-    cell: ({ row }) => (
-      <span className="font-mono text-[10px] bg-slate-50 px-1 rounded border border-slate-100 text-slate-600">
-        {row.original.biometricTag || "-"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "acquisitionCost",
-    header: () => <div className="text-right">Cost (₹)</div>,
-    cell: ({ row }) => formatCurrency(row.getValue("acquisitionCost")),
-  },
-  {
-    accessorKey: "accumulatedDepreciation",
-    header: () => <div className="text-right">Acc. Depre (₹)</div>,
-    cell: ({ row }) => formatCurrency(row.getValue("accumulatedDepreciation")),
-  },
-  {
-    accessorKey: "netBookValue",
-    header: () => <div className="text-right">NBV (₹)</div>,
-    cell: ({ row }) => formatCurrency(row.getValue("netBookValue")),
-  },
-  {
-    accessorKey: "capitalizationDate",
-    header: "Purchase Date",
-    cell: ({ row }) => formatDate(row.getValue("capitalizationDate")),
-  },
-  {
-    accessorKey: "inventoryStatus",
-    header: "Status",
-    cell: ({ row }) => (
-      <span className="capitalize">
-        {row.original.inventoryStatus?.toLowerCase() || "-"}
-      </span>
-    ),
-  },
-  // Blank Audit Columns
-  {
-    accessorKey: "auditStatus",
-    header: "Audit Status",
-    cell: () => <span className="text-slate-300">-</span>,
-  },
-  {
-    accessorKey: "auditRemarks",
-    header: "Remarks",
-    cell: () => <span className="text-slate-300">-</span>,
-  },
-  {
-    accessorKey: "auditDate",
-    header: "Audit Date",
-    cell: () => <span className="text-slate-300">-</span>,
-  },
-  {
-    id: "qrCode",
-    header: "QR Code",
-    cell: ({ row }) => {
-      const binding = row.original.QRBindingRecord?.[0];
-      if (!binding)
-        return <span className="text-slate-300 italic text-xs">Unbound</span>;
-
-      return <QrCell tagCode={binding.qrTag.code} />;
-    },
-  },
-];
-
-function QrCell({ tagCode }: { tagCode: string }) {
+function QrCell({ tagCode, isAdmin }: { tagCode: string; isAdmin: boolean }) {
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -253,23 +114,28 @@ function QrCell({ tagCode }: { tagCode: string }) {
       <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700">
         {tagCode}
       </span>
-      <button
-        onClick={handleUnbind}
-        disabled={mutation.isPending}
-        className="opacity-0 group-hover/qr:opacity-100 p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-all disabled:opacity-50"
-        title="Unbind QR Code"
-      >
-        {mutation.isPending ? (
-          <LoaderIcon className="w-3 h-3 animate-spin" />
-        ) : (
-          <UnlinkIcon size={12} />
-        )}
-      </button>
+      {isAdmin && (
+        <button
+          onClick={handleUnbind}
+          disabled={mutation.isPending}
+          className="opacity-0 group-hover/qr:opacity-100 p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-all disabled:opacity-50"
+          title="Unbind QR Code"
+        >
+          {mutation.isPending ? (
+            <LoaderIcon className="w-3 h-3 animate-spin" />
+          ) : (
+            <UnlinkIcon size={12} />
+          )}
+        </button>
+      )}
     </div>
   );
 }
 
 function InventoryContent() {
+  const { user } = useAuth();
+  const isAdmin = user?.appType === "ADMIN";
+
   const [data, setData] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [locationName, setLocationName] = useState<string | null>(null);
@@ -279,6 +145,142 @@ function InventoryContent() {
   const locationId = searchParams.get("locationId");
 
   const queryClient = useQueryClient();
+
+  const columns = useMemo<ColumnDef<InventoryItem>[]>(
+    () => [
+      {
+        accessorKey: "assetNumber",
+        header: "Asset ID",
+        cell: ({ row }) => (
+          <span className="font-mono font-medium text-blue-600" data-testid="inventory-asset-id">
+            {row.original.assetNumber}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "assetName",
+        header: "Description",
+      },
+      {
+        accessorKey: "location.locationName",
+        header: "Location",
+        cell: ({ row }) => (
+          <div>
+            <div className="text-slate-900">
+              {row.original.location?.locationName}
+            </div>
+            <div className="text-xs text-slate-500 font-mono">
+              {row.original.location?.locationCode}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "department.name",
+        header: "Department",
+      },
+      {
+        accessorKey: "category.name",
+        header: "Category",
+      },
+      {
+        accessorKey: "subCategory",
+        header: "Sub Category",
+      },
+      {
+        accessorKey: "profitCenter",
+        header: "Profit Center",
+      },
+      {
+        accessorKey: "unitOfMeasure",
+        header: "UOM",
+      },
+      {
+        accessorKey: "quantityAsPerBooks",
+        header: "As per Books",
+        cell: ({ row }) => formatNumber(row.getValue("quantityAsPerBooks")),
+      },
+      {
+        accessorKey: "quantityAsPerPhysical",
+        header: "As per Physical",
+        cell: ({ row }) => formatNumber(row.getValue("quantityAsPerPhysical")),
+      },
+      {
+        accessorKey: "quantityDifference",
+        header: "Difference",
+        cell: ({ row }) => formatNumber(row.getValue("quantityDifference")),
+      },
+      {
+        accessorKey: "biometricTag",
+        header: "Biometric Tag",
+        cell: ({ row }) => (
+          <span className="font-mono text-[10px] bg-slate-50 px-1 rounded border border-slate-100 text-slate-600">
+            {row.original.biometricTag || "-"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "acquisitionCost",
+        header: () => <div className="text-right">Cost (₹)</div>,
+        cell: ({ row }) => formatCurrency(row.getValue("acquisitionCost")),
+      },
+      {
+        accessorKey: "accumulatedDepreciation",
+        header: () => <div className="text-right">Acc. Depre (₹)</div>,
+        cell: ({ row }) => formatCurrency(row.getValue("accumulatedDepreciation")),
+      },
+      {
+        accessorKey: "netBookValue",
+        header: () => <div className="text-right">NBV (₹)</div>,
+        cell: ({ row }) => formatCurrency(row.getValue("netBookValue")),
+      },
+      {
+        accessorKey: "capitalizationDate",
+        header: "Purchase Date",
+        cell: ({ row }) => formatDate(row.getValue("capitalizationDate")),
+      },
+      {
+        accessorKey: "inventoryStatus",
+        header: "Status",
+        cell: ({ row }) => (
+          <span className="capitalize">
+            {row.original.inventoryStatus?.toLowerCase() || "-"}
+          </span>
+        ),
+      },
+      // Blank Audit Columns
+      {
+        accessorKey: "auditStatus",
+        header: "Audit Status",
+        cell: () => <span className="text-slate-300">-</span>,
+      },
+      {
+        accessorKey: "auditRemarks",
+        header: "Remarks",
+        cell: () => <span className="text-slate-300">-</span>,
+      },
+      {
+        accessorKey: "auditDate",
+        header: "Audit Date",
+        cell: () => <span className="text-slate-300">-</span>,
+      },
+      {
+        id: "qrCode",
+        header: "QR Code",
+        cell: ({ row }) => {
+          const binding = row.original.QRBindingRecord?.[0];
+          if (!binding) {
+            return (
+              <span className="text-slate-300 italic text-xs">Unbound</span>
+            );
+          }
+
+          return <QrCell tagCode={binding.qrTag.code} isAdmin={isAdmin} />;
+        },
+      },
+    ],
+    [isAdmin],
+  );
   useEffect(() => {
     async function loadData() {
       setLoading(true);

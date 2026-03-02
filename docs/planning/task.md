@@ -64,3 +64,11 @@
 - [x] Locations View Sidebar: Change Edit icon to Pencil
 - [x] Locations View Sidebar: Enable full pre-filling of existing schedule data
 - [x] App Core: Remove "Inventory" from side navigation
+
+## Phase 10: Test Health Check (Completed)
+
+- [x] Fix failing Web Inventory tests (data-testid & auth mocking)
+- [x] Add API unit tests for `AuthService` and `InventoryService`
+- [x] Refine Inventory Page UI with mono fonts and right alignment
+- [x] Optimize API tests with `isolate: false`
+- [x] Verify full project build/test stability

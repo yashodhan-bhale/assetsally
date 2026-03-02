@@ -23,6 +23,12 @@ vi.mock("next/navigation", () => ({
   })),
 }));
 
+vi.mock("../../../contexts/auth-context", () => ({
+  useAuth: vi.fn(() => ({
+    user: { appType: "ADMIN" },
+  })),
+}));
+
 describe("InventoryPage Formatting", () => {
   it("formats dates as MM/DD/YYYY with mono font", async () => {
     const mockData = [

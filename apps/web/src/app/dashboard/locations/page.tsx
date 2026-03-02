@@ -6,6 +6,7 @@ import Link from "next/link";
 import React, { useEffect, useState, useMemo } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
+import { useAuth } from "../../../contexts/auth-context";
 import { api } from "../../../lib/api";
 import { AuditScheduleModal } from "../audit-schedule/components/AuditScheduleModal";
 
@@ -32,6 +33,9 @@ interface LocationTableData extends Location {
 }
 
 export default function LocationsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.appType === "ADMIN";
+
   const [data, setData] = useState<LocationTableData[]>([]);
   const [loading, setLoading] = useState(true);
   const [headers, setHeaders] = useState<string[]>([
@@ -97,8 +101,8 @@ export default function LocationsPage() {
     loadData();
   }, []);
 
-  const columns = useMemo<ColumnDef<LocationTableData>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<LocationTableData>[]>(() => {
+    const baseColumns: ColumnDef<LocationTableData>[] = [
       {
         accessorKey: "locationCode",
         header: "Code",
@@ -127,7 +131,10 @@ export default function LocationsPage() {
         accessorKey: "level1",
         header: headers[0],
       },
-      {
+    ];
+
+    if (isAdmin) {
+      baseColumns.push({
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
@@ -142,10 +149,11 @@ export default function LocationsPage() {
             Schedule
           </button>
         ),
-      },
-    ],
-    [headers],
-  );
+      });
+    }
+
+    return baseColumns;
+  }, [headers, isAdmin]);
 
   if (loading) {
     return (
@@ -158,8 +166,16 @@ export default function LocationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Locations</h1>
-        <p className="text-slate-500">Manage endpoints and physical spaces.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          Locations
+        </h1>
+        <div className="text-slate-500">
+          {isAdmin ? (
+            <p>Manage endpoints and physical spaces.</p>
+          ) : (
+            <p>View physical asset locations.</p>
+          )}
+        </div>
       </div>
 
       <DataTable
@@ -175,7 +191,7 @@ export default function LocationsPage() {
           setModalLocationId(null);
         }}
         initialLocationId={modalLocationId}
-        readOnly={false}
+        readOnly={!isAdmin}
       />
     </div>
   );

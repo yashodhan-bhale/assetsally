@@ -29,7 +29,7 @@ export const navItems: NavItem[] = [
     title: "Audit Schedule",
     href: "/dashboard/audit-schedule/calendar",
     icon: Calendar,
-    roles: ["ADMIN"],
+    roles: ["ADMIN", "CLIENT"],
   },
   {
     title: "Locations",
