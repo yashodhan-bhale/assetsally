@@ -7,10 +7,14 @@
     "scheme": "assetsally",
     "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/client-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#1e293b"
     },
-    "assetBundlePatterns": ["**/*"],
+    "icon": "./assets/client-logo.png",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.assetsally.mobile",
