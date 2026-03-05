@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { api } from "../../lib/api";
+
 import { StatCard } from "./stat-card";
 
 const PackageIcon: any = Package;
@@ -44,9 +45,12 @@ export function ClientStats() {
 
   // Calculate compliance
   const reports = audits?.reports || [];
-  const completedAudits = reports.filter((r: any) => r.status === "APPROVED").length;
+  const completedAudits = reports.filter(
+    (r: any) => r.status === "APPROVED",
+  ).length;
   const totalAudits = audits?.pagination?.total || 0;
-  const compliance = totalAudits > 0 ? Math.round((completedAudits / totalAudits) * 100) : 0;
+  const compliance =
+    totalAudits > 0 ? Math.round((completedAudits / totalAudits) * 100) : 0;
 
   return (
     <>
@@ -103,13 +107,13 @@ export function ClientStats() {
                       <p className="text-xs text-slate-500 mt-0.5">
                         {report.createdAt
                           ? new Date(report.createdAt).toLocaleDateString(
-                            undefined,
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )
+                              undefined,
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )
                           : "-"}
                       </p>
                     </div>

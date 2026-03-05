@@ -26,7 +26,7 @@ export function RoleGuard({
     if (!isLoading && isAuthenticated && user) {
       const userRole = user.role?.toUpperCase();
       const appType = user.appType?.toUpperCase();
-      const roles = allowedRoles.map(r => r.toUpperCase());
+      const roles = allowedRoles.map((r) => r.toUpperCase());
 
       const isAllowed = roles.includes(userRole) || roles.includes(appType);
 
@@ -59,24 +59,30 @@ export function RoleGuard({
 
   const userRole = user.role?.toUpperCase();
   const appType = user.appType?.toUpperCase();
-  const roles = allowedRoles.map(r => r.toUpperCase());
+  const roles = allowedRoles.map((r) => r.toUpperCase());
 
   const isAllowed = roles.includes(userRole) || roles.includes(appType);
 
   if (!isAllowed) {
-    return fallback || (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md">
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Access Denied</h2>
-          <p className="text-slate-500 mb-4">You do not have permission to view this page.</p>
-          <button
-            onClick={() => router.push("/login")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Login
-          </button>
+    return (
+      fallback || (
+        <div className="flex h-screen items-center justify-center bg-slate-50">
+          <div className="text-center p-8 bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md">
+            <h2 className="text-xl font-bold text-slate-900 mb-2">
+              Access Denied
+            </h2>
+            <p className="text-slate-500 mb-4">
+              You do not have permission to view this page.
+            </p>
+            <button
+              onClick={() => router.push("/login")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Back to Login
+            </button>
+          </div>
         </div>
-      </div>
+      )
     );
   }
 

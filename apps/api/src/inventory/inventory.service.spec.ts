@@ -72,10 +72,12 @@ describe("InventoryService", () => {
           where: expect.objectContaining({
             locationId: "loc-1",
             OR: expect.arrayContaining([
-              expect.objectContaining({ assetName: { contains: "test", mode: "insensitive" } })
-            ])
-          })
-        })
+              expect.objectContaining({
+                assetName: { contains: "test", mode: "insensitive" },
+              }),
+            ]),
+          }),
+        }),
       );
     });
   });
@@ -100,7 +102,10 @@ describe("InventoryService", () => {
     it("should create item if it does not exist", async () => {
       mockPrismaService.inventoryItem.findUnique.mockResolvedValue(null);
       const dto = { assetNumber: "AST-NEW", assetName: "New Asset" };
-      mockPrismaService.inventoryItem.create.mockResolvedValue({ id: "new-id", ...dto });
+      mockPrismaService.inventoryItem.create.mockResolvedValue({
+        id: "new-id",
+        ...dto,
+      });
 
       const result = await service.create(dto as any);
 
@@ -112,7 +117,9 @@ describe("InventoryService", () => {
       mockPrismaService.inventoryItem.findUnique.mockResolvedValue({ id: "1" });
       const dto = { assetNumber: "AST001", assetName: "Existing" };
 
-      await expect(service.create(dto as any)).rejects.toThrow(ConflictException);
+      await expect(service.create(dto as any)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 });

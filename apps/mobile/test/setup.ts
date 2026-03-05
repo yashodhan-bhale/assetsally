@@ -6,7 +6,7 @@ afterEach(() => {
 });
 
 // Mock common React Native modules
-jest.mock("react-native/Libraries/Animated/NativeAnimatedHelper");
+
 jest.mock("expo-router", () => ({
   useRouter: () => ({
     push: jest.fn(),

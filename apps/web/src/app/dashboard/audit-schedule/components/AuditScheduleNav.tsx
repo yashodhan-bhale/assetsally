@@ -8,7 +8,11 @@ import { cn } from "../../../../lib/utils";
 
 const allTabs = [
   { name: "Calendar", href: "/dashboard/audit-schedule/calendar" },
-  { name: "Auditors", href: "/dashboard/audit-schedule/auditors", roles: ["ADMIN"] },
+  {
+    name: "Auditors",
+    href: "/dashboard/audit-schedule/auditors",
+    roles: ["ADMIN"],
+  },
   { name: "Locations", href: "/dashboard/audit-schedule/locations" },
 ];
 
@@ -17,7 +21,9 @@ export function AuditScheduleNav() {
   const { user } = useAuth();
 
   const userRole = user?.appType === "ADMIN" ? "ADMIN" : "CLIENT";
-  const tabs = allTabs.filter(tab => !tab.roles || tab.roles.includes(userRole));
+  const tabs = allTabs.filter(
+    (tab) => !tab.roles || tab.roles.includes(userRole),
+  );
 
   return (
     <nav className="flex space-x-4 border-b border-slate-200 mb-6">

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Building2, Users } from "lucide-react";
 import React from "react";
 
-import { useAuth } from "../../../../contexts/auth-context";
 import { StatCard } from "../../../../components/dashboard/stat-card";
+import { useAuth } from "../../../../contexts/auth-context";
 import { api } from "../../../../lib/api";
 
 export function SummaryCards() {

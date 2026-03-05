@@ -105,7 +105,11 @@ export default function CalendarPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder={isAdmin ? "Search audits, locations, auditors..." : "Search audits, locations..."}
+              placeholder={
+                isAdmin
+                  ? "Search audits, locations, auditors..."
+                  : "Search audits, locations..."
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -227,7 +231,7 @@ export default function CalendarPage() {
                               </p>
                               <div className="flex flex-wrap gap-1.5 mt-1">
                                 {audit.assignedAuditors &&
-                                  audit.assignedAuditors.length > 0 ? (
+                                audit.assignedAuditors.length > 0 ? (
                                   audit.assignedAuditors.map((a: any) => (
                                     <span
                                       key={a.id}

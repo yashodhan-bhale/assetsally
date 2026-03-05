@@ -135,7 +135,7 @@ export function ScheduleForm({
     } catch (error: any) {
       setSubmitError(
         error.message ||
-        "Failed to schedule audit. It might be a conflict with an existing schedule.",
+          "Failed to schedule audit. It might be a conflict with an existing schedule.",
       );
     } finally {
       setIsSubmitting(false);
