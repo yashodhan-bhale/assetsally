@@ -102,7 +102,9 @@ export default function LocationsPage() {
                 <th className="py-3 px-4 font-normal">Location</th>
                 <th className="py-3 px-4 font-normal">Audit Status</th>
                 <th className="py-3 px-4 font-normal">Schedule Date(s)</th>
-                {isAdmin && <th className="py-3 px-4 font-normal">Assigned Auditors</th>}
+                {isAdmin && (
+                  <th className="py-3 px-4 font-normal">Assigned Auditors</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -190,7 +192,10 @@ export default function LocationsPage() {
               })}
               {filteredLocations?.length === 0 && !isLoading && (
                 <tr>
-                  <td colSpan={isAdmin ? 4 : 3} className="text-center py-8 text-slate-500">
+                  <td
+                    colSpan={isAdmin ? 4 : 3}
+                    className="text-center py-8 text-slate-500"
+                  >
                     No locations match your filters.
                   </td>
                 </tr>
@@ -301,7 +306,7 @@ export default function LocationsPage() {
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedLocation.schedules[0].assignedAuditors?.length >
-                        0 ? (
+                      0 ? (
                         selectedLocation.schedules[0].assignedAuditors.map(
                           (a: any) => (
                             <div

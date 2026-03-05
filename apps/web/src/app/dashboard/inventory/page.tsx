@@ -6,8 +6,8 @@ import { Unlink, AlertCircle, Loader2, MapPin, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense, useMemo } from "react";
 
-import { useAuth } from "../../../contexts/auth-context";
 import { DataTable } from "../../../components/ui/data-table";
+import { useAuth } from "../../../contexts/auth-context";
 import { api } from "../../../lib/api";
 
 interface InventoryItem {
@@ -17,7 +17,7 @@ interface InventoryItem {
   location?: {
     id: string;
     locationName: string;
-    locationCode: string
+    locationCode: string;
   };
   department?: { id: string; name: string };
   category?: { id: string; name: string };
@@ -152,7 +152,10 @@ function InventoryContent() {
         accessorKey: "assetNumber",
         header: "Asset ID",
         cell: ({ row }) => (
-          <span className="font-mono font-medium text-blue-600" data-testid="inventory-asset-id">
+          <span
+            className="font-mono font-medium text-blue-600"
+            data-testid="inventory-asset-id"
+          >
             {row.original.assetNumber}
           </span>
         ),
@@ -227,7 +230,8 @@ function InventoryContent() {
       {
         accessorKey: "accumulatedDepreciation",
         header: () => <div className="text-right">Acc. Depre (₹)</div>,
-        cell: ({ row }) => formatCurrency(row.getValue("accumulatedDepreciation")),
+        cell: ({ row }) =>
+          formatCurrency(row.getValue("accumulatedDepreciation")),
       },
       {
         accessorKey: "netBookValue",

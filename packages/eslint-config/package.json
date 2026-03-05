@@ -6,8 +6,7 @@
   "files": [
     "base.js",
     "next.js",
-    "nest.js",
-    "react-native.js"
+    "nest.js"
   ],
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -19,8 +18,5 @@
   "peerDependencies": {
     "eslint": "^8.0.0",
     "prettier": "^3.0.0"
-  },
-  "devDependencies": {
-    "eslint-plugin-react-native": "^5.0.0"
   }
 }

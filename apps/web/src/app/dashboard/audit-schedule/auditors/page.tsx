@@ -2,10 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Plus, CalendarDays } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { useAuth } from "../../../../contexts/auth-context";
-import { useRouter } from "next/navigation";
 import { api } from "../../../../lib/api";
 import { AuditScheduleModal } from "../components/AuditScheduleModal";
 
@@ -26,8 +26,6 @@ export default function AuditorsPage() {
   const [isScheduling, setIsScheduling] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<any>(null);
 
-  if (user?.appType === "CLIENT") return null;
-
   const { data: auditors, isLoading } = useQuery({
     queryKey: ["audit-schedule-auditors"],
     queryFn: () => api.getAuditScheduleAuditors(),
@@ -42,6 +40,8 @@ export default function AuditorsPage() {
       }
     }
   }, [auditors, selectedAuditor]);
+
+  if (user?.appType === "CLIENT") return null;
 
   const filteredAuditors = (auditors || [])
     .filter((auditor: any) => {
@@ -231,7 +231,7 @@ export default function AuditorsPage() {
                   </button>
                 </div>
                 {selectedAuditor.schedules &&
-                  selectedAuditor.schedules.length > 0 ? (
+                selectedAuditor.schedules.length > 0 ? (
                   <div className="space-y-3">
                     {(() => {
                       const grouped = selectedAuditor.schedules.reduce(
