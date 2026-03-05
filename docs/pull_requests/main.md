@@ -1,24 +1,30 @@
-# Pull Request: feat(web): implement working data-driven reports page with location breakdown and search
+# Pull Request: feat(mobile, web): implement mobile audit verification flow and web audit scheduling improvements
 
 ## Overview
-This PR transforms the static reports mockup into a fully functional, data-driven Reports Engine for the AssetsAlly web application. It transitions from static mock data to real-time inventory insights, focusing on financial summaries and location-based audit reconciliation.
+This change implements the core audit verification flow on the mobile app, allowing auditors to record findings, bind QR tags, and submit reports. It also improves the web-based audit scheduling system with improved layout handles and better form verification.
 
 ## Technical Changes
-- **Web App (`apps/web`)**:
-  - `reports/page.tsx`: 
-    - Implemented dynamic data fetching using `@tanstack/react-query`.
-    - Added comprehensive data processing logic for summary metrics (Total Assets, Acquisition Cost, Net Book Value, QR Compliance).
-    - Integrated `DataTable` for the **Location Breakdown**, adding search, pagination, and audit-centric columns (As per Books, Physical, Difference, Found OK, Discrepancies).
-    - Updated UI to remove unnecessary sidebars and focus on core data views.
-  - `reports/page.spec.tsx`:
-    - Updated tests to handle `useQuery` via `QueryClientProvider`.
-    - Mocked API calls to verify the new dynamic UI components.
 
-## Verification
-- **Automated Tests**:
-  - `pnpm turbo lint test` executed and passed across all packages (`web`, `api`, `mobile`).
-  - Web unit tests specifically verified for `ReportsPage` component.
-- **Manual Verification**:
-  - Verified summary metric accuracy against inventory base.
-  - Confirmed table pagination and search functionality in Location Breakdown.
-  - Validated currency formatting (₹) and status-based counting for discrepancies.
+### Mobile App (`apps/mobile`)
+- **Audit Verification**: Implemented the detail view for audits and individual items.
+- **QR Binding**: Added the ability to bind QR tags to inventory items.
+- **Connectivity & Sync**: Refined the `useSync` hook and `ConnectivityProvider` for better offline/online transitions.
+- **Code Quality**: Installed missing `@react-native/eslint-config` and resolved multiple linting/formatting errors.
+- **Fixes**: Resolved a Windows-specific environment variable parsing issue (`REACT_NATIVE_PACKAGER_HOSTNAME`).
+
+### Web App (`apps/web`)
+- **Scheduling System**: Improved the audit schedule calendar, auditor listing, and location selection pages.
+- **Component Refinement**: Updated `AuditScheduleModal` and `ScheduleForm` for better validation and layout.
+- **Linting**: Fixed over 1,400 formatting errors (CRLF vs LF) to ensure build stability.
+
+## Verification Proof
+
+### Tests
+- **Mobile**: Jest tests passed.
+- **Web**: Vitest tests passed.
+- **API**: Vitest tests passed.
+
+### Linting & fresh Run
+- Fresh verification run using `pnpm turbo lint test --force` completed successfully.
+- Manual mobile linting (`npm run lint`) passes with 0 errors.
+- Successful Android bundle export verified via `npx expo export --platform android`.
