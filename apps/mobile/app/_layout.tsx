@@ -20,7 +20,7 @@ export default function RootLayout() {
               headerTintColor: "#fff",
               headerTitleStyle: { fontWeight: "bold" },
               contentStyle: { backgroundColor: "#0f172a" },
-              headerLeft: ({ canGoBack, label }) => (
+              headerLeft: ({ canGoBack }) => (
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   {!canGoBack && (
                     <View style={{ marginLeft: 16 }}>

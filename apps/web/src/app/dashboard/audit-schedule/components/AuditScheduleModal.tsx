@@ -12,6 +12,7 @@ interface AuditScheduleModalProps {
   initialEndDate?: Date | null;
   initialLocationId?: string | null;
   initialAuditorIds?: string[];
+  initialNotes?: string;
   readOnly?: boolean;
 }
 
@@ -22,6 +23,7 @@ export function AuditScheduleModal({
   initialEndDate,
   initialLocationId,
   initialAuditorIds,
+  initialNotes,
   readOnly = false,
 }: AuditScheduleModalProps) {
   if (!isOpen) return null;
@@ -44,7 +46,11 @@ export function AuditScheduleModal({
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
             <h3 className="text-lg font-bold text-slate-900">
-              {readOnly ? "View Audit Details" : "Schedule Audit"}
+              {readOnly
+                ? "View Audit Details"
+                : initialLocationId
+                  ? "Edit Audit Schedule"
+                  : "Schedule Audit"}
             </h3>
             <button
               onClick={onClose}
@@ -59,6 +65,7 @@ export function AuditScheduleModal({
               initialEndDate={initialEndDate}
               initialLocationId={initialLocationId}
               initialAuditorIds={initialAuditorIds}
+              initialNotes={initialNotes}
               onSuccess={() => {
                 onClose();
               }}

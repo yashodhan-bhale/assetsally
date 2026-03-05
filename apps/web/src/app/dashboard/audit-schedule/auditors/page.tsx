@@ -196,6 +196,7 @@ export default function AuditorsPage() {
         initialDate={editingSchedule?.startDate || null}
         initialEndDate={editingSchedule?.endDate || null}
         initialAuditorIds={editingSchedule?.auditorIds || []}
+        initialNotes={editingSchedule?.notes || ""}
         readOnly={false}
       />
 
@@ -241,6 +242,7 @@ export default function AuditorsPage() {
                             acc[locId] = {
                               location: s.location,
                               dates: [],
+                              notes: s.notes, // Grab nodes from any schedule in the group
                             };
                           }
                           acc[locId].dates.push(new Date(s.scheduledDate));
@@ -290,6 +292,7 @@ export default function AuditorsPage() {
                                 startDate: minDate,
                                 endDate: maxDate,
                                 auditorIds: auditorIds,
+                                notes: group.notes || "",
                               });
                             }}
                             className="p-3 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-blue-200 cursor-pointer transition-colors"

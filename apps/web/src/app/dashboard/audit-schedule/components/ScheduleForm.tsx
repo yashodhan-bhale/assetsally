@@ -1,13 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Loader2,
-  Search,
-  Check,
-  ChevronDown,
-  CalendarIcon,
-} from "lucide-react";
+import { Loader2, Search, Check, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 import { useAuth } from "../../../../contexts/auth-context";
@@ -18,6 +12,7 @@ interface ScheduleFormProps {
   initialEndDate?: Date | null;
   initialLocationId?: string | null;
   initialAuditorIds?: string[];
+  initialNotes?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
   readOnly?: boolean;
@@ -28,6 +23,7 @@ export function ScheduleForm({
   initialEndDate,
   initialLocationId,
   initialAuditorIds,
+  initialNotes,
   onSuccess,
   onCancel,
   readOnly = false,
@@ -49,6 +45,7 @@ export function ScheduleForm({
   const [auditorIds, setAuditorIds] = useState<string[]>(
     initialAuditorIds || [],
   );
+  const [notes, setNotes] = useState(initialNotes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -114,6 +111,7 @@ export function ScheduleForm({
           locationId,
           scheduledDate: date,
           assignedAuditorIds: auditorIds,
+          notes: notes || undefined,
         });
       }
 
@@ -200,7 +198,13 @@ export function ScheduleForm({
       className="space-y-4 bg-white border border-slate-200 rounded-lg p-5 text-left"
     >
       <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-100 pb-2 flex justify-between items-center">
-        <span>{readOnly ? "View Audit Schedule" : "Schedule New Audit"}</span>
+        <span>
+          {readOnly
+            ? "View Audit Schedule"
+            : initialLocationId
+              ? "Edit Audit Schedule"
+              : "Schedule New Audit"}
+        </span>
         {locationId && !readOnly && (
           <button
             type="button"
@@ -232,7 +236,7 @@ export function ScheduleForm({
               setStartDate(e.target.value);
               if (endDate < e.target.value) setEndDate(e.target.value);
             }}
-            disabled={!!initialDate || readOnly}
+            disabled={readOnly}
             className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-500 disabled:opacity-70 disabled:bg-slate-100"
           />
         </div>
@@ -246,7 +250,7 @@ export function ScheduleForm({
             value={endDate}
             min={startDate}
             onChange={(e) => setEndDate(e.target.value)}
-            disabled={!!initialDate || readOnly}
+            disabled={readOnly}
             className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-500 disabled:opacity-70 disabled:bg-slate-100"
           />
         </div>
@@ -264,7 +268,7 @@ export function ScheduleForm({
             !isLoadingLocations &&
             setLocOpen(!locOpen)
           }
-          disabled={!!initialLocationId || isLoadingLocations || readOnly}
+          disabled={isLoadingLocations || readOnly}
           className="w-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded px-3 py-2 text-sm text-slate-900 focus:outline-none disabled:opacity-70 disabled:bg-slate-100"
         >
           <span className="truncate">
@@ -419,6 +423,19 @@ export function ScheduleForm({
           )}
         </div>
       )}
+
+      <div>
+        <label className="block text-xs font-medium text-slate-500 mb-1">
+          Notes (Optional)
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          disabled={readOnly}
+          placeholder="Add any specific instructions or notes for this audit..."
+          className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-500 disabled:opacity-70 disabled:bg-slate-100 min-h-[80px]"
+        />
+      </div>
 
       <div className="flex justify-end gap-2 pt-2">
         {onCancel && (

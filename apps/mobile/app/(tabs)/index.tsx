@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Q } from "@nozbe/watermelondb";
+
 import { router } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../contexts/auth-context";
 import { useConnectivity } from "../../contexts/connectivity-context";
-import { auditFindingsCollection, auditReportsCollection } from "../../db";
+
 import { useSync } from "../../hooks/useSync";
 
 export default function DashboardTab() {

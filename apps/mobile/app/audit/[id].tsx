@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -46,15 +45,6 @@ const statusConfig: Record<
   },
 };
 
-const verificationStatuses = [
-  "FOUND",
-  "NOT_FOUND",
-  "RELOCATED",
-  "DAMAGED",
-  "DISPOSED",
-];
-
-const conditionOptions = ["GOOD", "FAIR", "POOR", "NON_FUNCTIONAL"];
 
 export default function AuditDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -102,41 +92,6 @@ export default function AuditDetailScreen() {
     loadReport();
   }, [loadReport]);
 
-  const handleRecordFinding = async (
-    item: InventoryItem,
-    status: string,
-    condition?: string,
-  ) => {
-    if (!report) return;
-
-    try {
-      // Check if finding already exists for this item
-      const existing = findings.find((f) => f.itemId === item.id);
-
-      await getDatabase().write(async () => {
-        if (existing) {
-          await existing.update((r: AuditFinding) => {
-            r.status = status;
-            r.condition = condition || null;
-            r.needsSync = true;
-          });
-        } else {
-          await auditFindingsCollection.create((r: AuditFinding) => {
-            r.reportId = report.id;
-            r.itemId = item.id;
-            r.status = status;
-            r.condition = condition || null;
-            r.isLocallyCreated = true;
-            r.needsSync = true;
-          });
-        }
-      });
-
-      await loadReport(); // Refresh
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to record finding");
-    }
-  };
 
   const handleSubmit = async () => {
     if (!report || !isOnline) {
@@ -264,64 +219,56 @@ export default function AuditDetailScreen() {
           inventoryItems.map((item) => {
             const finding = findingsMap.get(item.id);
             return (
-              <View key={item.id} style={styles.itemCard}>
-                <View style={styles.itemHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.itemName}>{item.assetName}</Text>
-                    <Text style={styles.itemNumber}>{item.assetNumber}</Text>
-                  </View>
-                  {finding && (
-                    <View
+              <TouchableOpacity
+                key={item.id}
+                style={styles.compactItemRow}
+                onPress={() =>
+                  router.push({
+                    pathname: "/audit/item/[itemId]",
+                    params: { itemId: item.id, reportId: report.id },
+                  })
+                }
+              >
+                <View style={{ flex: 1, marginRight: 12 }}>
+                  <Text style={styles.itemName} numberOfLines={1}>
+                    {item.assetName}
+                  </Text>
+                  <Text style={styles.itemNumber}>{item.assetNumber}</Text>
+                </View>
+
+                {finding && (
+                  <View
+                    style={[
+                      styles.compactStatusBadge,
+                      {
+                        backgroundColor:
+                          finding.status === "FOUND"
+                            ? "#22c55e20"
+                            : finding.status === "NOT_FOUND"
+                              ? "#ef444420"
+                              : "#f59e0b20",
+                      },
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.conditionBadge,
+                        styles.compactStatusText,
                         {
-                          backgroundColor:
+                          color:
                             finding.status === "FOUND"
-                              ? "#22c55e20"
+                              ? "#22c55e"
                               : finding.status === "NOT_FOUND"
-                                ? "#ef444420"
-                                : "#f59e0b20",
+                                ? "#ef4444"
+                                : "#f59e0b",
                         },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.conditionText,
-                          {
-                            color:
-                              finding.status === "FOUND"
-                                ? "#22c55e"
-                                : finding.status === "NOT_FOUND"
-                                  ? "#ef4444"
-                                  : "#f59e0b",
-                          },
-                        ]}
-                      >
-                        {finding.status}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                {finding?.notes && (
-                  <Text style={styles.findingNotes}>{finding.notes}</Text>
+                      {finding.status}
+                    </Text>
+                  </View>
                 )}
-
-                <TouchableOpacity
-                  style={styles.detailsBtn}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/audit/item/[itemId]",
-                      params: { itemId: item.id, reportId: report.id },
-                    })
-                  }
-                >
-                  <Text style={styles.detailsBtnText}>
-                    View Details & Record
-                  </Text>
-                  <Ionicons name="chevron-forward" size={16} color="#3b82f6" />
-                </TouchableOpacity>
-              </View>
+                <Ionicons name="chevron-forward" size={16} color="#475569" />
+              </TouchableOpacity>
             );
           })
         ) : (
@@ -425,34 +372,26 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  itemCard: {
+  compactItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#1e293b",
     borderRadius: 12,
-    padding: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: "#334155",
     marginBottom: 8,
   },
-  itemHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   itemName: { color: "#fff", fontSize: 14, fontWeight: "500" },
-  itemNumber: { color: "#64748b", fontSize: 12, marginTop: 2 },
-  conditionBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  conditionText: { fontSize: 11, fontWeight: "600" },
-  findingNotes: { color: "#94a3b8", fontSize: 12, marginTop: 6 },
-  detailsBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#334155",
+  itemNumber: { color: "#64748b", fontSize: 12, marginTop: 1 },
+  compactStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginRight: 8,
   },
-  detailsBtnText: { color: "#3b82f6", fontSize: 13, fontWeight: "600" },
+  compactStatusText: { fontSize: 10, fontWeight: "bold" },
   emptyFindings: {
     backgroundColor: "#1e293b",
     borderRadius: 14,

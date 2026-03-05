@@ -63,7 +63,7 @@ export function ConnectivityProvider({ children }: { children: ReactNode }) {
           method: "GET",
         }).catch(() => null);
         setIsApiReachable(!!response && response.ok);
-      } catch (e) {
+      } catch {
         setIsApiReachable(false);
       }
     };

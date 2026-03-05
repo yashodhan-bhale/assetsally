@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Q } from "@nozbe/watermelondb";
 import { router, useFocusEffect } from "expo-router";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -43,15 +43,18 @@ export default function AuditsTab() {
         .fetch();
 
       // Fetch location names for display
-      const locIds = [...new Set(results.map((r) => r.locationId))];
-      const locs = await locationsCollection
-        .query(Q.where("server_id", Q.oneOf(locIds)))
-        .fetch();
+      const locIds = [...new Set(results.map((r) => r.locationId))].filter(Boolean);
 
       const map: Record<string, string> = {};
-      locs.forEach((l) => {
-        map[l.serverId] = l.locationName;
-      });
+      if (locIds.length > 0) {
+        const locs = await locationsCollection
+          .query(Q.where("server_id", Q.oneOf(locIds)))
+          .fetch();
+
+        locs.forEach((l) => {
+          map[l.serverId] = l.locationName;
+        });
+      }
       setLocationMap(map);
 
       // Sort by created_at descending

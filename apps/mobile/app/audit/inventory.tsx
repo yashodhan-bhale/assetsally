@@ -1,13 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Q } from "@nozbe/watermelondb";
-import { useLocalSearchParams, router } from "expo-router";
-import { useState, useEffect } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,11 +23,7 @@ export default function InventoryScreen() {
   const [location, setLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [locationId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!locationId) return;
     try {
       const loc = await locationsCollection.find(locationId);
@@ -43,7 +38,11 @@ export default function InventoryScreen() {
       console.error("Failed to load inventory:", err);
     }
     setLoading(false);
-  };
+  }, [locationId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const renderItem = ({ item }: { item: InventoryItem }) => (
     <View style={styles.card}>

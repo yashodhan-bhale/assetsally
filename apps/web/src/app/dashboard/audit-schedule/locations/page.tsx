@@ -215,6 +215,7 @@ export default function LocationsPage() {
         initialDate={editingSchedule?.startDate || null}
         initialEndDate={editingSchedule?.endDate || null}
         initialAuditorIds={editingSchedule?.auditorIds || []}
+        initialNotes={editingSchedule?.notes || ""}
         readOnly={false}
       />
 
@@ -242,12 +243,14 @@ export default function LocationsPage() {
                       selectedLocation.schedules[0].assignedAuditors?.map(
                         (a: any) => a.id,
                       ) || [];
+                    const notes = selectedLocation.schedules[0].notes || "";
 
                     setEditingSchedule({
                       locationId: selectedLocation.id,
                       startDate: min,
                       endDate: max,
                       auditorIds: auditorIds,
+                      notes: notes,
                     });
                   } else {
                     setIsScheduling(true);

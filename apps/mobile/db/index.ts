@@ -26,7 +26,7 @@ export function getDatabase(): Database {
     const adapter = new SQLiteAdapter({
       schema,
       migrations,
-      jsi: true,
+      jsi: false,
       onSetUpError: async (error) => {
         console.error(
           "[WatermelonDB] Setup error — resetting database:",
@@ -38,7 +38,7 @@ export function getDatabase(): Database {
           const resetAdapter = new SQLiteAdapter({
             schema,
             // No migrations — just create from scratch
-            jsi: true,
+            jsi: false,
           });
           const tempDb = new Database({
             adapter: resetAdapter,

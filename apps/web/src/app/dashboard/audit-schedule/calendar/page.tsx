@@ -71,11 +71,12 @@ export default function CalendarPage() {
       <AuditScheduleModal
         isOpen={!!editingSchedule}
         onClose={() => setEditingSchedule(null)}
-        initialDate={
-          editingSchedule ? new Date(editingSchedule.scheduledDate) : null
-        }
+        initialDate={editingSchedule?.minDate || null}
+        initialEndDate={editingSchedule?.maxDate || null}
         initialLocationId={editingSchedule?.locationId}
-        readOnly={false} // Requirement says "editing... should be possible", implying write access
+        initialAuditorIds={editingSchedule?.auditorIds || []}
+        initialNotes={editingSchedule?.notes || ""}
+        readOnly={false}
       />
 
       {selectedDate && (
@@ -145,7 +146,24 @@ export default function CalendarPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setEditingSchedule(audit);
+                          const related = schedules?.filter(
+                            (s: any) => s.locationId === audit.locationId,
+                          );
+                          const dates = related.map((s: any) =>
+                            new Date(s.scheduledDate).getTime(),
+                          );
+                          const min = new Date(Math.min(...dates));
+                          const max = new Date(Math.max(...dates));
+                          const auditorIds =
+                            audit.assignedAuditors?.map((a: any) => a.id) || [];
+
+                          setEditingSchedule({
+                            locationId: audit.locationId,
+                            minDate: min,
+                            maxDate: max,
+                            auditorIds: auditorIds,
+                            notes: audit.notes,
+                          });
                         }}
                         className="p-1.5 hover:bg-white rounded-md text-slate-400 hover:text-blue-600 transition-colors shadow-sm border border-transparent hover:border-blue-100"
                         title="Edit Schedule"

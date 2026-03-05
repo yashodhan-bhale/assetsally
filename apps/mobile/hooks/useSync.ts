@@ -94,6 +94,7 @@ export function useSync() {
       syncNow();
     }
     // Only run on user change (login/logout), not when isOnline changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // When connectivity is restored, trigger push
@@ -101,6 +102,7 @@ export function useSync() {
     if (isOnline && user) {
       autoPush();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline]);
 
   // Periodic push interval
@@ -118,6 +120,7 @@ export function useSync() {
         pushIntervalRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   return {

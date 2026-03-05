@@ -39,7 +39,6 @@ export default function InventoryItemScreen() {
   const [physicalQty, setPhysicalQty] = useState("");
   const [biometricTag, setBiometricTag] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
     async function loadItem() {
@@ -133,7 +132,7 @@ export default function InventoryItemScreen() {
 
             try {
               setSaving(true);
-              const result = await mobileApi.bindQrTag(
+              await mobileApi.bindQrTag(
                 code,
                 item!.serverId || item!.id,
               );
@@ -181,7 +180,16 @@ export default function InventoryItemScreen() {
             <Text style={styles.label}>Asset Name</Text>
             <Text style={styles.value}>{item.assetName}</Text>
 
-            <View style={styles.row}>
+            {item.assetDescription && (
+              <>
+                <Text style={[styles.label, { marginTop: 12 }]}>
+                  Description
+                </Text>
+                <Text style={styles.value}>{item.assetDescription}</Text>
+              </>
+            )}
+
+            <View style={[styles.row, { marginTop: 12 }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.label}>Asset Number</Text>
                 <Text style={styles.value}>{item.assetNumber}</Text>
@@ -200,6 +208,36 @@ export default function InventoryItemScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.label}>Sub Category</Text>
                 <Text style={styles.value}>{item.subCategory || "-"}</Text>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Department</Text>
+                <Text style={styles.value}>{item.departmentName || "-"}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Profit Center</Text>
+                <Text style={styles.value}>{item.profitCenter || "-"}</Text>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Acquisition Cost</Text>
+                <Text style={styles.value}>
+                  {item.acquisitionCost !== null
+                    ? item.acquisitionCost.toLocaleString()
+                    : "-"}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Net Book Value</Text>
+                <Text style={styles.value}>
+                  {item.netBookValue !== null
+                    ? item.netBookValue.toLocaleString()
+                    : "-"}
+                </Text>
               </View>
             </View>
           </View>
@@ -248,7 +286,7 @@ export default function InventoryItemScreen() {
           <Text style={styles.sectionTitle}>Additional Details</Text>
           <View style={styles.card}>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Bimatric Tag</Text>
+              <Text style={styles.inputLabel}>Biometric Tag</Text>
               <TextInput
                 style={styles.input}
                 value={biometricTag}
