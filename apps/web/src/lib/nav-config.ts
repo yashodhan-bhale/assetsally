@@ -7,6 +7,7 @@ import {
   FileText,
   QrCode,
   Settings,
+  Upload,
   LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +37,12 @@ export const navItems: NavItem[] = [
     href: "/dashboard/locations",
     icon: MapPin,
     roles: ["ADMIN", "CLIENT"], // Client sees read-only or restricted view
+  },
+  {
+    title: "Inventory",
+    href: "/dashboard/inventory",
+    icon: Package,
+    roles: ["ADMIN", "CLIENT"],
   },
   {
     title: "User Management",
@@ -70,6 +77,12 @@ export const navItems: NavItem[] = [
     title: "QR Generator",
     href: "/dashboard/qr-generator",
     icon: QrCode,
+    roles: ["ADMIN"],
+  },
+  {
+    title: "Data Import",
+    href: "/dashboard/imports",
+    icon: Upload,
     roles: ["ADMIN"],
   },
   {

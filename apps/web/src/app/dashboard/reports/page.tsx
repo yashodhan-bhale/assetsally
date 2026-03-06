@@ -24,6 +24,7 @@ import React, { useState, useMemo } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
 import { api } from "../../../lib/api";
+import { useAuth } from "../../../contexts/auth-context";
 
 const LoaderIcon: any = Loader2;
 const DownloadIcon: any = Download;
@@ -89,9 +90,8 @@ const locationColumns: ColumnDef<LocationStat>[] = [
     header: "Difference",
     cell: ({ row }) => (
       <div
-        className={`text-right font-medium ${
-          row.original.difference !== 0 ? "text-red-600" : "text-slate-600"
-        }`}
+        className={`text-right font-medium ${row.original.difference !== 0 ? "text-red-600" : "text-slate-600"
+          }`}
       >
         {row.original.difference}
       </div>
@@ -118,6 +118,9 @@ const locationColumns: ColumnDef<LocationStat>[] = [
 ];
 
 export default function ReportsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.appType === "ADMIN";
+
   // Fetch all inventory items (assuming reasonable volume for reports processing)
   const { data: inventoryData, isLoading } = useQuery({
     queryKey: ["inventory-reports"],
@@ -238,7 +241,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-4`}>
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
@@ -280,18 +283,20 @@ export default function ReportsPage() {
           <div className="text-sm text-slate-500 mt-1">Net Book Value</div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-              <QrCodeIcon size={20} />
+        {isAdmin && (
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                <QrCodeIcon size={20} />
+              </div>
+              <span className="text-xs font-medium text-slate-400">Status</span>
             </div>
-            <span className="text-xs font-medium text-slate-400">Status</span>
+            <div className="text-2xl font-bold text-slate-900">
+              {stats.qrCompliance.toFixed(1)}%
+            </div>
+            <div className="text-sm text-slate-500 mt-1">QR Bound Scale</div>
           </div>
-          <div className="text-2xl font-bold text-slate-900">
-            {stats.qrCompliance.toFixed(1)}%
-          </div>
-          <div className="text-sm text-slate-500 mt-1">QR Bound Scale</div>
-        </div>
+        )}
       </div>
 
       <div className="space-y-6">

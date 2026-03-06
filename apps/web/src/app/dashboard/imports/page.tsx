@@ -26,6 +26,7 @@ export default function DataImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [wiping, setWiping] = useState(false);
+  const [recordType, setRecordType] = useState<"Original" | "Additional">("Original");
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +45,7 @@ export default function DataImportPage() {
     setResult(null);
 
     try {
-      const data = await api.uploadImport(file, activeTab);
+      const data = await api.uploadImport(file, activeTab, recordType);
       setResult(data);
       setFile(null);
     } catch (err: any) {
@@ -170,9 +171,21 @@ export default function DataImportPage() {
               Upload {activeTab === "locations" ? "Location" : "Inventory"} Data
             </h3>
             <p className="text-sm text-slate-400">
-              Select an Excel/CSV file to import.
+              select an Excel/CSV file to import.
               <strong> Ensure file columns match schema.</strong>
             </p>
+
+            <div className="text-left space-y-1 mt-4">
+              <label className="text-sm font-medium text-slate-300">Record Type <span className="text-red-500">*</span></label>
+              <select
+                value={recordType}
+                onChange={(e) => setRecordType(e.target.value as any)}
+                className="w-full bg-slate-800 border-slate-700 rounded-lg text-white p-2.5 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              >
+                <option value="Original">Original</option>
+                <option value="Additional">Additional</option>
+              </select>
+            </div>
 
             <input
               type="file"

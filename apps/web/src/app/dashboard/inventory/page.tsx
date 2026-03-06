@@ -9,6 +9,9 @@ import React, { useEffect, useState, Suspense, useMemo } from "react";
 import { DataTable } from "../../../components/ui/data-table";
 import { useAuth } from "../../../contexts/auth-context";
 import { api } from "../../../lib/api";
+import { AddEditInventoryModal } from "./components/AddEditInventoryModal";
+
+import { Edit, Trash2, Plus } from "lucide-react";
 
 interface InventoryItem {
   id: string;
@@ -38,6 +41,8 @@ interface InventoryItem {
       code: string;
     };
   }>;
+  recordType?: string;
+  createdAt?: string;
 }
 
 const formatNumber = (val: any) => {
@@ -78,6 +83,9 @@ const MapPinIcon: any = MapPin;
 const XIcon: any = X;
 const UnlinkIcon: any = Unlink;
 const AlertCircleIcon: any = AlertCircle;
+const EditIcon: any = Edit;
+const TrashIcon: any = Trash2;
+const PlusIcon: any = Plus;
 
 function QrCell({ tagCode, isAdmin }: { tagCode: string; isAdmin: boolean }) {
   const queryClient = useQueryClient();
@@ -146,8 +154,23 @@ function InventoryContent() {
 
   const queryClient = useQueryClient();
 
-  const columns = useMemo<ColumnDef<InventoryItem>[]>(
-    () => [
+  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<any | null>(null);
+
+  const handleDelete = async (id: string, code: string) => {
+    if (confirm(`Are you sure you want to delete Asset ${code}?`)) {
+      try {
+        await api.deleteInventoryItem(id);
+        queryClient.invalidateQueries({ queryKey: ["inventory"] });
+        // Also update local state if using it directly, but we rely on react-query reload
+      } catch (error: any) {
+        alert(error.message || "Failed to delete item");
+      }
+    }
+  };
+
+  const columns = useMemo<ColumnDef<InventoryItem>[]>(() => {
+    const baseColumns: ColumnDef<InventoryItem>[] = [
       {
         accessorKey: "assetNumber",
         header: "Asset ID",
@@ -269,6 +292,24 @@ function InventoryContent() {
         cell: () => <span className="text-slate-300">-</span>,
       },
       {
+        accessorKey: "recordType",
+        header: "Record Type",
+        cell: ({ row }) => (
+          <span className="capitalize">{row.original.recordType || "Original"}</span>
+        ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Created At",
+        cell: ({ row }) => {
+          if (!row.original.createdAt) return "-";
+          return new Date(row.original.createdAt).toLocaleDateString();
+        },
+      },
+    ];
+
+    if (isAdmin) {
+      baseColumns.push({
         id: "qrCode",
         header: "QR Code",
         cell: ({ row }) => {
@@ -281,10 +322,38 @@ function InventoryContent() {
 
           return <QrCell tagCode={binding.qrTag.code} isAdmin={isAdmin} />;
         },
-      },
-    ],
-    [isAdmin],
-  );
+      });
+
+      baseColumns.push({
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setItemToEdit(row.original);
+                setIsAddEditModalOpen(true);
+              }}
+              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Edit Item"
+            >
+              <EditIcon size={16} />
+            </button>
+            <button
+              onClick={() => handleDelete(row.original.id, row.original.assetNumber)}
+              className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Delete Item"
+            >
+              <TrashIcon size={16} />
+            </button>
+          </div>
+        ),
+      });
+    }
+
+    return baseColumns;
+  }, [isAdmin, queryClient]);
+
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -376,9 +445,31 @@ function InventoryContent() {
             </button>
           </div>
         )}
+
+        {isAdmin && (
+          <button
+            onClick={() => {
+              setItemToEdit(null);
+              setIsAddEditModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <PlusIcon size={18} />
+            Add Record
+          </button>
+        )}
       </div>
 
       <DataTable columns={columns} data={data} placeholder="Search assets..." />
+
+      <AddEditInventoryModal
+        isOpen={isAddEditModalOpen}
+        onClose={() => {
+          setIsAddEditModalOpen(false);
+          setItemToEdit(null);
+        }}
+        itemToEdit={itemToEdit}
+      />
     </div>
   );
 }

@@ -14,7 +14,7 @@ const MAX_DEPTH = 4; // Levels 0..3 (L1 = depth 0, L4 = depth 3)
 
 @Injectable()
 export class LocationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(query?: { parentId?: string; depth?: number }) {
     const where: any = {};
@@ -130,6 +130,7 @@ export class LocationsService {
         depth: dto.depth,
         levelLabel: dto.levelLabel,
         parentId: dto.parentId,
+        recordType: dto.recordType || "Original",
       },
     });
   }
@@ -172,6 +173,7 @@ export class LocationsService {
   async bulkImport(
     fileBuffer: Buffer,
     originalName: string,
+    recordType: string = "Original",
   ): Promise<{
     created: number;
     updated: number;
@@ -203,13 +205,13 @@ export class LocationsService {
         for (let level = 0; level < MAX_DEPTH; level++) {
           const code = this.cleanCell(
             row[`L${level + 1} Code`] ||
-              row[`l${level + 1}_code`] ||
-              row[`L${level + 1}Code`],
+            row[`l${level + 1}_code`] ||
+            row[`L${level + 1}Code`],
           );
           const name = this.cleanCell(
             row[`L${level + 1} Name`] ||
-              row[`l${level + 1}_name`] ||
-              row[`L${level + 1}Name`],
+            row[`l${level + 1}_name`] ||
+            row[`L${level + 1}Name`],
           );
 
           // If both code and name are empty, this level and beyond are empty (ragged tree)
@@ -235,7 +237,7 @@ export class LocationsService {
             if (existing.locationName !== name) {
               await this.prisma.location.update({
                 where: { id: existing.id },
-                data: { locationName: name, path, depth: level, parentId },
+                data: { locationName: name, path, depth: level, parentId, recordType },
               });
               updated++;
             } else {
@@ -252,6 +254,7 @@ export class LocationsService {
                 depth: level,
                 levelLabel: levelLabels[level],
                 parentId,
+                recordType,
               },
             });
             parentId = newLoc.id;
@@ -290,7 +293,7 @@ export class LocationsService {
       if (!hasL1) {
         throw new BadRequestException(
           'File must have columns: "L1 Code", "L1 Name", "L2 Code", "L2 Name", etc. ' +
-            `Found headers: ${headers.join(", ")}`,
+          `Found headers: ${headers.join(", ")}`,
         );
       }
     }

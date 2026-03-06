@@ -138,6 +138,15 @@ class ApiClient {
   getLocation(id: string) {
     return this.request(`/locations/${id}`);
   }
+  createLocation(data: any) {
+    return this.request("/locations", { method: "POST", body: data });
+  }
+  updateLocation(id: string, data: any) {
+    return this.request(`/locations/${id}`, { method: "PUT", body: data });
+  }
+  deleteLocation(id: string) {
+    return this.request(`/locations/${id}`, { method: "DELETE" });
+  }
 
   // Inventory
   getInventory(params?: Record<string, string>) {
@@ -146,6 +155,15 @@ class ApiClient {
   }
   getInventoryItem(id: string) {
     return this.request(`/inventory/${id}`);
+  }
+  createInventoryItem(data: any) {
+    return this.request("/inventory", { method: "POST", body: data });
+  }
+  updateInventoryItem(id: string, data: any) {
+    return this.request(`/inventory/${id}`, { method: "PATCH", body: data });
+  }
+  deleteInventoryItem(id: string) {
+    return this.request(`/inventory/${id}`, { method: "DELETE" });
   }
   getInventoryStats() {
     return this.request("/inventory/stats");
@@ -244,10 +262,11 @@ class ApiClient {
   }
 
   // Imports
-  uploadImport(file: File, type: "locations" | "inventory") {
+  uploadImport(file: File, type: "locations" | "inventory", recordType: string = "Original") {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);
+    formData.append("recordType", recordType);
 
     // We need to bypass the default request method for FormData because it sets Content-Type to application/json
     // and we need browser to set multipart/form-data boundary

@@ -61,6 +61,7 @@ model Location {
   isLocked       Boolean            @default(true)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
+  recordType     String             @default("Original")
   locationCode   String             @unique
   locationName   String
   auditReports   AuditReport[]
@@ -139,6 +140,7 @@ model InventoryItem {
   customFields            Json              @default("{}")
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
+  recordType              String            @default("Original")
   profitCenter            String?
   subCategory             String?
   unitOfMeasure           String?

@@ -44,6 +44,11 @@ export class CreateLocationDto {
   @IsString()
   @IsOptional()
   parentId?: string;
+
+  @ApiPropertyOptional({ example: "Original", description: "Record type: Original or Additional" })
+  @IsString()
+  @IsOptional()
+  recordType?: string;
 }
 
 export class UpdateLocationDto {
@@ -56,4 +61,9 @@ export class UpdateLocationDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiPropertyOptional({ example: "Original", description: "Record type: Original or Additional" })
+  @IsString()
+  @IsOptional()
+  recordType?: string;
 }

@@ -14,13 +14,14 @@ import { ImportsService } from "./imports.service";
 
 @Controller("imports")
 export class ImportsController {
-  constructor(private readonly importsService: ImportsService) {}
+  constructor(private readonly importsService: ImportsService) { }
 
   @Post("upload")
   @UseInterceptors(FileInterceptor("file"))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body("type") type: string,
+    @Body("recordType") recordType?: string,
   ) {
     if (!file) {
       throw new BadRequestException("No file uploaded");
@@ -34,6 +35,7 @@ export class ImportsController {
     return this.importsService.processImport(
       file,
       type as "locations" | "inventory",
+      recordType || "Original",
     );
   }
 
