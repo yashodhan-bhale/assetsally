@@ -6,11 +6,17 @@ import { api } from "../../../lib/api";
 
 import ReportsPage from "./page";
 
-// Mock the API
+// Mock the API and Contexts
 vi.mock("../../../lib/api", () => ({
   api: {
     getInventory: vi.fn(),
   },
+}));
+
+vi.mock("../../../contexts/auth-context", () => ({
+  useAuth: () => ({
+    user: { appType: "ADMIN" },
+  }),
 }));
 
 const queryClient = new QueryClient({
