@@ -53,7 +53,6 @@ model RefreshToken {
 
 model Location {
   id             String             @id @default(uuid())
-  description    String?
   path           String
   depth          Int
   levelLabel     String

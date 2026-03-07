@@ -173,6 +173,14 @@ class ApiClient {
     return this.request("/inventory/stats");
   }
 
+  getDepartments() {
+    return this.request("/inventory/metadata/departments");
+  }
+
+  getAssetCategories() {
+    return this.request("/inventory/metadata/categories");
+  }
+
   // Audits
   getAudits(params?: Record<string, string>) {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";

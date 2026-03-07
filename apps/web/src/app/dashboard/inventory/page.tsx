@@ -467,7 +467,7 @@ function InventoryContent() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             <PlusIcon size={18} />
-            Add Record
+            Add Inventory Item
           </button>
         )}
       </div>

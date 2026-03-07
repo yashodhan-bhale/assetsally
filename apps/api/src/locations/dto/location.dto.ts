@@ -19,11 +19,6 @@ export class CreateLocationDto {
   @IsNotEmpty()
   locationName: string;
 
-  @ApiPropertyOptional({ example: "Main office building" })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @ApiProperty({ example: "ROOT.SITE-001" })
   @IsString()
   @IsNotEmpty()
@@ -59,11 +54,6 @@ export class UpdateLocationDto {
   @IsString()
   @IsOptional()
   locationName?: string;
-
-  @ApiPropertyOptional({ example: "Updated description" })
-  @IsString()
-  @IsOptional()
-  description?: string;
 
   @ApiPropertyOptional({
     example: "Original",

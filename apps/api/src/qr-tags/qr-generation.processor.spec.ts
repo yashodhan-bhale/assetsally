@@ -1,30 +1,21 @@
 import { createWriteStream } from "fs";
-import { mkdir } from "fs/promises";
+import * as fsPromises from "fs/promises";
 import { join } from "path";
 
 import { JobStatus } from "@assetsally/shared";
-import { vi, describe, it, expect, beforeEach, afterEach, Mock } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import { PrismaService } from "../prisma/prisma.service";
 
 import { QrGenerationProcessor } from "./qr-generation.processor";
 
-// Mock nested dependencies
+// Mock nesting
 vi.mock("fs", () => ({
-  createWriteStream: vi.fn().mockImplementation(() => {
-    const stream = {
-      on: vi.fn((event, cb) => {
-        if (event === "finish") setTimeout(cb, 50);
-        return stream;
-      }),
-      pipe: vi.fn().mockReturnThis(),
-    };
-    return stream;
-  }),
+  createWriteStream: vi.fn(),
 }));
 
 vi.mock("fs/promises", () => ({
-  mkdir: vi.fn().mockResolvedValue(undefined),
+  mkdir: vi.fn(),
 }));
 
 vi.mock("pdfkit", () => {
@@ -60,10 +51,23 @@ describe("QrGenerationProcessor", () => {
   beforeEach(() => {
     prisma = mockPrismaService as any;
     processor = new QrGenerationProcessor(prisma);
+
+    // Default mocks
+    vi.mocked(fsPromises.mkdir).mockResolvedValue(undefined as any);
+    vi.mocked(createWriteStream).mockImplementation(() => {
+      const stream = {
+        on: vi.fn((event, cb) => {
+          if (event === "finish") setTimeout(cb, 50);
+          return stream;
+        }),
+        pipe: vi.fn().mockReturnThis(),
+      } as any;
+      return stream;
+    });
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe("generatePdf", () => {
@@ -113,7 +117,7 @@ describe("QrGenerationProcessor", () => {
       });
       const err = new Error("Disk error") as any;
       err.code = "EPERM";
-      (mkdir as Mock).mockRejectedValue(err);
+      vi.mocked(fsPromises.mkdir).mockRejectedValue(err);
 
       await expect(processor.generatePdf("1")).rejects.toThrow("Disk error");
       expect(mockPrismaService.qRBatch.update).toHaveBeenCalledWith({

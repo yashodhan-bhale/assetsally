@@ -68,6 +68,18 @@ export class InventoryController {
     return this.inventoryService.getStats();
   }
 
+  @Get("metadata/departments")
+  @ApiOperation({ summary: "Get all departments" })
+  getDepartments() {
+    return this.inventoryService.getDepartments();
+  }
+
+  @Get("metadata/categories")
+  @ApiOperation({ summary: "Get all asset categories" })
+  getCategories() {
+    return this.inventoryService.getAssetCategories();
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Get inventory item by ID" })
   findOne(@Param("id") id: string) {

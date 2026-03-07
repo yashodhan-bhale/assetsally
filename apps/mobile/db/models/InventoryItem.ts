@@ -31,6 +31,7 @@ export default class InventoryItem extends Model {
   @text("profit_center") profitCenter!: string | null;
   @text("sub_category") subCategory!: string | null;
   @text("unit_of_measure") unitOfMeasure!: string | null;
+  @date("capitalization_date") capitalizationDate!: Date | null;
   @field("needs_sync") needsSync!: boolean;
   @readonly @date("created_at") createdAt!: Date;
   @readonly @date("updated_at") updatedAt!: Date;

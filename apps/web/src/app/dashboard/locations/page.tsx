@@ -44,6 +44,7 @@ export default function LocationsPage() {
   const isAdmin = user?.appType === "ADMIN";
 
   const [data, setData] = useState<LocationTableData[]>([]);
+  const [fullLocations, setFullLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [headers, setHeaders] = useState<string[]>([
     "Level 1",
@@ -61,6 +62,7 @@ export default function LocationsPage() {
     setLoading(true);
     try {
       const locations: Location[] = await api.getLocations();
+      setFullLocations(locations);
 
       // Build maps for efficient lookup
       const locationMap = new Map(
@@ -113,16 +115,19 @@ export default function LocationsPage() {
     loadData();
   }, [loadData]);
 
-  const handleDelete = async (id: string, code: string) => {
-    if (confirm(`Are you sure you want to delete Location ${code}?`)) {
-      try {
-        await api.deleteLocation(id);
-        loadData();
-      } catch (error: any) {
-        alert(error.message || "Failed to delete location");
+  const handleDelete = useCallback(
+    async (id: string, code: string) => {
+      if (confirm(`Are you sure you want to delete Location ${code}?`)) {
+        try {
+          await api.deleteLocation(id);
+          loadData();
+        } catch (error: any) {
+          alert(error.message || "Failed to delete location");
+        }
       }
-    }
-  };
+    },
+    [loadData],
+  );
 
   const columns = useMemo<ColumnDef<LocationTableData>[]>(() => {
     const baseColumns: ColumnDef<LocationTableData>[] = [
@@ -214,7 +219,7 @@ export default function LocationsPage() {
     }
 
     return baseColumns;
-  }, [headers, isAdmin]);
+  }, [headers, isAdmin, handleDelete]);
 
   if (loading) {
     return (
@@ -249,7 +254,7 @@ export default function LocationsPage() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             <PlusIcon size={18} />
-            Add Record
+            Add Location
           </button>
         )}
       </div>
@@ -278,7 +283,7 @@ export default function LocationsPage() {
           loadData(); // Refresh table after add/edit
         }}
         locationToEdit={locationToEdit}
-        locationsList={data}
+        locationsList={fullLocations}
       />
     </div>
   );

@@ -35,10 +35,22 @@ export default function InventoryItemScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Form fields
   const [physicalQty, setPhysicalQty] = useState("");
   const [biometricTag, setBiometricTag] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [inventoryStatus, setInventoryStatus] = useState("");
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
+
+  const statusOptions = [
+    "Found OK",
+    "Excess",
+    "Short",
+    "Physically available, but not found",
+    "Physically unavailable, but found",
+    "Scrap/Obsolete/Damaged",
+    "Asset not in use (idle)",
+    "Asset not in use (held for sale)",
+  ];
 
   useEffect(() => {
     async function loadItem() {
@@ -48,6 +60,7 @@ export default function InventoryItemScreen() {
         setPhysicalQty(record.quantityAsPerPhysical?.toString() || "");
         setBiometricTag(record.biometricTag || "");
         setRemarks(record.importRemarks || "");
+        setInventoryStatus(record.inventoryStatus || "");
       } catch (err) {
         console.error("Failed to load item:", err);
         Alert.alert("Error", "Could not load inventory item");
@@ -69,6 +82,7 @@ export default function InventoryItemScreen() {
           r.quantityAsPerPhysical = parseInt(physicalQty) || null;
           r.biometricTag = biometricTag || null;
           r.importRemarks = remarks || null;
+          r.inventoryStatus = inventoryStatus || null;
           r.needsSync = true;
           // Calculate difference if qty's are present
           if (
@@ -113,40 +127,26 @@ export default function InventoryItemScreen() {
     setSaving(false);
   };
 
-  const handleBindQR = async () => {
-    // For demo/standalone build, show a prompt to enter QR code manually
-    // In a real build, this would trigger the camera
-    Alert.prompt(
-      "Bind QR Code",
-      "Enter or scan the QR code to bind with this asset",
+  const handleStatusSelect = () => {
+    Alert.alert(
+      "Select Inventory Status",
+      "Choose the current status of the asset",
       [
+        ...statusOptions.map((status) => ({
+          text: status,
+          onPress: () => setInventoryStatus(status),
+        })),
         { text: "Cancel", style: "cancel" },
-        {
-          text: "Bind",
-          onPress: async (code?: string) => {
-            if (!code) return;
-            if (!isOnline) {
-              Alert.alert("Offline", "You must be online to bind a QR code.");
-              return;
-            }
-
-            try {
-              setSaving(true);
-              await mobileApi.bindQrTag(
-                code,
-                item!.serverId || item!.id,
-              );
-              Alert.alert("Success", `QR Tag ${code} bound successfully`);
-              // We could refresh the item data here if needed
-            } catch (err: any) {
-              Alert.alert("Binding Failed", err.message);
-            } finally {
-              setSaving(false);
-            }
-          },
-        },
       ],
+      { cancelable: true }
     );
+  };
+
+  const handleBindQR = () => {
+    router.push({
+      pathname: "/scan",
+      params: { itemId, reportId },
+    });
   };
 
   if (loading) {
@@ -179,15 +179,6 @@ export default function InventoryItemScreen() {
           <View style={styles.card}>
             <Text style={styles.label}>Asset Name</Text>
             <Text style={styles.value}>{item.assetName}</Text>
-
-            {item.assetDescription && (
-              <>
-                <Text style={[styles.label, { marginTop: 12 }]}>
-                  Description
-                </Text>
-                <Text style={styles.value}>{item.assetDescription}</Text>
-              </>
-            )}
 
             <View style={[styles.row, { marginTop: 12 }]}>
               <View style={{ flex: 1 }}>
@@ -240,14 +231,25 @@ export default function InventoryItemScreen() {
                 </Text>
               </View>
             </View>
+
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Capitalization Date</Text>
+                <Text style={styles.value}>
+                  {item.capitalizationDate
+                    ? item.capitalizationDate.toLocaleDateString()
+                    : "-"}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Quantity Section */}
-          <Text style={styles.sectionTitle}>Quantities</Text>
+          <Text style={styles.sectionTitle}>Verification Details</Text>
           <View style={styles.card}>
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.label}>As per Books</Text>
+                <Text style={styles.label}>Qty as per Books</Text>
                 <Text style={styles.value}>
                   {item.quantityAsPerBooks ?? "-"}
                 </Text>
@@ -269,7 +271,7 @@ export default function InventoryItemScreen() {
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>
-                As per Physical Verification
+                Physical Quantity
               </Text>
               <TextInput
                 style={styles.input}
@@ -280,10 +282,28 @@ export default function InventoryItemScreen() {
                 placeholderTextColor="#64748b"
               />
             </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Inventory Status</Text>
+              <TouchableOpacity
+                style={styles.pickerTrigger}
+                onPress={handleStatusSelect}
+              >
+                <Text
+                  style={[
+                    styles.pickerText,
+                    !inventoryStatus && { color: "#64748b" },
+                  ]}
+                >
+                  {inventoryStatus || "Select Status"}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Metadata Section */}
-          <Text style={styles.sectionTitle}>Additional Details</Text>
+          <Text style={styles.sectionTitle}>Additional Info</Text>
           <View style={styles.card}>
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Biometric Tag</Text>
@@ -302,7 +322,7 @@ export default function InventoryItemScreen() {
                 style={[styles.input, styles.textArea]}
                 value={remarks}
                 onChangeText={setRemarks}
-                placeholder="Enter any observation or remarks"
+                placeholder="Enter observations"
                 multiline
                 numberOfLines={3}
                 placeholderTextColor="#64748b"
@@ -382,26 +402,37 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: "top",
   },
+  pickerTrigger: {
+    backgroundColor: "#0f172a",
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#334155",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  pickerText: { color: "#fff", fontSize: 15 },
+  errorText: { color: "#ef4444", fontSize: 16, fontWeight: "500" },
   bindBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#6366f1",
-    padding: 16,
-    borderRadius: 14,
+    backgroundColor: "#3b82f6",
+    padding: 14,
+    borderRadius: 12,
     marginBottom: 12,
   },
-  bindBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  bindBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
   saveBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     backgroundColor: "#22c55e",
-    padding: 16,
-    borderRadius: 14,
+    padding: 14,
+    borderRadius: 12,
   },
-  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  errorText: { color: "#ef4444", fontSize: 16 },
+  saveBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
 });

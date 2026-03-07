@@ -38,12 +38,7 @@ export const navItems: NavItem[] = [
     icon: MapPin,
     roles: ["ADMIN", "CLIENT"], // Client sees read-only or restricted view
   },
-  {
-    title: "Inventory",
-    href: "/dashboard/inventory",
-    icon: Package,
-    roles: ["ADMIN", "CLIENT"],
-  },
+
   {
     title: "User Management",
     href: "/dashboard/users",

@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Loader2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { api } from "../../../../lib/api";
 
@@ -10,10 +11,14 @@ const XIcon: any = X;
 const LoaderIcon: any = Loader2;
 
 interface LocationForm {
-  locationCode: string;
-  locationName: string;
-  description: string;
-  parentId: string;
+  l1Code: string;
+  l1Name: string;
+  l2Code: string;
+  l2Name: string;
+  l3Code: string;
+  l3Name: string;
+  l4Code: string;
+  l4Name: string;
   recordType: "Original" | "Additional";
 }
 
@@ -32,29 +37,55 @@ export function AddEditLocationModal({
 }: Props) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<LocationForm>({
-    locationCode: "",
-    locationName: "",
-    description: "",
-    parentId: "",
+    l1Code: "",
+    l1Name: "",
+    l2Code: "",
+    l2Name: "",
+    l3Code: "",
+    l3Name: "",
+    l4Code: "",
+    l4Name: "",
     recordType: "Original",
   });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (locationToEdit) {
+      // Find ancestors to fill L1-L3 if possible
+      const parts = locationToEdit.path?.split(".") || [];
       setFormData({
-        locationCode: locationToEdit.locationCode,
-        locationName: locationToEdit.locationName,
-        description: locationToEdit.description || "",
-        parentId: locationToEdit.parentId || "",
+        l1Code: parts[0] || "",
+        l1Name: parts[0]
+          ? locationsList.find((l) => l.locationCode === parts[0])
+              ?.locationName || ""
+          : "",
+        l2Code: parts[1] || "",
+        l2Name: parts[1]
+          ? locationsList.find((l) => l.locationCode === parts[1])
+              ?.locationName || ""
+          : "",
+        l3Code: parts[2] || "",
+        l3Name: parts[2]
+          ? locationsList.find((l) => l.locationCode === parts[2])
+              ?.locationName || ""
+          : "",
+        l4Code: parts[3] || locationToEdit.locationCode,
+        l4Name: parts[3]
+          ? locationsList.find((l) => l.locationCode === parts[3])
+              ?.locationName || locationToEdit.locationName
+          : locationToEdit.locationName,
         recordType: locationToEdit.recordType || "Original",
       });
     } else {
       setFormData({
-        locationCode: "",
-        locationName: "",
-        description: "",
-        parentId: "",
+        l1Code: "",
+        l1Name: "",
+        l2Code: "",
+        l2Name: "",
+        l3Code: "",
+        l3Name: "",
+        l4Code: "",
+        l4Name: "",
         recordType: "Original",
       });
     }
@@ -82,52 +113,79 @@ export function AddEditLocationModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.locationCode || !formData.locationName) {
-      setError("Location Code and Name are required");
+
+    // Find deepest level provided
+    let deepestLevel = 0;
+    if (formData.l4Code && formData.l4Name) deepestLevel = 4;
+    else if (formData.l3Code && formData.l3Name) deepestLevel = 3;
+    else if (formData.l2Code && formData.l2Name) deepestLevel = 2;
+    else if (formData.l1Code && formData.l1Name) deepestLevel = 1;
+
+    if (deepestLevel === 0) {
+      setError("Please provide at least Level 1 Code and Name");
       return;
     }
 
-    // Determine depth and path based on parent
-    let depth = 0;
-    let path = formData.locationCode;
-    let levelLabel = "Level 1";
+    const code = (formData as any)[`l${deepestLevel}Code`];
+    const name = (formData as any)[`l${deepestLevel}Name`];
 
-    if (formData.parentId) {
-      const parent = locationsList.find((l) => l.id === formData.parentId);
-      if (parent) {
-        depth = parent.depth + 1;
-        path = `${parent.path}.${formData.locationCode}`;
-        levelLabel = `Level ${depth + 1}`;
+    // Determine parent if it exists
+    let parentId: string | undefined = undefined;
+    let path = code;
+    const depth = deepestLevel - 1;
+
+    if (deepestLevel > 1) {
+      const parentCode = (formData as any)[`l${deepestLevel - 1}Code`];
+      const parentNode = locationsList.find(
+        (l) => l.locationCode === parentCode,
+      );
+      if (parentNode) {
+        parentId = parentNode.id;
+        path = `${parentNode.path}.${code}`;
+      } else {
+        // In a real app, we might want to auto-create ancestors.
+        // For now, assume ancestors must exist or be created top-down.
+        setError(`Level ${deepestLevel - 1} location must exist first.`);
+        return;
       }
     }
 
     const payload: any = {
-      locationCode: formData.locationCode,
-      locationName: formData.locationName,
-      description: formData.description,
+      locationCode: code,
+      locationName: name,
       recordType: formData.recordType,
     };
 
     if (!locationToEdit) {
-      payload.parentId = formData.parentId || undefined;
+      payload.parentId = parentId;
       payload.depth = depth;
       payload.path = path;
-      payload.levelLabel = levelLabel;
+      payload.levelLabel = `Level ${deepestLevel}`;
     } else {
-      // For updates, we only send allowed fields (code/path/depth updates require more complex logic, left as per API capabilities)
-      payload.description = formData.description;
-      payload.locationName = formData.locationName;
+      payload.locationName = name;
       payload.recordType = formData.recordType;
-      delete payload.locationCode; // Depending on API this might not be updatable
     }
 
     mutation.mutate(payload);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative">
-        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+  const deepestLevel =
+    formData.l4Code && formData.l4Name
+      ? 4
+      : formData.l3Code && formData.l3Name
+        ? 3
+        : formData.l2Code && formData.l2Name
+          ? 2
+          : formData.l1Code && formData.l1Name
+            ? 1
+            : 0;
+
+  if (!isOpen) return null;
+
+  const content = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-8 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden relative">
+        <div className="flex-shrink-0 bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-slate-800">
             {locationToEdit ? "Edit Location" : "Add Location"}
           </h2>
@@ -139,81 +197,151 @@ export function AddEditLocationModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4 overflow-y-auto flex-1"
+        >
           {error && (
             <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
               {error}
             </div>
           )}
 
-          {!locationToEdit && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Location Code <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.locationCode}
-                onChange={(e) =>
-                  setFormData({ ...formData, locationCode: e.target.value })
-                }
-                className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-                placeholder="e.g. BLD01"
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L1 Code{" "}
+                  {deepestLevel === 1 && (
+                    <span className="text-red-500">*</span>
+                  )}
+                </label>
+                <input
+                  type="text"
+                  value={formData.l1Code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l1Code: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L1 Code"
+                  disabled={!!locationToEdit}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L1 Name{" "}
+                  {deepestLevel === 1 && (
+                    <span className="text-red-500">*</span>
+                  )}
+                </label>
+                <input
+                  type="text"
+                  value={formData.l1Name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l1Name: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L1 Name"
+                />
+              </div>
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Location Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.locationName}
-              onChange={(e) =>
-                setFormData({ ...formData, locationName: e.target.value })
-              }
-              className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-              placeholder="e.g. Main Building"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Description
-            </label>
-            <input
-              type="text"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-              placeholder="Optional description"
-            />
-          </div>
-
-          {!locationToEdit && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Parent Location
-              </label>
-              <select
-                value={formData.parentId}
-                onChange={(e) =>
-                  setFormData({ ...formData, parentId: e.target.value })
-                }
-                className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-              >
-                <option value="">None (Top Level)</option>
-                {locationsList.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.locationCode} - {loc.locationName}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L2 Code
+                </label>
+                <input
+                  type="text"
+                  value={formData.l2Code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l2Code: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L2 Code"
+                  disabled={!!locationToEdit && locationToEdit.depth < 1}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L2 Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.l2Name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l2Name: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L2 Name"
+                />
+              </div>
             </div>
-          )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L3 Code
+                </label>
+                <input
+                  type="text"
+                  value={formData.l3Code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l3Code: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L3 Code"
+                  disabled={!!locationToEdit && locationToEdit.depth < 2}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L3 Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.l3Name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l3Name: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L3 Name"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L4 Code
+                </label>
+                <input
+                  type="text"
+                  value={formData.l4Code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l4Code: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L4 Code"
+                  disabled={!!locationToEdit && locationToEdit.depth < 3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  L4 Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.l4Name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, l4Name: e.target.value })
+                  }
+                  className="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                  placeholder="L4 Name"
+                />
+              </div>
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -231,7 +359,7 @@ export function AddEditLocationModal({
             </select>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3">
+          <div className="pt-4 flex justify-end gap-3 flex-shrink-0 mt-auto bg-white border-t border-slate-100 p-6">
             <button
               type="button"
               onClick={onClose}
@@ -254,4 +382,6 @@ export function AddEditLocationModal({
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }

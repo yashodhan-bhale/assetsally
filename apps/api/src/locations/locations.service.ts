@@ -125,7 +125,6 @@ export class LocationsService {
       data: {
         locationCode: dto.locationCode,
         locationName: dto.locationName,
-        description: dto.description,
         path: dto.path,
         depth: dto.depth,
         levelLabel: dto.levelLabel,

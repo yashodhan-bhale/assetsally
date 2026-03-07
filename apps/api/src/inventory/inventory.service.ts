@@ -398,4 +398,16 @@ export class InventoryService {
 
     return { totalItems, itemsByLocation, itemsByCategory };
   }
+
+  async getDepartments() {
+    return this.prisma.department.findMany({
+      orderBy: { name: "asc" },
+    });
+  }
+
+  async getAssetCategories() {
+    return this.prisma.assetCategory.findMany({
+      orderBy: { name: "asc" },
+    });
+  }
 }
