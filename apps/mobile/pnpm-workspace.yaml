@@ -1,0 +1,3 @@
+# Isolated workspace for mobile
+packages:
+  - "."
