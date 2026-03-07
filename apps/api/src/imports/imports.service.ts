@@ -14,7 +14,7 @@ export class ImportsService {
     private prisma: PrismaService,
     private locationsService: LocationsService,
     private inventoryService: InventoryService,
-  ) { }
+  ) {}
 
   async wipeData() {
     try {
@@ -41,9 +41,17 @@ export class ImportsService {
     recordType: string = "Original",
   ) {
     if (type === "locations") {
-      return this.locationsService.bulkImport(file.buffer, file.originalname, recordType);
+      return this.locationsService.bulkImport(
+        file.buffer,
+        file.originalname,
+        recordType,
+      );
     } else if (type === "inventory") {
-      return this.inventoryService.bulkImport(file.buffer, file.originalname, recordType);
+      return this.inventoryService.bulkImport(
+        file.buffer,
+        file.originalname,
+        recordType,
+      );
     }
 
     throw new BadRequestException("Invalid import type");

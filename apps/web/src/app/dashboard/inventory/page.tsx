@@ -2,16 +2,24 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Unlink, AlertCircle, Loader2, MapPin, X } from "lucide-react";
+import {
+  Unlink,
+  AlertCircle,
+  Loader2,
+  MapPin,
+  X,
+  Edit,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense, useMemo } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
 import { useAuth } from "../../../contexts/auth-context";
 import { api } from "../../../lib/api";
-import { AddEditInventoryModal } from "./components/AddEditInventoryModal";
 
-import { Edit, Trash2, Plus } from "lucide-react";
+import { AddEditInventoryModal } from "./components/AddEditInventoryModal";
 
 interface InventoryItem {
   id: string;
@@ -295,7 +303,9 @@ function InventoryContent() {
         accessorKey: "recordType",
         header: "Record Type",
         cell: ({ row }) => (
-          <span className="capitalize">{row.original.recordType || "Original"}</span>
+          <span className="capitalize">
+            {row.original.recordType || "Original"}
+          </span>
         ),
       },
       {
@@ -340,7 +350,9 @@ function InventoryContent() {
               <EditIcon size={16} />
             </button>
             <button
-              onClick={() => handleDelete(row.original.id, row.original.assetNumber)}
+              onClick={() =>
+                handleDelete(row.original.id, row.original.assetNumber)
+              }
               className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete Item"
             >

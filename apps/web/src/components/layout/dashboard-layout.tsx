@@ -124,8 +124,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             const isExpanded = expandedMenus.includes(item.title);
             const isActive =
               pathname === item.href ||
+              (item.href !== "/dashboard" &&
+                pathname.startsWith(item.href + "/")) ||
               (hasChildren &&
-                item.children?.some((child) => pathname === child.href));
+                item.children?.some(
+                  (child) =>
+                    pathname === child.href ||
+                    (child.href !== "/dashboard" &&
+                      pathname.startsWith(child.href + "/")),
+                ));
 
             return (
               <div key={item.title} className="space-y-1">
@@ -200,7 +207,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 {hasChildren && isExpanded && isSidebarOpen && (
                   <div className="pl-10 space-y-1 animate-in slide-in-from-top-2 duration-200">
                     {item.children?.map((child) => {
-                      const isChildActive = pathname === child.href;
+                      const isChildActive =
+                        pathname === child.href ||
+                        (child.href !== "/dashboard" &&
+                          pathname.startsWith(child.href + "/"));
                       return (
                         <NavLink
                           key={child.href}

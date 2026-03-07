@@ -26,7 +26,9 @@ export default function DataImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [wiping, setWiping] = useState(false);
-  const [recordType, setRecordType] = useState<"Original" | "Additional">("Original");
+  const [recordType, setRecordType] = useState<"Original" | "Additional">(
+    "Original",
+  );
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -176,7 +178,9 @@ export default function DataImportPage() {
             </p>
 
             <div className="text-left space-y-1 mt-4">
-              <label className="text-sm font-medium text-slate-300">Record Type <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-slate-300">
+                Record Type <span className="text-red-500">*</span>
+              </label>
               <select
                 value={recordType}
                 onChange={(e) => setRecordType(e.target.value as any)}

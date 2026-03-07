@@ -51,11 +51,15 @@ class ApiClient {
 
       if (res.status === 401) {
         this.setToken(null);
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && endpoint !== "/auth/login") {
           localStorage.removeItem("refreshToken");
           window.location.href = "/login";
         }
-        throw new Error("Unauthorized");
+        throw new Error(
+          endpoint === "/auth/login"
+            ? "Invalid email or password"
+            : "Unauthorized",
+        );
       }
 
       if (!res.ok) {
@@ -262,7 +266,11 @@ class ApiClient {
   }
 
   // Imports
-  uploadImport(file: File, type: "locations" | "inventory", recordType: string = "Original") {
+  uploadImport(
+    file: File,
+    type: "locations" | "inventory",
+    recordType: string = "Original",
+  ) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);

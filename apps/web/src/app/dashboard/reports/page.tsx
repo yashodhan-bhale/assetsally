@@ -23,8 +23,8 @@ import {
 import React, { useState, useMemo } from "react";
 
 import { DataTable } from "../../../components/ui/data-table";
-import { api } from "../../../lib/api";
 import { useAuth } from "../../../contexts/auth-context";
+import { api } from "../../../lib/api";
 
 const LoaderIcon: any = Loader2;
 const DownloadIcon: any = Download;
@@ -90,8 +90,9 @@ const locationColumns: ColumnDef<LocationStat>[] = [
     header: "Difference",
     cell: ({ row }) => (
       <div
-        className={`text-right font-medium ${row.original.difference !== 0 ? "text-red-600" : "text-slate-600"
-          }`}
+        className={`text-right font-medium ${
+          row.original.difference !== 0 ? "text-red-600" : "text-slate-600"
+        }`}
       >
         {row.original.difference}
       </div>
@@ -241,7 +242,9 @@ export default function ReportsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-4`}>
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-4`}
+      >
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">

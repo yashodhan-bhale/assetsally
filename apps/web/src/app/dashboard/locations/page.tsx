@@ -9,6 +9,7 @@ import { DataTable } from "../../../components/ui/data-table";
 import { useAuth } from "../../../contexts/auth-context";
 import { api } from "../../../lib/api";
 import { AuditScheduleModal } from "../audit-schedule/components/AuditScheduleModal";
+
 import { AddEditLocationModal } from "./components/AddEditLocationModal";
 
 const LoaderIcon: any = Loader2;
@@ -157,7 +158,9 @@ export default function LocationsPage() {
         accessorKey: "recordType",
         header: "Record Type",
         cell: ({ row }) => (
-          <span className="capitalize">{row.original.recordType || "Original"}</span>
+          <span className="capitalize">
+            {row.original.recordType || "Original"}
+          </span>
         ),
       },
       {
@@ -197,7 +200,9 @@ export default function LocationsPage() {
               <EditIcon size={16} />
             </button>
             <button
-              onClick={() => handleDelete(row.original.id, row.original.locationCode)}
+              onClick={() =>
+                handleDelete(row.original.id, row.original.locationCode)
+              }
               className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Delete Location"
             >

@@ -11,7 +11,7 @@ import { CreateInventoryItemDto, UpdateInventoryItemDto } from "./dto";
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(query?: {
     locationId?: string;
@@ -172,7 +172,11 @@ export class InventoryService {
     return this.prisma.inventoryItem.delete({ where: { id } });
   }
 
-  async bulkImport(fileBuffer: Buffer, filename: string, recordType: string = "Original") {
+  async bulkImport(
+    fileBuffer: Buffer,
+    filename: string,
+    recordType: string = "Original",
+  ) {
     const workbook = XLSX.read(fileBuffer, { type: "buffer" });
     const sheetName =
       workbook.SheetNames.find((n) => n.trim() === "Inventory Report") ||

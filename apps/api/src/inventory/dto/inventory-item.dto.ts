@@ -115,7 +115,10 @@ export class CreateInventoryItemDto {
   @IsOptional()
   importRemarks?: string;
 
-  @ApiPropertyOptional({ example: "Original", description: "Record type: Original or Additional" })
+  @ApiPropertyOptional({
+    example: "Original",
+    description: "Record type: Original or Additional",
+  })
   @IsString()
   @IsOptional()
   recordType?: string;
@@ -221,7 +224,10 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   importRemarks?: string;
 
-  @ApiPropertyOptional({ example: "Original", description: "Record type: Original or Additional" })
+  @ApiPropertyOptional({
+    example: "Original",
+    description: "Record type: Original or Additional",
+  })
   @IsString()
   @IsOptional()
   recordType?: string;
